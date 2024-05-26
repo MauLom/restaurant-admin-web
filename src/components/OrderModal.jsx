@@ -2,27 +2,50 @@ import React, { useState, useEffect } from 'react';
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader,
   ModalFooter, ModalBody, ModalCloseButton, Button,
-  FormControl, FormLabel, Input, Select, Text, Table, Thead, Tbody, Tr, Th, Td
+  FormControl, FormLabel, Input, Select, Text, Table, Thead, Tbody, Tr, Th, Td, Alert, AlertIcon
 } from '@chakra-ui/react';
 
-const OrderModal = ({ isOpen, onClose, onSave, items, order }) => {
+const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
   const [selectedItems, setSelectedItems] = useState([]);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState('1'); // Initialize as string
   const [selectedItem, setSelectedItem] = useState('');
+  const [numberOfPeople, setNumberOfPeople] = useState(1); // Add this state
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (order) {
       setSelectedItems(order.items);
+      setNumberOfPeople(order.numberOfPeople); // Set number of people if editing order
     } else {
       setSelectedItems([]);
+      setNumberOfPeople(1); // Reset to 1 if creating new order
     }
   }, [order]);
 
   const handleAddItem = () => {
-    if (selectedItem && quantity > 0) {
-      const item = items.find(item => item._id === selectedItem);
-      setSelectedItems([...selectedItems, { ...item, quantity }]);
+    if (!selectedItem || parseInt(quantity) <= 0) return;
+
+    const item = items.find(item => item._id === selectedItem);
+    const currentItem = selectedItems.find(i => i.itemId === selectedItem);
+    const currentQuantity = currentItem ? currentItem.quantity : 0;
+
+    if (currentQuantity + parseInt(quantity) > item.quantity) {
+      setError(`You can only add up to ${item.quantity - currentQuantity} of ${item.name}`);
+      return;
     }
+
+    setSelectedItems(prevItems => {
+      const updatedItems = prevItems.map(i => 
+        i.itemId === selectedItem ? { ...i, quantity: i.quantity + parseInt(quantity) } : i
+      );
+      if (!currentItem) {
+        updatedItems.push({ itemId: item._id, name: item.name, quantity: parseInt(quantity), sellPrice: item.sellPrice });
+      }
+      return updatedItems;
+    });
+    setSelectedItem('');
+    setQuantity('1');
+    setError('');
   };
 
   const handleItemChange = (index, quantity) => {
@@ -41,13 +64,15 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order }) => {
   const handleSave = () => {
     const newOrder = {
       items: selectedItems.map(item => ({
-        itemId: item._id,
+        itemId: item.itemId,
         name: item.name,
         quantity: item.quantity,
         cost: item.costAmount || 0,
         sellPrice: item.sellPrice || 0
       })),
       totalPrice: calculateTotalPrice(),
+      createdBy: user._id, // Assuming you have user information available
+      numberOfPeople,
       status: order ? order.status : 'Pending'
     };
     onSave(newOrder);
@@ -61,6 +86,12 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order }) => {
         <ModalHeader>{order ? 'Edit Order' : 'Create Order'}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
+          {error && (
+            <Alert status="error" mb={4}>
+              <AlertIcon />
+              {error}
+            </Alert>
+          )}
           <FormControl mb={4}>
             <FormLabel>Select Item</FormLabel>
             <Select
@@ -70,7 +101,7 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order }) => {
             >
               {items.map(item => (
                 <option key={item._id} value={item._id}>
-                  {item.name}
+                  {item.name} (Available: {item.quantity})
                 </option>
               ))}
             </Select>
@@ -80,7 +111,15 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order }) => {
             <Input
               type="number"
               value={quantity}
-              onChange={(e) => setQuantity(parseInt(e.target.value, 10))}
+              onChange={(e) => setQuantity(e.target.value)}
+            />
+          </FormControl>
+          <FormControl mb={4}>
+            <FormLabel>Number of People</FormLabel>
+            <Input
+              type="number"
+              value={numberOfPeople}
+              onChange={(e) => setNumberOfPeople(parseInt(e.target.value, 10))}
             />
           </FormControl>
           <Button onClick={handleAddItem} mb={4}>
@@ -96,12 +135,12 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order }) => {
               </Tr>
             </Thead>
             <Tbody>
-              {selectedItems.map((item, index) => (
+              {selectedItems.slice(0, 5).map((item, index) => (
                 <Tr key={index}>
                   <Td>
                     <Input
                       type="number"
-                      value={item.quantity}
+                      value={item.quantity.toString()} // Ensure it's a string
                       onChange={(e) => handleItemChange(index, e.target.value)}
                     />
                   </Td>
@@ -112,6 +151,11 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order }) => {
                   </Td>
                 </Tr>
               ))}
+              {selectedItems.length > 5 && (
+                <Tr>
+                  <Td colSpan={4} textAlign="center">and more...</Td>
+                </Tr>
+              )}
             </Tbody>
           </Table>
           <Text fontWeight="bold" textAlign="right" mt={4}>Total Price: ${calculateTotalPrice().toFixed(2)}</Text>

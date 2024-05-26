@@ -7,7 +7,7 @@ const OrderCard = ({ order, onProcess, onClick }) => {
     const [items, setItems] = useState([]);
 
     const calculateTotal = (items) => {
-        return items.reduce((total, item) => total + (item.quantity * (item.sellPrice || 0)), 0);
+        return items.reduce((total, item) => total + (item.quantity * (item.itemId.sellPrice || 0)), 0);
     };
 
     useEffect(() => {
@@ -60,7 +60,7 @@ const OrderCard = ({ order, onProcess, onClick }) => {
                             <Tr key={index}>
                                 <Td>{item.quantity}</Td>
                                 <Td>{item.itemId.name}</Td>
-                                <Td>${(item.quantity * (item.itemId.sellPrice)).toFixed(2)}</Td>
+                                <Td>${(item.quantity * (item.itemId.sellPrice || 0)).toFixed(2)}</Td>
                             </Tr>
                         ))}
                         {items.length > 5 && (

@@ -1,17 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   Box, Heading, Flex, Spacer, Button, SimpleGrid, useDisclosure
 } from '@chakra-ui/react';
 import Breadcrumbs from '../components/Breadcrumbs';
 import axios from 'axios';
 import OrderCard from '../components/OrderCard';
-import OrderModal from '../components/OrderModal'; // Import your OrderModal
+import OrderModal from '../components/OrderModal';
+import { UserContext } from '../context/UserContext';
 
-const Orders = () => {
+const Orders = ({ socket }) => {
   const [orders, setOrders] = useState([]);
   const [items, setItems] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { user } = useContext(UserContext);
 
   const breadcrumbItems = [
     { label: 'Home', path: '/' },
@@ -42,7 +44,25 @@ const Orders = () => {
 
     fetchOrders();
     fetchItems();
-  }, [API_URL]);
+
+    // Socket event listeners
+    socket.on('orderCreated', (order) => {
+      setOrders((prevOrders) => [...prevOrders, order]);
+    });
+
+    socket.on('orderUpdated', (updatedOrder) => {
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === updatedOrder._id ? updatedOrder : order
+        )
+      );
+    });
+
+    return () => {
+      socket.off('orderCreated');
+      socket.off('orderUpdated');
+    };
+  }, [API_URL, socket]);
 
   const handleSaveOrder = async (newOrder) => {
     try {
@@ -127,7 +147,7 @@ const Orders = () => {
             key={order._id}
             order={order}
             onProcess={handleProcessOrder}
-            onClick={handleCardClick} // Pass the click handler
+            onClick={handleCardClick}
           />
         ))}
       </SimpleGrid>
@@ -138,6 +158,7 @@ const Orders = () => {
         onSave={selectedOrder ? handleSaveChanges : handleSaveOrder}
         items={items}
         order={selectedOrder}
+        user={user}
       />
     </Box>
   );
