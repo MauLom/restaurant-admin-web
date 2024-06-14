@@ -104,18 +104,6 @@ const Orders = ({ socket }) => {
     onOpen();
   };
 
-  const handleItemChange = (index, quantity) => {
-    const updatedItems = selectedOrder.items.map((item, idx) => idx === index ? { ...item, quantity: parseInt(quantity, 10) } : item);
-    setSelectedOrder({ ...selectedOrder, items: updatedItems });
-  };
-
-  const handleAddItem = () => {
-    setSelectedOrder({ ...selectedOrder, items: [...selectedOrder.items, { itemId: '', quantity: 1 }] });
-  };
-
-  const handleDeleteItem = (index) => {
-    setSelectedOrder({ ...selectedOrder, items: selectedOrder.items.filter((_, idx) => idx !== index) });
-  };
 
   const handleSaveChanges = async () => {
     try {
