@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Navigate, Routes, useNavigate } from 'react-router-dom';
+import { Route, Navigate, Routes, useNavigate } from 'react-router-dom';
 import { Box, Heading, Container, Flex, Spacer, Button, VStack, useDisclosure } from '@chakra-ui/react';
-import { PackageIcon, ListUnorderedIcon, PersonIcon } from '@primer/octicons-react';
+import { PackageIcon, ListUnorderedIcon, PersonIcon, GraphIcon } from '@primer/octicons-react';
 import Inventory from './pages/Inventory';
 import Orders from './pages/Orders';
 import Users from './pages/Users';
@@ -10,6 +10,7 @@ import LoginModal from './components/LoginModal';
 import { UserContext } from './context/UserContext';
 import { io } from 'socket.io-client';
 import './App.css';
+import Analysis from './pages/Analysis';
 
 const socket = io(process.env.REACT_APP_API_URL);
 
@@ -56,6 +57,8 @@ function App() {
           <Route path="/inventory" element={user ? <Inventory /> : <Navigate to="/" />} />
           <Route path="/orders" element={user ? <Orders socket={socket} /> : <Navigate to="/" />} />
           <Route path="/users" element={user ? <Users /> : <Navigate to="/" />} />
+          <Route path="/analysis" element={user ? <Analysis /> : <Navigate to="/" />} />
+
           <Route path="/" element={
             user ? (
               <VStack spacing={4}>
@@ -74,6 +77,13 @@ function App() {
                   icon={<PersonIcon size={48} />}
                   title="Manage Users"
                   onClick={() => navigate('/users')}
+                />
+                 <Card
+                  icon={<GraphIcon size={48} />}
+                  title="Balances"
+                  onClick={() => navigate('/analysis')}
+
+
                 />
               </VStack>
             ) : (
