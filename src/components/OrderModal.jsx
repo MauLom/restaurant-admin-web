@@ -7,18 +7,18 @@ import {
 
 const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
   const [selectedItems, setSelectedItems] = useState([]);
-  const [quantity, setQuantity] = useState('1'); // Initialize as string
+  const [quantity, setQuantity] = useState('1');
   const [selectedItem, setSelectedItem] = useState('');
-  const [numberOfPeople, setNumberOfPeople] = useState(1); // Add this state
+  const [numberOfPeople, setNumberOfPeople] = useState(1);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (order) {
       setSelectedItems(order.items);
-      setNumberOfPeople(order.numberOfPeople); // Set number of people if editing order
+      setNumberOfPeople(order.numberOfPeople);
     } else {
       setSelectedItems([]);
-      setNumberOfPeople(1); // Reset to 1 if creating new order
+      setNumberOfPeople(1);
     }
   }, [order]);
 
@@ -71,7 +71,7 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
         sellPrice: item.sellPrice || 0
       })),
       totalPrice: calculateTotalPrice(),
-      createdBy: user._id, // Assuming you have user information available
+      createdBy: user._id,
       numberOfPeople,
       status: order ? order.status : 'Pending'
     };
@@ -140,7 +140,7 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
                   <Td>
                     <Input
                       type="number"
-                      value={item.quantity.toString()} // Ensure it's a string
+                      value={item.quantity.toString()}
                       onChange={(e) => handleItemChange(index, e.target.value)}
                     />
                   </Td>

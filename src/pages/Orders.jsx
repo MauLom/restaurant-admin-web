@@ -23,7 +23,6 @@ const Orders = ({ socket }) => {
   const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
-    // Fetch orders and inventory items from the API
     const fetchOrders = async () => {
       try {
         const response = await axios.get(`${API_URL}/orders`);
@@ -45,7 +44,6 @@ const Orders = ({ socket }) => {
     fetchOrders();
     fetchItems();
 
-    // Socket event listeners
     socket.on('orderCreated', (order) => {
       setOrders((prevOrders) => [...prevOrders, order]);
     });
@@ -80,7 +78,6 @@ const Orders = ({ socket }) => {
     try {
       await axios.put(`${API_URL}/orders/update/${orderId}`, { status: 'Processed' });
 
-      // Update inventory
       await Promise.all(order.items.map(async item => {
         const inventoryItem = items.find(i => i._id === item.itemId);
         if (inventoryItem) {
@@ -89,7 +86,6 @@ const Orders = ({ socket }) => {
         }
       }));
 
-      // Update local state
       setOrders(orders.map(o => (o._id === orderId ? { ...o, status: 'Processed' } : o)));
       setItems(items.map(i => {
         const orderedItem = order.items.find(item => item.itemId === i._id);
