@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import {
-  Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton,
+  Modal, ModalOverlay, ModalContent, ModalBody, ModalHeader, ModalCloseButton,
   Button, FormControl, FormLabel, Input, Alert, AlertIcon, Tabs, TabList, TabPanels, Tab, TabPanel
 } from '@chakra-ui/react';
 import axios from 'axios';
