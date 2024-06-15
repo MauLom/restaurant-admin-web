@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import {
   Box, Heading, Flex, Spacer, Button, SimpleGrid, useDisclosure
 } from '@chakra-ui/react';
@@ -7,13 +7,15 @@ import axios from 'axios';
 import OrderCard from '../components/OrderCard';
 import OrderModal from '../components/OrderModal';
 import { UserContext } from '../context/UserContext';
+import io from 'socket.io-client';
 
-const Orders = ({ socket }) => {
+const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [items, setItems] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user } = useContext(UserContext);
+  const socketRef = useRef(null);
 
   const breadcrumbItems = [
     { label: 'Home', path: '/' },
@@ -23,6 +25,9 @@ const Orders = ({ socket }) => {
   const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
+    // Initialize WebSocket connection
+    socketRef.current = io('http://localhost:5000');
+
     const fetchOrders = async () => {
       try {
         const response = await axios.get(`${API_URL}/orders`);
@@ -44,11 +49,11 @@ const Orders = ({ socket }) => {
     fetchOrders();
     fetchItems();
 
-    socket.on('orderCreated', (order) => {
+    socketRef.current.on('orderCreated', (order) => {
       setOrders((prevOrders) => [...prevOrders, order]);
     });
 
-    socket.on('orderUpdated', (updatedOrder) => {
+    socketRef.current.on('orderUpdated', (updatedOrder) => {
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order._id === updatedOrder._id ? updatedOrder : order
@@ -56,11 +61,11 @@ const Orders = ({ socket }) => {
       );
     });
 
+    // Cleanup WebSocket connection when the component unmounts
     return () => {
-      socket.off('orderCreated');
-      socket.off('orderUpdated');
+      socketRef.current.disconnect();
     };
-  }, [API_URL, socket]);
+  }, [API_URL]);
 
   const handleSaveOrder = async (newOrder) => {
     try {
@@ -71,12 +76,15 @@ const Orders = ({ socket }) => {
     }
   };
 
-  const handleProcessOrder = async (orderId) => {
+  const handleProcessOrder = async (orderId, paymentMethod) => {
     const order = orders.find(o => o._id === orderId);
     if (!order) return;
 
     try {
-      await axios.put(`${API_URL}/orders/update/${orderId}`, { status: 'Processed' });
+      await axios.put(`${API_URL}/orders/update/${orderId}`, { 
+        status: 'Processed',
+        paymentMethod: paymentMethod 
+      });
 
       await Promise.all(order.items.map(async item => {
         const inventoryItem = items.find(i => i._id === item.itemId);
@@ -86,7 +94,7 @@ const Orders = ({ socket }) => {
         }
       }));
 
-      setOrders(orders.map(o => (o._id === orderId ? { ...o, status: 'Processed' } : o)));
+      setOrders(orders.map(o => (o._id === orderId ? { ...o, status: 'Processed', paymentMethod: paymentMethod } : o)));
       setItems(items.map(i => {
         const orderedItem = order.items.find(item => item.itemId === i._id);
         if (orderedItem) {
@@ -102,19 +110,6 @@ const Orders = ({ socket }) => {
   const handleCardClick = (order) => {
     setSelectedOrder(order);
     onOpen();
-  };
-
-  const handleItemChange = (index, quantity) => {
-    const updatedItems = selectedOrder.items.map((item, idx) => idx === index ? { ...item, quantity: parseInt(quantity, 10) } : item);
-    setSelectedOrder({ ...selectedOrder, items: updatedItems });
-  };
-
-  const handleAddItem = () => {
-    setSelectedOrder({ ...selectedOrder, items: [...selectedOrder.items, { itemId: '', quantity: 1 }] });
-  };
-
-  const handleDeleteItem = (index) => {
-    setSelectedOrder({ ...selectedOrder, items: selectedOrder.items.filter((_, idx) => idx !== index) });
   };
 
   const handleSaveChanges = async () => {

@@ -1,65 +1,80 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Heading, Tab, TabList, TabPanel, TabPanels, Tabs, FormControl, FormLabel,
-  Input, Button, Stack, Tag, TagLabel, TagCloseButton, Flex, useToast, Select,
-  Text
+  Box, Heading, Tab, TabList, TabPanel, TabPanels, Tabs, Flex, Button, useToast
 } from '@chakra-ui/react';
-import CategoryCard from '../components/CategoryCard';
 import axios from 'axios';
+import SavedAnalyses from '../components/SaveAnalysis';
+import Instructions from '../components/Instructions';
+import Balance from '../components/Balance';
+import ProcessedOrders from '../components/ProcessedOrders';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 const Analysis = () => {
   const [items, setItems] = useState([]);
-  const [newItem, setNewItem] = useState({ name: '', category: '', soldAmount: 0, sellPrice: 0, quantitySold: 0 });
   const [categories, setCategories] = useState([]);
   const [savedAnalysisId, setSavedAnalysisId] = useState(null);
   const [savedAnalyses, setSavedAnalyses] = useState([]);
   const [selectedAnalysis, setSelectedAnalysis] = useState(null);
+  const [processedOrders, setProcessedOrders] = useState([]);
   const toast = useToast();
 
   const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
-    const fetchSavedAnalyses = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/analysis`);
-        setSavedAnalyses(response.data);
-      } catch (error) {
-        toast({
-          title: 'Error fetching analyses.',
-          description: "An error occurred while fetching saved analyses.",
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    };
-
     fetchSavedAnalyses();
-  }, [API_URL, toast]);
+  }, []);
 
-  const handleAddItem = () => {
-    setItems([...items, newItem]);
-    if (!categories.includes(newItem.category)) {
-      setCategories([...categories, newItem.category]);
+  const fetchSavedAnalyses = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/analysis`);
+      setSavedAnalyses(response.data);
+    } catch (error) {
+      toast({
+        title: 'Error fetching analyses.',
+        description: "An error occurred while fetching saved analyses.",
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
     }
-    setNewItem({ name: '', category: '', soldAmount: 0, sellPrice: 0, quantitySold: 0 });
   };
 
-  const calculateTotalIncome = () => {
-    return items.reduce((total, item) => total + (item.sellPrice * item.quantitySold), 0);
+  const fetchProcessedOrders = async (date) => {
+    try {
+      const response = await axios.get(`${API_URL}/orders?status=Processed&date=${date}`);
+      setProcessedOrders(response.data);
+      processOrders(response.data);
+    } catch (error) {
+      toast({
+        title: 'Error fetching processed orders.',
+        description: "An error occurred while fetching processed orders.",
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
-  const calculateRestockCost = () => {
-    return items.reduce((total, item) => total + (item.soldAmount * item.quantitySold), 0);
-  };
+  const processOrders = (orders) => {
+    const items = [];
+    const categories = new Set();
 
-  const calculateProfit = () => {
-    return calculateTotalIncome() - calculateRestockCost();
-  };
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        const itemId = item.itemId;
+        items.push({
+          ...itemId,
+          sellPrice: itemId.sellPrice || 0,
+          costAmount: itemId.costAmount || 0,
+          soldAmount: itemId.soldAmount || 0,
+          quantity: item.quantity || 0,
+        });
+        categories.add(itemId.category);
+      });
+    });
 
-  const handleRemoveCategory = (category) => {
-    setCategories(categories.filter(cat => cat !== category));
-    setItems(items.filter(item => item.category !== category));
+    setItems(items);
+    setCategories([...categories]);
   };
 
   const handleSaveAnalysis = async () => {
@@ -116,8 +131,19 @@ const Analysis = () => {
     setCategories([...new Set(analysis.items.map(item => item.category))]);
   };
 
+  const handleDateChange = (date) => {
+    console.log("this is called")
+    fetchProcessedOrders(date);
+  };
+
+  const breadcrumbItems = [
+    { label: 'Home', path: '/' },
+    { label: 'Analysis', path: '/analysis' },
+  ];
+
   return (
     <Box p={4}>
+      <Breadcrumbs items={breadcrumbItems} />
       <Heading as="h2" mb={4}>Análisis</Heading>
       <Tabs variant="enclosed">
         <TabList>
@@ -128,87 +154,23 @@ const Analysis = () => {
         </TabList>
         <TabPanels>
           <TabPanel>
-            <Stack spacing={4}>
-              <FormControl id="itemName">
-                <FormLabel>Nombre</FormLabel>
-                <Input type="text" value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} />
-              </FormControl>
-              <FormControl id="itemCategory">
-                <FormLabel>Categoría</FormLabel>
-                <Input type="text" value={newItem.category} onChange={(e) => setNewItem({ ...newItem, category: e.target.value })} />
-                <Stack direction="row" mt={2}>
-                  {categories.map((category, index) => (
-                    <Tag key={index} size="md" colorScheme="teal" borderRadius="full">
-                      <TagLabel>{category}</TagLabel>
-                      <TagCloseButton onClick={() => handleRemoveCategory(category)} />
-                    </Tag>
-                  ))}
-                </Stack>
-              </FormControl>
-              <FormControl id="soldAmount">
-                <FormLabel>Precio costo</FormLabel>
-                <Input type="number" value={newItem.soldAmount} onChange={(e) => setNewItem({ ...newItem, soldAmount: parseFloat(e.target.value) })} />
-              </FormControl>
-              <FormControl id="sellPrice">
-                <FormLabel>Precio Venta</FormLabel>
-                <Input type="number" value={newItem.sellPrice} onChange={(e) => setNewItem({ ...newItem, sellPrice: parseFloat(e.target.value) })} />
-              </FormControl>
-              <FormControl id="quantitySold">
-                <FormLabel>Cantidad vendida</FormLabel>
-                <Input type="number" value={newItem.quantitySold} onChange={(e) => setNewItem({ ...newItem, quantitySold: parseFloat(e.target.value) })} />
-              </FormControl>
-              <Button onClick={handleAddItem}>Agregar item</Button>
-            </Stack>
+            <ProcessedOrders processedOrders={processedOrders} onDateChange={handleDateChange} />
           </TabPanel>
           <TabPanel>
-            <Box>
-              <Heading size="md" mb={4}>Detalle</Heading>
-              <Text>Ingreso total: ${calculateTotalIncome().toFixed(2)}</Text>
-              <Text>Costo de Restock: ${calculateRestockCost().toFixed(2)}</Text>
-              <Text>Profit: ${calculateProfit().toFixed(2)}</Text>
-              {/* Add your graph here */}
-            </Box>
+            <Balance orders={processedOrders} />
           </TabPanel>
           <TabPanel>
-            <Box>
-              <Heading size="md" mb={4}>Instrucciones</Heading>
-              {categories.map((category, index) => (
-                <CategoryCard
-                  key={index}
-                  category={category}
-                  items={items.filter(item => item.category === category)}
-                />
-              ))}
-            </Box>
+            <Instructions categories={categories} items={items} />
           </TabPanel>
           <TabPanel>
-            <Box>
-              <Heading size="md" mb={4}>Análisis guardados</Heading>
-              <Select placeholder="Seleccionar análisis" onChange={(e) => handleSelectAnalysis(savedAnalyses.find(analysis => analysis._id === e.target.value))}>
-                {savedAnalyses.map((analysis) => (
-                  <option key={analysis._id} value={analysis._id}>
-                    {new Date(analysis.createdAt).toLocaleDateString()} - {analysis._id}
-                  </option>
-                ))}
-              </Select>
-              {selectedAnalysis && (
-                <Box mt={4}>
-                  <Heading size="md" mb={4}>Detalle del análisis</Heading>
-                  <Box>
-                    <Text>Ingreso total: ${calculateTotalIncome().toFixed(2)}</Text>
-                    <Text>Costo de Restock: ${calculateRestockCost().toFixed(2)}</Text>
-                    <Text>Profit: ${calculateProfit().toFixed(2)}</Text>
-                    {categories.map((category, index) => (
-                      <CategoryCard
-                        key={index}
-                        category={category}
-                        items={items.filter(item => item.category === category)}
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              )}
-            </Box>
+            <SavedAnalyses
+              savedAnalyses={savedAnalyses}
+              selectedAnalysis={selectedAnalysis}
+              setSelectedAnalysis={setSelectedAnalysis}
+              handleSelectAnalysis={handleSelectAnalysis}
+              items={items}
+              categories={categories}
+            />
           </TabPanel>
         </TabPanels>
       </Tabs>

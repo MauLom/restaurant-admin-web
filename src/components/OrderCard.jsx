@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, Heading, Text, Flex, Button, Table, Thead, Tbody, Tr, Th, Td, Stack, Badge,
-  useDisclosure, AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader,
+  useDisclosure, AlertDialog, AlertDialogBody, AlertDialogHeader,
   AlertDialogContent, AlertDialogOverlay
 } from '@chakra-ui/react';
 
@@ -12,7 +12,7 @@ const OrderCard = ({ order, onProcess, onClick }) => {
   const cancelRef = React.useRef();
 
   const calculateTotal = (items) => {
-    return items.reduce((total, item) => total + (item.quantity * (item.itemId.sellPrice || 0)), 0);
+    return items.reduce((total, item) => total + (item.quantity * (item.itemId?.sellPrice || 0)), 0);
   };
 
   useEffect(() => {
@@ -35,8 +35,8 @@ const OrderCard = ({ order, onProcess, onClick }) => {
     }
   };
 
-  const handleProcessOrder = () => {
-    onProcess(order._id);
+  const handleProcessOrder = (paymentMethod) => {
+    onProcess(order._id, paymentMethod);
     onClose();
   };
 
@@ -69,8 +69,8 @@ const OrderCard = ({ order, onProcess, onClick }) => {
             {items.slice(0, 5).map((item, index) => (
               <Tr key={index}>
                 <Td>{item.quantity}</Td>
-                <Td>{item.itemId.name}</Td>
-                <Td>${(item.quantity * (item.itemId.sellPrice || 0)).toFixed(2)}</Td>
+                <Td>{item.itemId?.name || 'Unknown'}</Td>
+                <Td>${(item.quantity * (item.itemId?.sellPrice || 0)).toFixed(2)}</Td>
               </Tr>
             ))}
             {items.length > 5 && (
@@ -100,17 +100,15 @@ const OrderCard = ({ order, onProcess, onClick }) => {
             </AlertDialogHeader>
 
             <AlertDialogBody>
-              Are you sure you want to process this order?
+              Select the payment method:
+              <Flex direction="column" mt={4}>
+                <Button mb={2} onClick={() => handleProcessOrder('Transferencia')}>Pago en Transferencia</Button>
+                <Button mb={2} onClick={() => handleProcessOrder('Tarjeta')}>Pago con Tarjeta</Button>
+                <Button mb={2} onClick={() => handleProcessOrder('Efectivo')}>Pago en Efectivo</Button>
+                <Button mb={2} onClick={() => handleProcessOrder('Cortesia')}>Cortesia</Button>
+                <Button onClick={onClose}>Volver</Button>
+              </Flex>
             </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>
-                Cancel
-              </Button>
-              <Button colorScheme="red" onClick={handleProcessOrder} ml={3}>
-                Process
-              </Button>
-            </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialogOverlay>
       </AlertDialog>

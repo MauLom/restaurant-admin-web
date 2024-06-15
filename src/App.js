@@ -8,11 +8,9 @@ import Users from './pages/Users';
 import Card from './components/Card';
 import LoginModal from './components/LoginModal';
 import { UserContext } from './context/UserContext';
-import { io } from 'socket.io-client';
 import './App.css';
 import Analysis from './pages/Analysis';
 
-const socket = io(process.env.REACT_APP_API_URL);
 
 function App() {
   const navigate = useNavigate();
@@ -25,21 +23,8 @@ function App() {
       const userData = JSON.parse(atob(token.split('.')[1]));
       setUser({ _id: userData.userId, username: userData.username });
     }
-
-    // Socket event listeners
-    socket.on('orderCreated', (order) => {
-      // Handle new order created
-    });
-
-    socket.on('orderUpdated', (order) => {
-      // Handle order updated
-    });
-
-    return () => {
-      socket.off('orderCreated');
-      socket.off('orderUpdated');
-    };
   }, [setUser]);
+
 
   return (
     <Box>
@@ -55,7 +40,7 @@ function App() {
       <Container maxW="container.md" mt={4}>
         <Routes>
           <Route path="/inventory" element={user ? <Inventory /> : <Navigate to="/" />} />
-          <Route path="/orders" element={user ? <Orders socket={socket} /> : <Navigate to="/" />} />
+          <Route path="/orders" element={user ? <Orders /> : <Navigate to="/" />} />
           <Route path="/users" element={user ? <Users /> : <Navigate to="/" />} />
           <Route path="/analysis" element={user ? <Analysis /> : <Navigate to="/" />} />
 

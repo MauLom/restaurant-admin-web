@@ -24,7 +24,6 @@ const Inventory = () => {
   const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
-    // Fetch items from the API
     const fetchItems = async () => {
       try {
         const response = await axios.get(`${API_URL}/inventory`);
@@ -39,7 +38,6 @@ const Inventory = () => {
 
   const handleSave = async (item) => {
     if (currentItem) {
-      // Update existing item
       try {
         await axios.put(`${API_URL}/inventory/update/${currentItem._id}`, item);
         setItems(items.map(i => (i._id === currentItem._id ? { ...i, ...item } : i)));
@@ -47,7 +45,6 @@ const Inventory = () => {
         console.error('Error updating item:', error);
       }
     } else {
-      // Add new item
       try {
         const response = await axios.post(`${API_URL}/inventory/add`, item);
         setItems([...items, response.data]);
@@ -64,7 +61,6 @@ const Inventory = () => {
   };
 
   const handleDelete = async (id) => {
-    // Handle delete logic
     try {
       await axios.delete(`${API_URL}/inventory/delete/${id}`);
       setItems(items.filter(item => item._id !== id));
@@ -105,6 +101,7 @@ const Inventory = () => {
           <Thead>
             <Tr>
               <Th>Item Name</Th>
+              <Th>Category</Th>
               <Th>Quantity</Th>
               <Th>Sell Price</Th>
               <Th>Cost</Th>
@@ -115,6 +112,7 @@ const Inventory = () => {
             {filteredItems.map(item => (
               <Tr key={item._id}>
                 <Td>{item.name}</Td>
+                <Td>{item.category}</Td>
                 <Td>{item.quantity}</Td>
                 <Td>${item.sellPrice.toFixed(2)}</Td>
                 <Td>${item.costAmount?.toFixed(2)}</Td>
@@ -149,6 +147,7 @@ const Inventory = () => {
               maxW="sm"
             >
               <Heading as="h3" size="md" mb={2}>{item.name}</Heading>
+              <Box>Category: {item.category}</Box>
               <Box>Quantity: {item.quantity}</Box>
               <Box>Sell Price: ${item.sellPrice.toFixed(2)}</Box>
               <Box>Cost: ${item.costAmount?.toFixed(2)}</Box>
