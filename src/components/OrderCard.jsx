@@ -60,8 +60,8 @@ const OrderCard = ({ order, onProcess, onClick }) => {
         <Table variant="simple" size="sm">
           <Thead>
             <Tr>
-              <Th>Qty</Th>
-              <Th>Item</Th>
+              <Th>Cantidad</Th>
+              <Th>Nombre</Th>
               <Th>Total</Th>
             </Tr>
           </Thead>
@@ -81,10 +81,10 @@ const OrderCard = ({ order, onProcess, onClick }) => {
           </Tbody>
         </Table>
       </Box>
-      <Text fontWeight="bold" textAlign="right">Total Cost: ${total.toFixed(2)}</Text>
+      <Text fontWeight="bold" textAlign="right">Costo total: ${total.toFixed(2)}</Text>
       <Flex mt={2}>
         <Button colorScheme="teal" onClick={(e) => { e.stopPropagation(); onOpen(); }}>
-          Process Order
+        Marca orden pagada
         </Button>
       </Flex>
 
@@ -96,11 +96,11 @@ const OrderCard = ({ order, onProcess, onClick }) => {
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Process Order
+              Marca orden pagada
             </AlertDialogHeader>
 
             <AlertDialogBody>
-              Select the payment method:
+              ¿Como se pagara la orden?
               <Flex direction="column" mt={4}>
                 <Button mb={2} onClick={() => handleProcessOrder('Transferencia')}>Pago en Transferencia</Button>
                 <Button mb={2} onClick={() => handleProcessOrder('Tarjeta')}>Pago con Tarjeta</Button>

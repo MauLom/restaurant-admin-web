@@ -128,9 +128,9 @@ const Orders = () => {
     <Box>
       <Breadcrumbs items={breadcrumbItems} />
       <Flex mt={4} mb={4} align="center">
-        <Heading>Order Management</Heading>
+        <Heading>Gestion de ordenes</Heading>
         <Spacer />
-        <Button colorScheme="teal" onClick={() => { setSelectedOrder(null); onOpen(); }}>Create Order</Button>
+        <Button colorScheme="teal" onClick={() => { setSelectedOrder(null); onOpen(); }}>Crear Orden</Button>
       </Flex>
       <SimpleGrid columns={{ sm: 1, md: 2 }} spacing={4}>
         {pendingOrders.map(order => (

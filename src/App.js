@@ -10,6 +10,7 @@ import LoginModal from './components/LoginModal';
 import { UserContext } from './context/UserContext';
 import './App.css';
 import Analysis from './pages/Analysis';
+import Menu from './pages/Menu';
 
 
 function App() {
@@ -43,32 +44,37 @@ function App() {
           <Route path="/orders" element={user ? <Orders /> : <Navigate to="/" />} />
           <Route path="/users" element={user ? <Users /> : <Navigate to="/" />} />
           <Route path="/analysis" element={user ? <Analysis /> : <Navigate to="/" />} />
+          <Route path="/menu" element={user ? <Menu /> : <Navigate to="/" />} />
+
 
           <Route path="/" element={
             user ? (
               <VStack spacing={4}>
-                <Heading>Welcome to Resto-Bar Admin</Heading>
+                <Heading>MAUI Admin</Heading>
                 <Card
                   icon={<PackageIcon size={48} />}
-                  title="Manage Inventory"
+                  title="Gestion de inventario"
                   onClick={() => navigate('/inventory')}
                 />
                 <Card
                   icon={<ListUnorderedIcon size={48} />}
-                  title="Manage Orders"
+                  title="Gestion de ordenes"
                   onClick={() => navigate('/orders')}
                 />
-                <Card
+                {/* <Card
                   icon={<PersonIcon size={48} />}
                   title="Manage Users"
                   onClick={() => navigate('/users')}
-                />
+                /> */}
                  <Card
                   icon={<GraphIcon size={48} />}
-                  title="Balances"
+                  title="Resumen diario"
                   onClick={() => navigate('/analysis')}
-
-
+                />
+                   <Card
+                  icon={<PersonIcon size={48} />}
+                  title="Menu "
+                  onClick={() => navigate('/menu')}
                 />
               </VStack>
             ) : (
