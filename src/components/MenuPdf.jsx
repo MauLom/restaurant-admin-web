@@ -13,5 +13,4 @@ const MenuPdf = () => {
     </div>
   );
 };
-
 export default MenuPdf;
