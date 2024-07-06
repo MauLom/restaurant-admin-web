@@ -12,7 +12,7 @@ const OrderCard = ({ order, onProcess, onClick }) => {
   const cancelRef = React.useRef();
 
   const calculateTotal = (items) => {
-    return items.reduce((total, item) => total + (item.quantity * (item.itemId?.sellPrice || 0)), 0);
+    return items.reduce((total, item) => total + (item?.quantity * (item?.itemId?.sellPrice || 0)), 0);
   };
 
   useEffect(() => {
@@ -68,9 +68,9 @@ const OrderCard = ({ order, onProcess, onClick }) => {
           <Tbody>
             {items.slice(0, 5).map((item, index) => (
               <Tr key={index}>
-                <Td>{item.quantity}</Td>
-                <Td>{item.itemId.name || 'Unknown'}</Td>
-                <Td>${(item.quantity * (item.itemId.sellPrice || 0)).toFixed(2)}</Td>
+                <Td>{item?.quantity}</Td>
+                <Td>{item?.itemId?.name || 'Unknown'}</Td>
+                <Td>${(item?.quantity * (item?.itemId?.sellPrice || 0)).toFixed(2)}</Td>
               </Tr>
             ))}
             {items.length > 5 && (
