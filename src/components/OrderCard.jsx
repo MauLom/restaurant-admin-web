@@ -51,7 +51,7 @@ const OrderCard = ({ order, onProcess, onClick }) => {
       onClick={() => onClick(order)}
     >
       <Stack direction="row" justifyContent="space-between">
-        <Heading as="h3" size="md" mb={2}>Order #...{getShortOrderId(order._id)}</Heading>
+        <Heading as="h3" size="md" mb={2}>Orden #...{getShortOrderId(order._id)}</Heading>
         <Badge colorScheme={getStatusColor(order.status)}>{order.status}</Badge>
       </Stack>
 
@@ -69,8 +69,8 @@ const OrderCard = ({ order, onProcess, onClick }) => {
             {items.slice(0, 5).map((item, index) => (
               <Tr key={index}>
                 <Td>{item.quantity}</Td>
-                <Td>{item.itemId?.name || 'Unknown'}</Td>
-                <Td>${(item.quantity * (item.itemId?.sellPrice || 0)).toFixed(2)}</Td>
+                <Td>{item.itemId.name || 'Unknown'}</Td>
+                <Td>${(item.quantity * (item.itemId.sellPrice || 0)).toFixed(2)}</Td>
               </Tr>
             ))}
             {items.length > 5 && (

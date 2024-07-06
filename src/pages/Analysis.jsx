@@ -132,7 +132,6 @@ const Analysis = () => {
   };
 
   const handleDateChange = (date) => {
-    console.log("this is called")
     fetchProcessedOrders(date);
   };
 

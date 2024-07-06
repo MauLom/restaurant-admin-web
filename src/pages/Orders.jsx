@@ -26,7 +26,7 @@ const Orders = () => {
 
   useEffect(() => {
     // Initialize WebSocket connection
-    socketRef.current = io('http://localhost:5000');
+    socketRef.current = io(API_URL.replace("/api", ""));
 
     const fetchOrders = async () => {
       try {
@@ -112,10 +112,10 @@ const Orders = () => {
     onOpen();
   };
 
-  const handleSaveChanges = async () => {
+  const handleSaveChanges = async (updatedOrder) => {
     try {
-      await axios.put(`${API_URL}/orders/update/${selectedOrder._id}`, selectedOrder);
-      setOrders(orders.map(o => (o._id === selectedOrder._id ? selectedOrder : o)));
+      await axios.put(`${API_URL}/orders/update/${updatedOrder._id}`, updatedOrder);
+      setOrders(orders.map(o => (o._id === updatedOrder._id ? updatedOrder : o)));
       onClose();
     } catch (error) {
       console.error('Error updating order:', error);
