@@ -5,7 +5,7 @@ const Balance = ({ orders }) => {
   const calculateTotalIncome = () => {
     return orders.reduce((total, order) => {
       return total + order.items.reduce((orderTotal, item) => {
-        return orderTotal + (item.itemId.sellPrice * item.quantity);
+        return orderTotal + (item?.itemId.sellPrice * item.quantity);
       }, 0);
     }, 0);
   };
@@ -13,7 +13,7 @@ const Balance = ({ orders }) => {
   const calculateRestockCost = () => {
     return orders.reduce((total, order) => {
       return total + order.items.reduce((orderTotal, item) => {
-        return orderTotal + (item.itemId.costAmount * item.quantity);
+        return orderTotal + (item?.itemId.costAmount * item.quantity);
       }, 0);
     }, 0);
   };
@@ -27,7 +27,7 @@ const Balance = ({ orders }) => {
       .filter(order => order.paymentMethod === method)
       .reduce((total, order) => {
         return total + order.items.reduce((orderTotal, item) => {
-          return orderTotal + (item.itemId.sellPrice * item.quantity);
+          return orderTotal + (item?.itemId.sellPrice * item.quantity);
         }, 0);
       }, 0);
   };

@@ -22,7 +22,7 @@ const Analysis = () => {
 
   useEffect(() => {
     fetchSavedAnalyses();
-  }, []);
+  });
 
   const fetchSavedAnalyses = async () => {
     try {
@@ -61,7 +61,7 @@ const Analysis = () => {
 
     orders.forEach(order => {
       order.items.forEach(item => {
-        const itemId = item.itemId;
+        const itemId = item?.itemId;
         items.push({
           ...itemId,
           sellPrice: itemId.sellPrice || 0,

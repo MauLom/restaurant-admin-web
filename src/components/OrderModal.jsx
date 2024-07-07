@@ -8,7 +8,6 @@ import {
 const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [quantity, setQuantity] = useState('1');
-  const [selectedItem, setSelectedItem] = useState('');
   const [numberOfPeople, setNumberOfPeople] = useState(1);
   const [error, setError] = useState('');
   const [currentCategory, setCurrentCategory] = useState(null);
@@ -16,10 +15,10 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
   useEffect(() => {
     if (order) {
       setSelectedItems(order.items.map(item => ({
-        itemId: item.itemId._id,
-        name: item.itemId.name,
-        quantity: item.quantity,
-        sellPrice: item.itemId.sellPrice
+        itemId: item?.itemId._id,
+        name: item?.itemId.name,
+        quantity: item?.quantity,
+        sellPrice: item?.itemId.sellPrice
       })));
       setNumberOfPeople(order.numberOfPeople);
     } else {
@@ -48,7 +47,6 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
       }
       return updatedItems;
     });
-    setSelectedItem('');
     setQuantity('1');
     setError('');
   };
@@ -71,7 +69,8 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
       ...order,
       items: selectedItems.map(item => ({
         itemId: item.itemId,
-        quantity: item.quantity
+        quantity: item.quantity,
+        sellPrice: item.sellPrice // Include sellPrice
       })),
       totalPrice: calculateTotalPrice(),
       createdBy: user._id,

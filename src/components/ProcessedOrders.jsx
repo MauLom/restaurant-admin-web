@@ -8,7 +8,7 @@ const ProcessedOrders = ({ processedOrders, onDateChange }) => {
 
   useEffect(() => {
     onDateChange(selectedDate);
-  }, []);
+  });
 
   const handleDateChange = (e) =>{
     setSelectedDate(e.target.value);

@@ -25,7 +25,6 @@ const Orders = () => {
   const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
-    // Initialize WebSocket connection
     socketRef.current = io(API_URL.replace("/api", ""));
 
     const fetchOrders = async () => {
@@ -61,7 +60,6 @@ const Orders = () => {
       );
     });
 
-    // Cleanup WebSocket connection when the component unmounts
     return () => {
       socketRef.current.disconnect();
     };
@@ -70,7 +68,8 @@ const Orders = () => {
   const handleSaveOrder = async (newOrder) => {
     try {
       const response = await axios.post(`${API_URL}/orders/create`, newOrder);
-      setOrders([...orders, response.data]);
+      const populatedOrder = response.data;
+      setOrders([...orders, populatedOrder]);
     } catch (error) {
       console.error('Error creating order:', error);
     }
@@ -87,16 +86,16 @@ const Orders = () => {
       });
 
       await Promise.all(order.items.map(async item => {
-        const inventoryItem = items.find(i => i._id === item.itemId);
+        const inventoryItem = items.find(i => i._id === item?.itemId);
         if (inventoryItem) {
-          const newQuantity = inventoryItem.quantity - item.quantity;
-          await axios.put(`${API_URL}/inventory/update/${item.itemId}`, { quantity: newQuantity });
+          const newQuantity = inventoryItem.quantity - item?.quantity;
+          await axios.put(`${API_URL}/inventory/update/${item?.itemId}`, { quantity: newQuantity });
         }
       }));
 
       setOrders(orders.map(o => (o._id === orderId ? { ...o, status: 'Processed', paymentMethod: paymentMethod } : o)));
       setItems(items.map(i => {
-        const orderedItem = order.items.find(item => item.itemId === i._id);
+        const orderedItem = order.items.find(item => item?.itemId === i._id);
         if (orderedItem) {
           return { ...i, quantity: i.quantity - orderedItem.quantity };
         }
@@ -115,7 +114,8 @@ const Orders = () => {
   const handleSaveChanges = async (updatedOrder) => {
     try {
       await axios.put(`${API_URL}/orders/update/${updatedOrder._id}`, updatedOrder);
-      setOrders(orders.map(o => (o._id === updatedOrder._id ? updatedOrder : o)));
+      const response = await axios.get(`${API_URL}/orders`);
+      setOrders(response.data);
       onClose();
     } catch (error) {
       console.error('Error updating order:', error);
