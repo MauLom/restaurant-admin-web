@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import {
-  Box, Heading, Flex, Spacer, Button, SimpleGrid, useDisclosure
+  Box, Heading, Flex, Spacer, Button, SimpleGrid, useDisclosure, Text
 } from '@chakra-ui/react';
 import Breadcrumbs from '../components/Breadcrumbs';
 import axios from 'axios';
@@ -126,11 +126,15 @@ const Orders = () => {
 
   return (
     <Box>
-      <Breadcrumbs items={breadcrumbItems} />
-      <Flex mt={4} mb={4} align="center">
-        <Heading>Gestion de ordenes</Heading>
+      <Flex as="nav" bg="gray.100" p={4} borderBottom="1px solid #e2e2e2">
+        <Breadcrumbs items={breadcrumbItems} />
+      </Flex>
+      <Flex mt={4} mb={4} align="center" p={4}>
+        <Heading as="h1" size="xl" mb={2}>Gestion de ordenes</Heading>
         <Spacer />
-        <Button colorScheme="teal" onClick={() => { setSelectedOrder(null); onOpen(); }}>Crear Orden</Button>
+        <Button colorScheme="teal" size="lg" onClick={() => { setSelectedOrder(null); onOpen(); }}>
+          Crear Orden
+        </Button>
       </Flex>
       <SimpleGrid columns={{ sm: 1, md: 2 }} spacing={4}>
         {pendingOrders.map(order => (

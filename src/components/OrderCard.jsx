@@ -48,17 +48,19 @@ const OrderCard = ({ order, onProcess, onClick }) => {
       boxShadow="lg"
       w="full"
       maxW="sm"
+      bg="white"
+      cursor="pointer"
       onClick={() => onClick(order)}
     >
       <Stack direction="row" justifyContent="space-between">
-        <Heading as="h3" size="md" mb={2}>Orden #...{getShortOrderId(order._id)}</Heading>
+        <Heading as="h3" size="md" mb={2} fontSize="lg">Orden #...{getShortOrderId(order._id)}</Heading>
         <Badge colorScheme={getStatusColor(order.status)}>{order.status}</Badge>
       </Stack>
 
       <Text>Items:</Text>
       <Box ml={2} maxH="150px" overflowY="auto">
         <Table variant="simple" size="sm">
-          <Thead>
+          <Thead className="table-header">
             <Tr>
               <Th>Cantidad</Th>
               <Th>Nombre</Th>
@@ -67,7 +69,7 @@ const OrderCard = ({ order, onProcess, onClick }) => {
           </Thead>
           <Tbody>
             {items.slice(0, 5).map((item, index) => (
-              <Tr key={index}>
+              <Tr key={index} className="table-row">
                 <Td>{item?.quantity}</Td>
                 <Td>{item?.itemId?.name || 'Unknown'}</Td>
                 <Td>${(item?.quantity * (item?.itemId?.sellPrice || 0)).toFixed(2)}</Td>
@@ -83,8 +85,8 @@ const OrderCard = ({ order, onProcess, onClick }) => {
       </Box>
       <Text fontWeight="bold" textAlign="right">Costo total: ${total.toFixed(2)}</Text>
       <Flex mt={2}>
-        <Button colorScheme="teal" onClick={(e) => { e.stopPropagation(); onOpen(); }}>
-        Marca orden pagada
+        <Button colorScheme="green" size="sm" onClick={(e) => { e.stopPropagation(); onOpen(); }}>
+          Marca orden pagada
         </Button>
       </Flex>
 

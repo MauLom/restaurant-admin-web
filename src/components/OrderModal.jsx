@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader,
   ModalFooter, ModalBody, ModalCloseButton, Button,
-  FormControl, FormLabel, Input, Text, Table, Thead, Tbody, Tr, Th, Td, Alert, AlertIcon, Box, Flex
+  FormControl, FormLabel, Input, Text, Table, Thead, Tbody, Tr, Th, Td, Alert, AlertIcon, Box, Flex, IconButton
 } from '@chakra-ui/react';
+import { ArrowBackIcon, ArrowForwardIcon } from '@chakra-ui/icons';
+import '../App.css'; // Import custom CSS for animations
 
 const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
   const [selectedItems, setSelectedItems] = useState([]);
@@ -11,6 +13,8 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
   const [numberOfPeople, setNumberOfPeople] = useState(1);
   const [error, setError] = useState('');
   const [currentCategory, setCurrentCategory] = useState(null);
+  const [clickedItem, setClickedItem] = useState(null); // State to handle the clicked item animation
+  const itemsContainerRef = useRef(null); // Ref for the items container
 
   useEffect(() => {
     if (order) {
@@ -38,6 +42,8 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
       return;
     }
 
+    setClickedItem(item._id); // Set clicked item for animation
+
     setSelectedItems(prevItems => {
       const updatedItems = prevItems.map(i => 
         i.itemId === item._id ? { ...i, quantity: i.quantity + parseInt(quantity) } : i
@@ -49,6 +55,10 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
     });
     setQuantity('1');
     setError('');
+
+    setTimeout(() => {
+      setClickedItem(null); // Remove animation class after animation completes
+    }, 300); // Animation duration
   };
 
   const handleItemChange = (index, quantity) => {
@@ -70,7 +80,7 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
       items: selectedItems.map(item => ({
         itemId: item.itemId,
         quantity: item.quantity,
-        sellPrice: item.sellPrice // Include sellPrice
+        sellPrice: item.sellPrice
       })),
       totalPrice: calculateTotalPrice(),
       createdBy: user._id,
@@ -90,11 +100,19 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
     return groups;
   }, {});
 
+  const scrollLeft = () => {
+    itemsContainerRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+  };
+
+  const scrollRight = () => {
+    itemsContainerRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+  };
+
   const renderCategories = () => {
     return (
       <Box>
-        <Text fontWeight="bold" mb={2}>Categories</Text>
-        <Flex wrap="wrap" gap={4}>
+        <Text fontWeight="bold" mb={2}>Categorias</Text>
+        <Flex wrap="wrap" gap={4} justify="center">
           {Object.keys(groupedItems).map(category => (
             <Box
               key={category}
@@ -103,6 +121,7 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
               borderRadius="lg"
               cursor="pointer"
               onClick={() => setCurrentCategory(category)}
+              className="item-card"
             >
               <Text>{category}</Text>
             </Box>
@@ -115,23 +134,29 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
   const renderItems = (category) => {
     return (
       <Box>
-        <Button mb={4} onClick={() => setCurrentCategory(null)}>Regresar a categorias</Button>
+        <Button mb={4} onClick={() => setCurrentCategory(null)} colorScheme="gray">Regresar a categorias</Button>
         <Text fontWeight="bold" mb={2}>{category}</Text>
-        <Flex wrap="wrap" gap={4}>
-          {groupedItems[category].map(item => (
-            <Box
-              key={item._id}
-              p={4}
-              borderWidth="1px"
-              borderRadius="lg"
-              cursor="pointer"
-              onClick={() => handleAddItem(item)}
-            >
-              <Text>{item.name}</Text>
-              <Text>Available: {item.quantity}</Text>
-              <Text>Price: ${item.sellPrice.toFixed(2)}</Text>
-            </Box>
-          ))}
+        <Flex wrap="nowrap" gap={4} justify="center" align="center">
+          <IconButton icon={<ArrowBackIcon />} onClick={scrollLeft} />
+          <Box className="items-container" ref={itemsContainerRef}>
+            {groupedItems[category].map(item => (
+              <Box
+                key={item._id}
+                p={2}
+                borderWidth="1px"
+                borderRadius="lg"
+                cursor="pointer"
+                onClick={() => handleAddItem(item)}
+                className={`item-card ${clickedItem === item._id ? 'clicked' : ''}`} // Add animation class
+              >
+                <Text>{item.name}</Text>
+                <Text>Disp: {item.quantity}</Text>
+                <Text>${item.sellPrice.toFixed(2)}</Text>
+                {/* <Button size="xs" mt={2} colorScheme="teal" onClick={() => handleAddItem(item)}>Add to Order</Button> */}
+              </Box>
+            ))}
+          </Box>
+          <IconButton icon={<ArrowForwardIcon />} onClick={scrollRight} />
         </Flex>
       </Box>
     );
@@ -151,10 +176,12 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
             </Alert>
           )}
           <FormControl mb={4}>
-            <FormLabel>Cantidad personas</FormLabel>
+            <FormLabel htmlFor="numberOfPeople">Cantidad personas</FormLabel>
             <Input
+              id="numberOfPeople"
               type="number"
               value={numberOfPeople}
+              placeholder="Enter number of people"
               onChange={(e) => setNumberOfPeople(parseInt(e.target.value, 10))}
             />
           </FormControl>
@@ -162,10 +189,10 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
           <Table variant="simple" size="sm" mt={4}>
             <Thead>
               <Tr>
-                <Th>Cantidad</Th>
-                <Th>Producto</Th>
-                <Th>Total</Th>
-                <Th>Acciones</Th>
+                <Th fontWeight="bold">Cantidad</Th>
+                <Th fontWeight="bold">Producto</Th>
+                <Th fontWeight="bold">Total</Th>
+                <Th fontWeight="bold">Acciones</Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -194,7 +221,7 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
           </Table>
           <Text fontWeight="bold" textAlign="right" mt={4}>Total de cuenta: ${calculateTotalPrice().toFixed(2)}</Text>
         </ModalBody>
-        <ModalFooter>
+        <ModalFooter bg="gray.100">
           <Button colorScheme="blue" mr={3} onClick={handleSave}>
             Save
           </Button>
