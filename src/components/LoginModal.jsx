@@ -20,7 +20,7 @@ const LoginModal = ({ isOpen, onClose }) => {
       localStorage.setItem('token', response.data.token);
       onClose();
     } catch (err) {
-      setError(err.response.data.error);
+      setError(err.response?.data?.error || 'Something went wrong, please try again.');
     }
   };
 
@@ -31,7 +31,7 @@ const LoginModal = ({ isOpen, onClose }) => {
       localStorage.setItem('token', response.data.token);
       onClose();
     } catch (err) {
-      setError(err.response.data.error);
+      setError(err.response?.data?.error || 'Something went wrong, please try again.');
     }
   };
 

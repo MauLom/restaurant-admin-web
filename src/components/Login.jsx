@@ -8,7 +8,6 @@ const Login = () => {
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    // Mock login
     const mockUser = { _id: '12345', username };
     setUser(mockUser);
   };
