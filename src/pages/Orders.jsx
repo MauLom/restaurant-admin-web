@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import {
-  Box, Heading, Flex, Spacer, Button, SimpleGrid, useDisclosure, Text
+  Box, Heading, Flex, Spacer, Button, SimpleGrid, useDisclosure
 } from '@chakra-ui/react';
 import Breadcrumbs from '../components/Breadcrumbs';
 import axios from 'axios';
@@ -65,9 +65,23 @@ const Orders = () => {
     };
   }, [API_URL]);
 
+  // This function handles updating the status of an order
+  const handleUpdateStatus = async (orderId, status) => {
+    try {
+      await axios.put(`${API_URL}/orders/status/${orderId}`, { status });
+      const response = await axios.get(`${API_URL}/orders`);
+      setOrders(response.data); // Update the orders in state
+    } catch (error) {
+      console.error('Error updating order status:', error);
+    }
+  };
+
   const handleSaveOrder = async (newOrder) => {
     try {
-      const response = await axios.post(`${API_URL}/orders/create`, newOrder);
+      const response = await axios.post(`${API_URL}/orders/create`, {
+        ...newOrder,
+        createdBy: user ? user._id : null  // Add this check for anonymous users
+      });
       const populatedOrder = response.data;
       setOrders([...orders, populatedOrder]);
     } catch (error) {
@@ -122,6 +136,20 @@ const Orders = () => {
     }
   };
 
+  const handleAddNewItems = async (orderId, newItems) => {
+    try {
+      await axios.put(`${API_URL}/orders/update/${orderId}`, {
+        items: newItems,
+        status: 'Updated'
+      });
+      const response = await axios.get(`${API_URL}/orders`);
+      setOrders(response.data);
+      onClose();
+    } catch (error) {
+      console.error('Error adding new items to order:', error);
+    }
+  };
+
   const pendingOrders = orders.filter(order => order.status === 'Pending');
 
   return (
@@ -142,6 +170,7 @@ const Orders = () => {
             key={order._id}
             order={order}
             onProcess={handleProcessOrder}
+            onUpdateStatus={handleUpdateStatus}  // Pass the status update function to OrderCard
             onClick={handleCardClick}
           />
         ))}
@@ -151,6 +180,7 @@ const Orders = () => {
         isOpen={isOpen}
         onClose={onClose}
         onSave={selectedOrder ? handleSaveChanges : handleSaveOrder}
+        onAddNewItems={handleAddNewItems} // Pass the add new items function to OrderModal
         items={items}
         order={selectedOrder}
         user={user}

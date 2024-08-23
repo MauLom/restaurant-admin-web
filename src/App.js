@@ -7,19 +7,28 @@ import Analysis from './pages/Analysis';
 import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute'; // For protected routes
 import SideBar from './components/SideBar';
+import { Box } from '@chakra-ui/react'; // Import Box from Chakra UI for responsive styling
+
 const App = () => {
   return (
-    <div style={{ display: 'flex' }}>
+    <Box display="flex" flexDirection={{ base: 'column', md: 'row' }} height="100vh">
       {/* Main Sidebar */}
       <SideBar />
 
       {/* Main Content Area */}
-      <div style={{ marginLeft: '70px', padding: '20px', width: '100%' }}>
+      <Box
+        as="main"
+        flex="1"
+        marginLeft={{ base: '0', md: '70px' }}  // No margin on mobile, margin on desktop
+        marginBottom={{ base: '70px', md: '0' }} // Add bottom margin on mobile to account for the sidebar at the bottom
+        padding="20px"
+        overflow="auto"  // Allow scrolling on overflow
+        bg="gray.50" // Optional background color for content area
+      >
         <Routes>
           {/* Public Route: Menu for creating orders */}
           <Route path="/menu" element={<PublicMenu />} />
 
-          {/* Protected Route: Manage Menu (inventory management) */}
           <Route
             path="/manage-menu"
             element={
@@ -61,8 +70,8 @@ const App = () => {
           {/* Default Route to Public Menu */}
           <Route path="/" element={<PublicMenu />} />
         </Routes>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

@@ -5,7 +5,7 @@ import {
   AlertDialogContent, AlertDialogOverlay
 } from '@chakra-ui/react';
 
-const OrderCard = ({ order, onProcess, onClick }) => {
+const OrderCard = ({ order, onProcess, onUpdateStatus, onClick }) => {
   const [total, setTotal] = useState(0);
   const [items, setItems] = useState([]);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -30,13 +30,17 @@ const OrderCard = ({ order, onProcess, onClick }) => {
         return 'blue';
       case 'Paid':
         return 'green';
+      case 'Delivered':
+        return 'orange';
+      case 'Awaiting Change':
+        return 'yellow';
       default:
         return 'gray';
     }
   };
 
-  const handleProcessOrder = (paymentMethod) => {
-    onProcess(order._id, paymentMethod);
+  const handleUpdateStatus = (newStatus) => {
+    onUpdateStatus(order._id, newStatus);
     onClose();
   };
 
@@ -84,12 +88,29 @@ const OrderCard = ({ order, onProcess, onClick }) => {
         </Table>
       </Box>
       <Text fontWeight="bold" textAlign="right">Costo total: ${total.toFixed(2)}</Text>
-      <Flex mt={2}>
-        <Button colorScheme="green" size="sm" onClick={(e) => { e.stopPropagation(); onOpen(); }}>
-          Marca orden pagada
-        </Button>
-      </Flex>
 
+      {/* Conditional buttons based on the order status */}
+      {order.status !== 'Paid' && (
+        <Flex mt={2} justifyContent="space-between">
+          {order.status === 'Pending' && (
+            <Button colorScheme="blue" size="sm" onClick={(e) => { e.stopPropagation(); handleUpdateStatus('Delivered'); }}>
+              Marca orden entregada
+            </Button>
+          )}
+          {order.status === 'Delivered' && (
+            <Button colorScheme="yellow" size="sm" onClick={(e) => { e.stopPropagation(); handleUpdateStatus('Awaiting Change'); }}>
+              Marca esperando cambios
+            </Button>
+          )}
+          {order.status === 'Awaiting Change' && (
+            <Button colorScheme="green" size="sm" onClick={(e) => { e.stopPropagation(); onOpen(); }}>
+              Marca orden pagada
+            </Button>
+          )}
+        </Flex>
+      )}
+
+      {/* Dialog to confirm order payment */}
       <AlertDialog
         isOpen={isOpen}
         leastDestructiveRef={cancelRef}
@@ -104,10 +125,10 @@ const OrderCard = ({ order, onProcess, onClick }) => {
             <AlertDialogBody>
               ¿Como se pagara la orden?
               <Flex direction="column" mt={4}>
-                <Button mb={2} onClick={() => handleProcessOrder('Transferencia')}>Pago en Transferencia</Button>
-                <Button mb={2} onClick={() => handleProcessOrder('Tarjeta')}>Pago con Tarjeta</Button>
-                <Button mb={2} onClick={() => handleProcessOrder('Efectivo')}>Pago en Efectivo</Button>
-                <Button mb={2} onClick={() => handleProcessOrder('Cortesia')}>Cortesia</Button>
+                <Button mb={2} onClick={() => handleUpdateStatus('Paid')}>Pago en Transferencia</Button>
+                <Button mb={2} onClick={() => handleUpdateStatus('Paid')}>Pago con Tarjeta</Button>
+                <Button mb={2} onClick={() => handleUpdateStatus('Paid')}>Pago en Efectivo</Button>
+                <Button mb={2} onClick={() => handleUpdateStatus('Paid')}>Cortesia</Button>
                 <Button onClick={onClose}>Volver</Button>
               </Flex>
             </AlertDialogBody>
