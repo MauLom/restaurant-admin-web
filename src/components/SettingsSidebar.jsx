@@ -40,6 +40,14 @@ const SettingsSidebar = ({ onSelectTab, selectedTab }) => {
           Products Management
         </Button>
         <Button
+          variant={selectedTab === 'menu' ? 'solid' : 'ghost'}
+          colorScheme="teal"
+          onClick={() => onSelectTab('menu')}
+          w="full"
+        >
+          Gestion de Menu
+        </Button>
+        <Button
           variant={selectedTab === 'notifications' ? 'solid' : 'ghost'}
           colorScheme="teal"
           onClick={() => onSelectTab('notifications')}

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Box, Heading } from '@chakra-ui/react';
 import Inventory from './ManageMenu'; // Use this for Products Management
 import SettingsSidebar from '../components/SettingsSidebar';
+import Menu from './Menu';
 
 const Settings = () => {
   const [selectedTab, setSelectedTab] = useState('appearance');
@@ -19,6 +20,8 @@ const Settings = () => {
         return <Heading size="md">Notifications Settings</Heading>;
       case 'security':
         return <Heading size="md">Security Settings</Heading>;
+      case 'menu':
+        return <Menu />
       default:
         return null;
     }
@@ -31,7 +34,7 @@ const Settings = () => {
         onSelectTab={setSelectedTab}
         selectedTab={selectedTab}
       />
-      
+
       {/* Main Content Area */}
       <Box p={8} flex="1">
         {renderTabContent()}

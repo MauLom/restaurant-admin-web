@@ -4,19 +4,23 @@ import {
 } from '@chakra-ui/react';
 import Breadcrumbs from '../components/Breadcrumbs';
 import axios from 'axios';
-import MenuItemCard from '../components/MenuItemCard';  // A new component to display each menu item
-import MenuModal from '../components/MenuModal';  // A modal to create/edit menu items\
-import ConfigurationModal from '../components/ConfigurationModal';  // A modal to configure the menu
+import MenuItemCard from '../components/MenuItemCard';
+import MenuModal from '../components/MenuModal';
+import ConfigurationModal from '../components/ConfigurationModal';
+import { useLocation, useNavigate } from 'react-router-dom';  // React router hooks
 import { UserContext } from '../context/UserContext';
 import io from 'socket.io-client';
 
 const Menu = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [selectedMenuItem, setSelectedMenuItem] = useState(null);
+  const [editingOrder, setEditingOrder] = useState(null);  // State for editing an order
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { isOpen: isConfigOpen, onOpen: onConfigOpen, onClose: onConfigClose } = useDisclosure();  // Configuration modal controls
+  const { isOpen: isConfigOpen, onOpen: onConfigOpen, onClose: onConfigClose } = useDisclosure();
   const { user } = useContext(UserContext);
   const socketRef = useRef(null);
+  const location = useLocation();  // To check if we're editing an order
+  const navigate = useNavigate();
 
   const breadcrumbItems = [
     { label: 'Home', path: '/' },
@@ -56,9 +60,17 @@ const Menu = () => {
     };
   }, [API_URL]);
 
+  useEffect(() => {
+    // Check if we are editing an order (from location state)
+    if (location.state?.editingOrder) {
+      setEditingOrder(location.state.editingOrder);
+      onOpen();  // Automatically open the modal for editing
+    }
+  }, [location.state, onOpen]);
+
   const handleSaveMenuItem = async (newMenuItem) => {
     try {
-      const response = await axios.post(`${API_URL}/menu/create`, newMenuItem);
+      const response = await axios.post(`${API_URL}/menu/add`, newMenuItem);
       const populatedMenuItem = response.data;
       setMenuItems([...menuItems, populatedMenuItem]);
     } catch (error) {
@@ -82,6 +94,20 @@ const Menu = () => {
     onOpen();
   };
 
+  const handleSaveEditedOrder = async (selectedItems) => {
+    const updatedOrder = {
+      ...editingOrder,
+      items: selectedItems,
+      totalPrice: selectedItems.reduce((total, item) => total + (item.quantity * item.sellPrice), 0),
+    };
+    try {
+      await axios.put(`${API_URL}/orders/update/${editingOrder._id}`, updatedOrder);
+      navigate('/orders');  // Redirect back to orders page after saving
+    } catch (error) {
+      console.error('Error saving edited order:', error);
+    }
+  };
+
   return (
     <Box>
       <Flex as="nav" bg="gray.100" p={4} borderBottom="1px solid #e2e2e2">
@@ -92,11 +118,13 @@ const Menu = () => {
         </Button>
       </Flex>
       <Flex mt={4} mb={4} align="center" p={4}>
-        <Heading as="h1" size="xl" mb={2}>Gestion de Menu</Heading>
+        <Heading as="h1" size="xl" mb={2}>Manage Menu</Heading>
         <Spacer />
-        <Button colorScheme="teal" size="lg" onClick={() => { setSelectedMenuItem(null); onOpen(); }}>
-          Crear Plato
-        </Button>
+        {!editingOrder && (
+          <Button colorScheme="teal" size="lg" onClick={() => { setSelectedMenuItem(null); onOpen(); }}>
+            Create Dish
+          </Button>
+        )}
       </Flex>
       <SimpleGrid columns={{ sm: 1, md: 2 }} spacing={4}>
         {menuItems.map(item => (
@@ -112,8 +140,9 @@ const Menu = () => {
       <MenuModal
         isOpen={isOpen}
         onClose={onClose}
-        onSave={selectedMenuItem ? handleUpdateMenuItem : handleSaveMenuItem}
+        onSave={editingOrder ? handleSaveEditedOrder : selectedMenuItem ? handleUpdateMenuItem : handleSaveMenuItem}
         menuItem={selectedMenuItem}
+        order={editingOrder}
       />
 
       {/* Configuration Modal */}

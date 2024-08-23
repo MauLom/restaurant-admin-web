@@ -45,7 +45,7 @@ const SideBar = () => {
         {user && (
           <>
             <IconButton aria-label="Orders" icon={<ListUnorderedIcon size={24} />} onClick={() => navigate('/orders')} bg="transparent" color="white" />
-            <IconButton aria-label="Analysis" icon={<GraphIcon size={24} />} onClick={() => navigate('/analysis')} bg="transparent" color="white" />
+            {/* <IconButton aria-label="Analysis" icon={<GraphIcon size={24} />} onClick={() => navigate('/analysis')} bg="transparent" color="white" /> */}
             <IconButton aria-label="Settings" icon={<GearIcon size={24} />} onClick={() => navigate('/settings')} bg="transparent" color="white" />
           </>
         )}

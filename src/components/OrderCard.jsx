@@ -1,18 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Heading, Text, Flex, Button, Table, Thead, Tbody, Tr, Th, Td, Stack, Badge,
-  useDisclosure, AlertDialog, AlertDialogBody, AlertDialogHeader,
-  AlertDialogContent, AlertDialogOverlay
+  Box, Heading, Text, Flex, Button, Table, Thead, Tbody, Tr, Th, Td, Stack, Badge
 } from '@chakra-ui/react';
 
-const OrderCard = ({ order, onProcess, onUpdateStatus, onClick }) => {
+const OrderCard = ({ order, onUpdateStatus, onClick }) => {
   const [total, setTotal] = useState(0);
   const [items, setItems] = useState([]);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const cancelRef = React.useRef();
 
   const calculateTotal = (items) => {
-    return items.reduce((total, item) => total + (item?.quantity * (item?.itemId?.sellPrice || 0)), 0);
+    return items.reduce((total, item) => total + (item?.quantity * (item?.itemId?.price || 0)), 0);  // Updated to use `price`
   };
 
   useEffect(() => {
@@ -26,22 +22,17 @@ const OrderCard = ({ order, onProcess, onUpdateStatus, onClick }) => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Processed':
-        return 'blue';
-      case 'Paid':
-        return 'green';
-      case 'Delivered':
+      case 'In Preparation':
         return 'orange';
-      case 'Awaiting Change':
+      case 'Ready for Delivery':
+        return 'blue';
+      case 'Delivered':
+        return 'green';
+      case 'Updated':
         return 'yellow';
       default:
         return 'gray';
     }
-  };
-
-  const handleUpdateStatus = (newStatus) => {
-    onUpdateStatus(order._id, newStatus);
-    onClose();
   };
 
   return (
@@ -54,10 +45,10 @@ const OrderCard = ({ order, onProcess, onUpdateStatus, onClick }) => {
       maxW="sm"
       bg="white"
       cursor="pointer"
-      onClick={() => onClick(order)}
+      onClick={onClick}  // Ensure this is passed correctly from the parent
     >
       <Stack direction="row" justifyContent="space-between">
-        <Heading as="h3" size="md" mb={2} fontSize="lg">Orden #...{getShortOrderId(order._id)}</Heading>
+        <Heading as="h3" size="md" mb={2} fontSize="lg">Order #...{getShortOrderId(order._id)}</Heading>
         <Badge colorScheme={getStatusColor(order.status)}>{order.status}</Badge>
       </Stack>
 
@@ -66,75 +57,49 @@ const OrderCard = ({ order, onProcess, onUpdateStatus, onClick }) => {
         <Table variant="simple" size="sm">
           <Thead className="table-header">
             <Tr>
-              <Th>Cantidad</Th>
+              <Th>Cnt.</Th>
               <Th>Nombre</Th>
               <Th>Total</Th>
             </Tr>
           </Thead>
           <Tbody>
-            {items.slice(0, 5).map((item, index) => (
-              <Tr key={index} className="table-row">
+            {items.map((item, index) => (
+              <Tr key={index} bg={item.delivered ? 'red.100' : 'green.100'}>
                 <Td>{item?.quantity}</Td>
                 <Td>{item?.itemId?.name || 'Unknown'}</Td>
-                <Td>${(item?.quantity * (item?.itemId?.sellPrice || 0)).toFixed(2)}</Td>
+                <Td>${(item?.quantity * (item?.itemId?.price || 0)).toFixed(2)}</Td>  
               </Tr>
             ))}
-            {items.length > 5 && (
-              <Tr>
-                <Td colSpan={3} textAlign="center">and more...</Td>
-              </Tr>
-            )}
           </Tbody>
+
         </Table>
       </Box>
-      <Text fontWeight="bold" textAlign="right">Costo total: ${total.toFixed(2)}</Text>
+      <Text fontWeight="bold" textAlign="right">Costo Total: ${total.toFixed(2)}</Text>
 
       {/* Conditional buttons based on the order status */}
-      {order.status !== 'Paid' && (
+      {order.status === 'In Preparation' && (
         <Flex mt={2} justifyContent="space-between">
-          {order.status === 'Pending' && (
-            <Button colorScheme="blue" size="sm" onClick={(e) => { e.stopPropagation(); handleUpdateStatus('Delivered'); }}>
-              Marca orden entregada
-            </Button>
-          )}
-          {order.status === 'Delivered' && (
-            <Button colorScheme="yellow" size="sm" onClick={(e) => { e.stopPropagation(); handleUpdateStatus('Awaiting Change'); }}>
-              Marca esperando cambios
-            </Button>
-          )}
-          {order.status === 'Awaiting Change' && (
-            <Button colorScheme="green" size="sm" onClick={(e) => { e.stopPropagation(); onOpen(); }}>
-              Marca orden pagada
-            </Button>
-          )}
+          <Button colorScheme="blue" size="sm" onClick={(e) => { e.stopPropagation(); onUpdateStatus(order._id, 'Ready for Delivery'); }}>
+            Mover a lista para entregar
+          </Button>
         </Flex>
       )}
 
-      {/* Dialog to confirm order payment */}
-      <AlertDialog
-        isOpen={isOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={onClose}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Marca orden pagada
-            </AlertDialogHeader>
+      {order.status === 'Ready for Delivery' && (
+        <Flex mt={2} justifyContent="space-between">
+          <Button colorScheme="green" size="sm" onClick={(e) => { e.stopPropagation(); onUpdateStatus(order._id, 'Delivered'); }}>
+            Marcar como entregada
+          </Button>
+        </Flex>
+      )}
 
-            <AlertDialogBody>
-              ¿Como se pagara la orden?
-              <Flex direction="column" mt={4}>
-                <Button mb={2} onClick={() => handleUpdateStatus('Paid')}>Pago en Transferencia</Button>
-                <Button mb={2} onClick={() => handleUpdateStatus('Paid')}>Pago con Tarjeta</Button>
-                <Button mb={2} onClick={() => handleUpdateStatus('Paid')}>Pago en Efectivo</Button>
-                <Button mb={2} onClick={() => handleUpdateStatus('Paid')}>Cortesia</Button>
-                <Button onClick={onClose}>Volver</Button>
-              </Flex>
-            </AlertDialogBody>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+      {order.status === 'Updated' && (
+        <Flex mt={2} justifyContent="space-between">
+          <Button colorScheme="yellow" size="sm" onClick={(e) => { e.stopPropagation(); onUpdateStatus(order._id, 'Ready for Delivery'); }}>
+            Procesar nuevos items
+          </Button>
+        </Flex>
+      )}
     </Box>
   );
 };

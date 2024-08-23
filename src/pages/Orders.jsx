@@ -1,21 +1,28 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import {
-  Box, Heading, Flex, Spacer, Button, SimpleGrid, useDisclosure
+  Box, Heading, Flex, Spacer, SimpleGrid, Button, useDisclosure, AlertDialog, AlertDialogBody, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogContent, AlertDialogOverlay
 } from '@chakra-ui/react';
 import Breadcrumbs from '../components/Breadcrumbs';
 import axios from 'axios';
 import OrderCard from '../components/OrderCard';
-import OrderModal from '../components/OrderModal';
+import OrderModal from '../components/OrderModal'; // New modal for adding new items
 import { UserContext } from '../context/UserContext';
 import io from 'socket.io-client';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
-  const [items, setItems] = useState([]);
+  const [pendingOrders, setPendingOrders] = useState([]);
+  const [readyForDeliveryOrders, setReadyForDeliveryOrders] = useState([]);
+  const [deliveredOrders, setDeliveredOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [actionType, setActionType] = useState(null); // Track the action type
   const { user } = useContext(UserContext);
   const socketRef = useRef(null);
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isModalOpen, onOpen: onOpenModal, onClose: onCloseModal } = useDisclosure(); // Modal for adding new items
+  const cancelRef = useRef();
 
   const breadcrumbItems = [
     { label: 'Home', path: '/' },
@@ -30,34 +37,21 @@ const Orders = () => {
     const fetchOrders = async () => {
       try {
         const response = await axios.get(`${API_URL}/orders`);
-        setOrders(response.data);
+        const fetchedOrders = response.data;
+        sortOrdersByStatus(fetchedOrders);
       } catch (error) {
         console.error('Error fetching orders:', error);
       }
     };
 
-    const fetchItems = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/inventory`);
-        setItems(response.data);
-      } catch (error) {
-        console.error('Error fetching inventory items:', error);
-      }
-    };
-
     fetchOrders();
-    fetchItems();
 
     socketRef.current.on('orderCreated', (order) => {
-      setOrders((prevOrders) => [...prevOrders, order]);
+      handleNewOrder(order);
     });
 
     socketRef.current.on('orderUpdated', (updatedOrder) => {
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          order._id === updatedOrder._id ? updatedOrder : order
-        )
-      );
+      handleUpdatedOrder(updatedOrder);
     });
 
     return () => {
@@ -65,92 +59,81 @@ const Orders = () => {
     };
   }, [API_URL]);
 
-  // This function handles updating the status of an order
+  const sortOrdersByStatus = (ordersList) => {
+    setPendingOrders(ordersList.filter(order => order.status === 'In Preparation'));
+    setReadyForDeliveryOrders(ordersList.filter(order => order.status === 'Ready for Delivery'));
+    setDeliveredOrders(ordersList.filter(order => order.status === 'Delivered' || order.status === 'Updated'));
+  };
+
+  const handleNewOrder = (order) => {
+    setOrders((prevOrders) => [...prevOrders, order]);
+    if (order.status === 'In Preparation') {
+      setPendingOrders((prev) => [...prev, order]);
+    }
+  };
+
+  const handleUpdatedOrder = (updatedOrder) => {
+    setOrders((prevOrders) =>
+      prevOrders.map((order) =>
+        order._id === updatedOrder._id ? updatedOrder : order
+      )
+    );
+    sortOrdersByStatus([...orders.map(order =>
+      order._id === updatedOrder._id ? updatedOrder : order)]);
+  };
+
+  // Function to handle updating order status
   const handleUpdateStatus = async (orderId, status) => {
     try {
       await axios.put(`${API_URL}/orders/status/${orderId}`, { status });
       const response = await axios.get(`${API_URL}/orders`);
-      setOrders(response.data); // Update the orders in state
+      sortOrdersByStatus(response.data); // Update the orders in state
     } catch (error) {
       console.error('Error updating order status:', error);
     }
   };
 
-  const handleSaveOrder = async (newOrder) => {
-    try {
-      const response = await axios.post(`${API_URL}/orders/create`, {
-        ...newOrder,
-        createdBy: user ? user._id : null  // Add this check for anonymous users
-      });
-      const populatedOrder = response.data;
-      setOrders([...orders, populatedOrder]);
-    } catch (error) {
-      console.error('Error creating order:', error);
-    }
+  // Handle adding new items to a delivered order
+  const handleAddNewItems = async (order) => {
+    // Fetch the menu items to display in the modal for selection
+    const menuItemsResponse = await axios.get(`${API_URL}/menu`);
+    const menuItems = menuItemsResponse.data;
+
+    setSelectedOrder({ ...order, menuItems });
+    onOpenModal(); // Open modal to add new items
   };
 
-  const handleProcessOrder = async (orderId, paymentMethod) => {
-    const order = orders.find(o => o._id === orderId);
-    if (!order) return;
-
+  // Function to save new items and update the order
+  const handleSaveNewItems = async (newItems) => {
     try {
-      await axios.put(`${API_URL}/orders/update/${orderId}`, { 
-        status: 'Processed',
-        paymentMethod: paymentMethod 
-      });
-
-      await Promise.all(order.items.map(async item => {
-        const inventoryItem = items.find(i => i._id === item?.itemId);
-        if (inventoryItem) {
-          const newQuantity = inventoryItem.quantity - item?.quantity;
-          await axios.put(`${API_URL}/inventory/update/${item?.itemId}`, { quantity: newQuantity });
-        }
-      }));
-
-      setOrders(orders.map(o => (o._id === orderId ? { ...o, status: 'Processed', paymentMethod: paymentMethod } : o)));
-      setItems(items.map(i => {
-        const orderedItem = order.items.find(item => item?.itemId === i._id);
-        if (orderedItem) {
-          return { ...i, quantity: i.quantity - orderedItem.quantity };
-        }
-        return i;
-      }));
-    } catch (error) {
-      console.error('Error processing order:', error);
-    }
-  };
-
-  const handleCardClick = (order) => {
-    setSelectedOrder(order);
-    onOpen();
-  };
-
-  const handleSaveChanges = async (updatedOrder) => {
-    try {
-      await axios.put(`${API_URL}/orders/update/${updatedOrder._id}`, updatedOrder);
-      const response = await axios.get(`${API_URL}/orders`);
-      setOrders(response.data);
-      onClose();
-    } catch (error) {
-      console.error('Error updating order:', error);
-    }
-  };
-
-  const handleAddNewItems = async (orderId, newItems) => {
-    try {
-      await axios.put(`${API_URL}/orders/update/${orderId}`, {
+      await axios.put(`${API_URL}/orders/update/${selectedOrder._id}`, {
         items: newItems,
-        status: 'Updated'
+        status: 'Updated', // Mark order as updated so kitchen sees only the new items
       });
+      onCloseModal(); // Close modal after saving
       const response = await axios.get(`${API_URL}/orders`);
-      setOrders(response.data);
-      onClose();
+      sortOrdersByStatus(response.data);
     } catch (error) {
       console.error('Error adding new items to order:', error);
     }
   };
 
-  const pendingOrders = orders.filter(order => order.status === 'Pending');
+  // Open the modal and set the action type
+  const openModal = (order, actionType) => {
+    setSelectedOrder(order);
+    setActionType(actionType);
+    onOpen();
+  };
+
+  // Handle confirmation of the action in the modal
+  const handleConfirmAction = () => {
+    if (actionType === 'Ready for Delivery') {
+      handleUpdateStatus(selectedOrder._id, 'Ready for Delivery');
+    } else if (actionType === 'Delivered') {
+      handleUpdateStatus(selectedOrder._id, 'Delivered');
+    }
+    onClose();
+  };
 
   return (
     <Box>
@@ -158,31 +141,86 @@ const Orders = () => {
         <Breadcrumbs items={breadcrumbItems} />
       </Flex>
       <Flex mt={4} mb={4} align="center" p={4}>
-        <Heading as="h1" size="xl" mb={2}>Gestion de ordenes</Heading>
+        <Heading as="h1" size="xl" mb={2}>Ordenes en preparacion</Heading>
         <Spacer />
-        <Button colorScheme="teal" size="lg" onClick={() => { setSelectedOrder(null); onOpen(); }}>
-          Crear Orden
-        </Button>
       </Flex>
+
+      {/* Pending Orders for the Kitchen */}
+      <Heading as="h2" size="lg" mb={4}>Odenes pendientes</Heading>
       <SimpleGrid columns={{ sm: 1, md: 2 }} spacing={4}>
         {pendingOrders.map(order => (
           <OrderCard
             key={order._id}
             order={order}
-            onProcess={handleProcessOrder}
-            onUpdateStatus={handleUpdateStatus}  // Pass the status update function to OrderCard
-            onClick={handleCardClick}
+            onUpdateStatus={() => openModal(order, 'Ready for Delivery')}  // Open modal for ready for delivery
           />
         ))}
       </SimpleGrid>
 
-      <OrderModal
+      {/* Orders Ready for Delivery */}
+      <Heading as="h2" size="lg" mt={8} mb={4}>Listas para entregar</Heading>
+      <SimpleGrid columns={{ sm: 1, md: 2 }} spacing={4}>
+        {readyForDeliveryOrders.map(order => (
+          <OrderCard
+            key={order._id}
+            order={order}
+            onUpdateStatus={() => openModal(order, 'Delivered')}  // Open modal for delivered
+          />
+        ))}
+      </SimpleGrid>
+
+      <Flex mt={4} mb={4} align="center" p={4}>
+        <Heading as="h1" size="xl" mb={2}>Ordenes entregadas</Heading>
+        <Spacer />
+      </Flex>
+      <Heading as="h2" size="lg" mt={8} mb={4}>Ordenes entregadas</Heading>
+      <SimpleGrid columns={{ sm: 1, md: 2 }} spacing={4}>
+        {deliveredOrders.map(order => (
+          <OrderCard
+            key={order._id}
+            order={order}
+            onClick={() => handleAddNewItems(order)}  // Open modal for adding new items
+            onUpdateStatus={handleUpdateStatus}  // This function is for updating the order status
+          />
+        ))}
+      </SimpleGrid>
+
+      {/* Confirmation Modal */}
+      <AlertDialog
         isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
         onClose={onClose}
-        onSave={selectedOrder ? handleSaveChanges : handleSaveOrder}
-        onAddNewItems={handleAddNewItems} // Pass the add new items function to OrderModal
-        items={items}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              {actionType === 'Ready for Delivery' ? 'Move Order to Ready for Delivery' : 'Move Order to Delivered'}
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              {actionType === 'Ready for Delivery'
+                ? 'Confirmas mover esta orden a "Lista para entregar"?'
+                : 'Confirmas marcar esta orden como "Entregada"?'}
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose}>
+                Cancel
+              </Button>
+              <Button colorScheme={actionType === 'Ready for Delivery' ? 'blue' : 'green'} onClick={handleConfirmAction} ml={3}>
+                Confirm
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+
+      {/* Modal to Add New Items */}
+      <OrderModal
+        isOpen={isModalOpen}
+        onClose={onCloseModal}
         order={selectedOrder}
+        onSave={handleSaveNewItems}
         user={user}
       />
     </Box>

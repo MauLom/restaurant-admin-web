@@ -50,30 +50,10 @@ const LoginModal = ({ isOpen, onClose }) => {
           )}
           <Tabs isFitted variant="enclosed">
             <TabList mb="1em">
-              <Tab>Password</Tab>
               <Tab>PIN</Tab>
+              <Tab>Password</Tab>
             </TabList>
             <TabPanels>
-              <TabPanel>
-                <FormControl mb={4}>
-                  <FormLabel>Username</FormLabel>
-                  <Input
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                  />
-                </FormControl>
-                <FormControl mb={6}>
-                  <FormLabel>Password</FormLabel>
-                  <Input
-                    placeholder="Password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </FormControl>
-                <Button colorScheme="teal" onClick={handleLogin}>Login</Button>
-              </TabPanel>
               <TabPanel>
                 <FormControl mb={4}>
                   <FormLabel>Username</FormLabel>
@@ -94,6 +74,27 @@ const LoginModal = ({ isOpen, onClose }) => {
                 </FormControl>
                 <Button colorScheme="teal" onClick={handleLoginByPin}>Login</Button>
               </TabPanel>
+              <TabPanel>
+                <FormControl mb={4}>
+                  <FormLabel>Username</FormLabel>
+                  <Input
+                    placeholder="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </FormControl>
+                <FormControl mb={6}>
+                  <FormLabel>Password</FormLabel>
+                  <Input
+                    placeholder="Password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </FormControl>
+                <Button colorScheme="teal" onClick={handleLogin}>Login</Button>
+              </TabPanel>
+
             </TabPanels>
           </Tabs>
         </ModalBody>

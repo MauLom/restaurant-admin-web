@@ -7,7 +7,7 @@ import {
 import { ArrowBackIcon, ArrowForwardIcon } from '@chakra-ui/icons';
 import '../App.css'; // Import custom CSS for animations
 
-const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
+const OrderModal = ({ isOpen, onClose, onSave, items = [], order, user }) => {  // Default `items` to an empty array
   const [selectedItems, setSelectedItems] = useState([]);
   const [quantity, setQuantity] = useState('1');
   const [numberOfPeople, setNumberOfPeople] = useState(1);
@@ -85,20 +85,21 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
       totalPrice: calculateTotalPrice(),
       createdBy: user._id,
       numberOfPeople,
-      status: order ? order.status : 'Pending'
+      status: order ? order.status : 'Created'
     };
     onSave(newOrder);
     onClose();
   };
 
-  const groupedItems = items.reduce((groups, item) => {
+  // Ensure that `items` exists and is an array before trying to group items
+  const groupedItems = items?.reduce((groups, item) => {
     const category = item.category || 'Other';
     if (!groups[category]) {
       groups[category] = [];
     }
     groups[category].push(item);
     return groups;
-  }, {});
+  }, {}) || {}; // Fallback to empty object if items is undefined
 
   const scrollLeft = () => {
     itemsContainerRef.current.scrollBy({ left: -300, behavior: 'smooth' });
@@ -152,7 +153,6 @@ const OrderModal = ({ isOpen, onClose, onSave, items, order, user }) => {
                 <Text>{item.name}</Text>
                 <Text>Disp: {item.quantity}</Text>
                 <Text>${item.sellPrice.toFixed(2)}</Text>
-                {/* <Button size="xs" mt={2} colorScheme="teal" onClick={() => handleAddItem(item)}>Add to Order</Button> */}
               </Box>
             ))}
           </Box>
