@@ -4,6 +4,7 @@ import { Box, Heading } from '@chakra-ui/react';
 import Inventory from './ManageMenu'; // Use this for Products Management
 import SettingsSidebar from '../components/SettingsSidebar';
 import Menu from './Menu';
+import TablesManagement from './TablesManagement';
 
 const Settings = () => {
   const [selectedTab, setSelectedTab] = useState('appearance');
@@ -22,6 +23,8 @@ const Settings = () => {
         return <Heading size="md">Security Settings</Heading>;
       case 'menu':
         return <Menu />
+      case 'tables':
+        return <TablesManagement />;
       default:
         return null;
     }

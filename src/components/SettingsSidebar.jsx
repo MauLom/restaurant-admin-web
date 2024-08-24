@@ -15,29 +15,29 @@ const SettingsSidebar = ({ onSelectTab, selectedTab }) => {
       flexDirection="column"
     >
       <VStack spacing={4}>
-        <Button
+        {/* <Button
           variant={selectedTab === 'appearance' ? 'solid' : 'ghost'}
           colorScheme="teal"
           onClick={() => onSelectTab('appearance')}
           w="full"
         >
           Appearance
-        </Button>
-        <Button
+        </Button> */}
+        {/* <Button
           variant={selectedTab === 'restaurant' ? 'solid' : 'ghost'}
           colorScheme="teal"
           onClick={() => onSelectTab('restaurant')}
           w="full"
         >
           Your Restaurant
-        </Button>
+        </Button> */}
         <Button
           variant={selectedTab === 'products' ? 'solid' : 'ghost'}
           colorScheme="teal"
           onClick={() => onSelectTab('products')}
           w="full"
         >
-          Products Management
+          Gestion de inventario
         </Button>
         <Button
           variant={selectedTab === 'menu' ? 'solid' : 'ghost'}
@@ -47,21 +47,29 @@ const SettingsSidebar = ({ onSelectTab, selectedTab }) => {
         >
           Gestion de Menu
         </Button>
-        <Button
+        {/* <Button
           variant={selectedTab === 'notifications' ? 'solid' : 'ghost'}
           colorScheme="teal"
           onClick={() => onSelectTab('notifications')}
           w="full"
         >
           Notifications
-        </Button>
-        <Button
+        </Button> */}
+        {/* <Button
           variant={selectedTab === 'security' ? 'solid' : 'ghost'}
           colorScheme="teal"
           onClick={() => onSelectTab('security')}
           w="full"
         >
           Security
+        </Button> */}
+          <Button
+          variant={selectedTab === 'tables' ? 'solid' : 'ghost'}
+          colorScheme="teal"
+          onClick={() => onSelectTab('tables')}
+          w="full"
+        >
+          Gestion de mesas
         </Button>
       </VStack>
     </Box>
