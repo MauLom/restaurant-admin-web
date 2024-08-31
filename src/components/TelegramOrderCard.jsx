@@ -31,16 +31,17 @@ const TelegramOrderCard = ({ order, onDelete }) => {
   return (
     <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p={4} bg={getStatusColor(order.status)}>
       <Stack spacing={2}>
-        {(order.items || []).map((item, index) => ( // Ensure 'items' is an array before mapping
+        <Text fontWeight="bold">Orden {order.tempOrderId}</Text> {/* Display the temporary order ID */}
+        {(order.items || []).map((item, index) => (
           <Text key={index} fontWeight="bold">{item.quantity} x {item.item}</Text>
         ))}
         <Text>Status: {order.status}</Text>
         <Text>User: {displayName}</Text> {/* Display alias if available, otherwise Telegram ID */}
         {order.status !== 'Delivered' && (
           <>
-            <Button onClick={() => handleUpdateStatus('Ready for Delivery')} colorScheme="blue">Mark as Ready for Delivery</Button>
-            <Button onClick={() => handleUpdateStatus('Delivered')} colorScheme="green">Mark as Delivered</Button>
-            <Button onClick={onDelete} colorScheme="red">Delete Order</Button>
+            <Button onClick={() => handleUpdateStatus('Ready for Delivery')} colorScheme="blue">Marcar como lista para entregar</Button>
+            <Button onClick={() => handleUpdateStatus('Delivered')} colorScheme="green">Marcar como entregada</Button>
+            <Button onClick={onDelete} colorScheme="red">Borar Orden</Button>
           </>
         )}
       </Stack>
