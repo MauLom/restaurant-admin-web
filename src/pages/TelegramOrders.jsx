@@ -2,13 +2,17 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Box, Heading, SimpleGrid } from '@chakra-ui/react';
 import axios from 'axios';
 import io from 'socket.io-client';
+import { useSearchParams } from 'react-router-dom'; // Import the hook to read URL parameters
 import TelegramOrderCard from '../components/TelegramOrderCard';
 
-const TelegramOrders = ({ filterType }) => {
+const TelegramOrders = () => {
   const [pendingOrders, setPendingOrders] = useState([]);
   const [deliveredOrders, setDeliveredOrders] = useState([]);
   const socketRef = useRef(null);
   const API_URL = process.env.REACT_APP_API_URL;
+  
+  const [searchParams] = useSearchParams(); // Hook to get query parameters
+  const filterType = searchParams.get('type') || 'kitchen'; // Default to 'kitchen' if no type is provided
 
   useEffect(() => {
     socketRef.current = io(API_URL.replace("/api", ""));

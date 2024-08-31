@@ -42,8 +42,8 @@ const SideBar = () => {
     >
       <VStack spacing={4} flexDirection={flexDirection} justifyContent={justifyContent}>
         <IconButton aria-label="Home" icon={<HomeIcon size={24} />} onClick={() => navigate('/')} bg="transparent" color="white" />
-        <IconButton aria-label="Kitchen Orders" icon={<GiCookingPot size={24} />} onClick={() => navigate('/telegram-orders?kitchen')} bg="transparent" color="white" />
-        <IconButton aria-label="Bar Orders" icon={<GiMartini size={24} />} onClick={() => navigate('/telegram-orders?bar')} bg="transparent" color="white" />
+        <IconButton aria-label="Kitchen Orders" icon={<GiCookingPot size={24} />} onClick={() => navigate('//telegram-orders?type=kitchen')} bg="transparent" color="white" />
+        <IconButton aria-label="Bar Orders" icon={<GiMartini size={24} />} onClick={() => navigate('//telegram-orders?type=bar')} bg="transparent" color="white" />
 
         {user && (
           <>
