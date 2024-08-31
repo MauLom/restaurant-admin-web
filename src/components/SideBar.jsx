@@ -1,9 +1,10 @@
 import React, { useContext } from 'react';
 import { Box, VStack, IconButton, useDisclosure, useBreakpointValue } from '@chakra-ui/react';
-import { HomeIcon, PackageIcon, ListUnorderedIcon, GraphIcon, PersonIcon, SignOutIcon, GearIcon, RepoIcon } from '@primer/octicons-react';
+import { HomeIcon, ListUnorderedIcon, GearIcon, PersonIcon, SignOutIcon } from '@primer/octicons-react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 import LoginModal from './LoginModal';
+import { GiCookingPot, GiMartini } from 'react-icons/gi';  // Import kitchen and beverage icons
 
 const SideBar = () => {
   const { user, setUser } = useContext(UserContext);
@@ -41,13 +42,12 @@ const SideBar = () => {
     >
       <VStack spacing={4} flexDirection={flexDirection} justifyContent={justifyContent}>
         <IconButton aria-label="Home" icon={<HomeIcon size={24} />} onClick={() => navigate('/')} bg="transparent" color="white" />
-        <IconButton aria-label="Menu" icon={<RepoIcon size={24} />} onClick={() => navigate('/menu')} bg="transparent" color="white" />
-        <IconButton aria-label="Menu" icon={<ListUnorderedIcon size={24} />} onClick={() => navigate('/telegram-orders')} bg="transparent" color="white" />
+        <IconButton aria-label="Kitchen Orders" icon={<GiCookingPot size={24} />} onClick={() => navigate('/telegram-orders?kitchen')} bg="transparent" color="white" />
+        <IconButton aria-label="Bar Orders" icon={<GiMartini size={24} />} onClick={() => navigate('/telegram-orders?bar')} bg="transparent" color="white" />
 
         {user && (
           <>
             <IconButton aria-label="Orders" icon={<ListUnorderedIcon size={24} />} onClick={() => navigate('/orders')} bg="transparent" color="white" />
-            {/* <IconButton aria-label="Analysis" icon={<GraphIcon size={24} />} onClick={() => navigate('/analysis')} bg="transparent" color="white" /> */}
             <IconButton aria-label="Settings" icon={<GearIcon size={24} />} onClick={() => navigate('/settings')} bg="transparent" color="white" />
           </>
         )}
