@@ -13,13 +13,31 @@ const TelegramOrderCard = ({ order }) => {
     }
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'In Preparation':
+        return 'yellow.100';
+      case 'Ready for Delivery':
+        return 'blue.100';
+      case 'Delivered':
+        return 'green.100';
+      default:
+        return 'gray.100';
+    }
+  };
+
   return (
-    <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p={4}>
+    <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p={4} bg={getStatusColor(order.status)}>
       <Stack spacing={2}>
         <Text fontWeight="bold">{order.quantity} x {order.item}</Text>
         <Text>Status: {order.status}</Text>
-        <Button onClick={() => handleUpdateStatus('Ready for Delivery')} colorScheme="blue">Mark as Ready for Delivery</Button>
-        <Button onClick={() => handleUpdateStatus('Delivered')} colorScheme="green">Mark as Delivered</Button>
+        <Text>User: {order.createdByTelegramId}</Text> {/* Display the Telegram ID of the user */}
+        {order.status !== 'Delivered' && (
+          <>
+            <Button onClick={() => handleUpdateStatus('Ready for Delivery')} colorScheme="blue">Mark as Ready for Delivery</Button>
+            <Button onClick={() => handleUpdateStatus('Delivered')} colorScheme="green">Mark as Delivered</Button>
+          </>
+        )}
       </Stack>
     </Box>
   );
