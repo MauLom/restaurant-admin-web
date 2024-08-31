@@ -47,6 +47,11 @@ const TelegramOrders = () => {
     setDeliveredOrders(delivered);
   };
 
+  const handleDeleteOrder = (orderId) => {
+    setPendingOrders(prevOrders => prevOrders.filter(order => order._id !== orderId));
+    setDeliveredOrders(prevOrders => prevOrders.filter(order => order._id !== orderId));
+  };
+
   return (
     <Box>
       <Heading as="h1" size="xl" mb={4}>Telegram Orders</Heading>
@@ -54,14 +59,14 @@ const TelegramOrders = () => {
       <Heading as="h2" size="lg" mt={8} mb={4}>Pending Orders</Heading>
       <SimpleGrid columns={{ sm: 1, md: 2 }} spacing={4}>
         {pendingOrders.map(order => (
-          <TelegramOrderCard key={order._id} order={order} />
+          <TelegramOrderCard key={order._id} order={order} onDelete={handleDeleteOrder} />
         ))}
       </SimpleGrid>
 
       <Heading as="h2" size="lg" mt={8} mb={4}>Delivered Orders</Heading>
       <SimpleGrid columns={{ sm: 1, md: 2 }} spacing={4}>
         {deliveredOrders.map(order => (
-          <TelegramOrderCard key={order._id} order={order} />
+          <TelegramOrderCard key={order._id} order={order} onDelete={handleDeleteOrder} />
         ))}
       </SimpleGrid>
     </Box>

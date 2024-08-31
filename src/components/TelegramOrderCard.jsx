@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Text, Button, Stack } from '@chakra-ui/react';
 import axios from 'axios';
 
-const TelegramOrderCard = ({ order }) => {
+const TelegramOrderCard = ({ order, onDelete }) => {
   const API_URL = process.env.REACT_APP_API_URL;
 
   const handleUpdateStatus = async (newStatus) => {
@@ -26,16 +26,21 @@ const TelegramOrderCard = ({ order }) => {
     }
   };
 
+  const displayName = order.createdByAlias || order.createdByTelegramId;
+
   return (
     <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p={4} bg={getStatusColor(order.status)}>
       <Stack spacing={2}>
-        <Text fontWeight="bold">{order.quantity} x {order.item}</Text>
+        {order.items.map((item, index) => (
+          <Text key={index} fontWeight="bold">{item.quantity} x {item.item}</Text>
+        ))}
         <Text>Status: {order.status}</Text>
-        <Text>User: {order.createdByTelegramId}</Text> {/* Display the Telegram ID of the user */}
+        <Text>User: {displayName}</Text> 
         {order.status !== 'Delivered' && (
           <>
-            <Button onClick={() => handleUpdateStatus('Ready for Delivery')} colorScheme="blue">Mark as Ready for Delivery</Button>
-            <Button onClick={() => handleUpdateStatus('Delivered')} colorScheme="green">Mark as Delivered</Button>
+            <Button onClick={() => handleUpdateStatus('Ready for Delivery')} colorScheme="blue">Marcar como lista para recoger</Button>
+            <Button onClick={() => handleUpdateStatus('Delivered')} colorScheme="green">Marcar como entregada</Button>
+            <Button onClick={onDelete} colorScheme="red">Borra Orden</Button>
           </>
         )}
       </Stack>
