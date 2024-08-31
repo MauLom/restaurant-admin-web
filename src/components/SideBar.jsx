@@ -4,7 +4,7 @@ import { HomeIcon, ListUnorderedIcon, GearIcon, PersonIcon, SignOutIcon } from '
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 import LoginModal from './LoginModal';
-import { GiCookingPot, GiMartini } from 'react-icons/gi';  // Import kitchen and beverage icons
+import { GiCookingPot, GiMartini, GiReceiveMoney } from 'react-icons/gi';  // Import kitchen, beverage, and bill icons
 
 const SideBar = () => {
   const { user, setUser } = useContext(UserContext);
@@ -12,12 +12,11 @@ const SideBar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');  // Remove token from localStorage
-    setUser(null);  // Clear user context
-    navigate('/');  // Redirect to home
+    localStorage.removeItem('token');
+    setUser(null);
+    navigate('/');
   };
 
-  // Responsive values for position and layout
   const position = useBreakpointValue({ base: 'bottom', md: 'left' });
   const flexDirection = useBreakpointValue({ base: 'row', md: 'column' });
   const height = useBreakpointValue({ base: '70px', md: '100vh' });
@@ -44,6 +43,7 @@ const SideBar = () => {
         <IconButton aria-label="Home" icon={<HomeIcon size={24} />} onClick={() => navigate('/')} bg="transparent" color="white" />
         <IconButton aria-label="Kitchen Orders" icon={<GiCookingPot size={24} />} onClick={() => navigate('/telegram-orders?type=kitchen')} bg="transparent" color="white" />
         <IconButton aria-label="Bar Orders" icon={<GiMartini size={24} />} onClick={() => navigate('/telegram-orders?type=bar')} bg="transparent" color="white" />
+        <IconButton aria-label="Bill" icon={<GiReceiveMoney size={24} />} onClick={() => navigate('/table-bills')} bg="transparent" color="white" />  {/* New Bill Icon */}
 
         {user && (
           <>
@@ -66,14 +66,13 @@ const SideBar = () => {
           <IconButton
             aria-label="Login"
             icon={<PersonIcon size={24} />}
-            onClick={onOpen}  // Open the login modal
+            onClick={onOpen}
             bg="transparent"
             color="white"
           />
         )}
       </VStack>
 
-      {/* Login Modal */}
       {!user && <LoginModal isOpen={isOpen} onClose={onClose} />}
     </Box>
   );

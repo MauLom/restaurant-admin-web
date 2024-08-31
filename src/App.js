@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute'; // For protected route
 import SideBar from './components/SideBar';
 import { Box } from '@chakra-ui/react'; // Import Box from Chakra UI for responsive styling
 import TelegramOrders from './pages/TelegramOrders';
+import TableBills from './pages/TableBills';
 
 const App = () => {
   return (
@@ -39,13 +40,9 @@ const App = () => {
             }
           />
 
+          <Route path="/telegram-orders" element={<TelegramOrders />} />
+          <Route path="/table-bills" element={<TableBills />} />
 
-          <Route
-            path="/telegram-orders"
-            element={
-                <TelegramOrders />
-            }
-          />
           {/* Protected Routes */}
           <Route
             path="/inventory"
