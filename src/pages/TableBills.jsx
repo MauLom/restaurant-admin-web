@@ -16,7 +16,7 @@ const TableBills = () => {
     // Fetch users who have placed orders within the specified time range
     const fetchUsers = async () => {
       try {
-        const response = await axios.get(`${API_URL}/filtered-orders?hours=${filterHours}`);
+        const response = await axios.get(`${API_URL}/orders/filtered?hours=${filterHours}`);
         setUsers(response.data);
       } catch (error) {
         console.error('Error fetching users:', error);
