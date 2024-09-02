@@ -1,17 +1,18 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { UserContext } from '../context/UserContext';
+import useAuth from '../hooks/useAuth';
 
-const ProtectedRoute = ({ children }) => {
-  const { user } = useContext(UserContext);
+// function ProtectedRoute({ children, allowedRoles }) {
+//   const { user } = useAuth();
 
-  if (!user) {
-    // Redirect to the menu page if the user is not logged in
-    return <Navigate to="/menu" />;
-  }
+//   if (!user || !allowedRoles.includes(user.role)) {
+//     return <Navigate to="/login" />;
+//   }
 
-  // Otherwise, render the children components (e.g., Inventory, Orders)
-  return children;
-};
+//   return children;
+// }
 
+function ProtectedRoute({ children }) {
+  return children; // Bypass all checks and just render the children
+}
 export default ProtectedRoute;

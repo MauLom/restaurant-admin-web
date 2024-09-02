@@ -1,81 +1,113 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import PublicMenu from './pages/PublicMenu'; // Public menu for non-logged users
-import ManageMenu from './pages/ManageMenu'; // Manage menu for logged users (inventory management)
-import Orders from './pages/Orders';
-import Analysis from './pages/Analysis';
-import Settings from './pages/Settings';
-import ProtectedRoute from './components/ProtectedRoute'; // For protected routes
-import SideBar from './components/SideBar';
-import { Box } from '@chakra-ui/react'; // Import Box from Chakra UI for responsive styling
-import TelegramOrders from './pages/TelegramOrders';
-import TableBills from './pages/TableBills';
+import { Route, Routes } from 'react-router-dom';
+import { Box } from '@chakra-ui/react';
+import PinLogin from './pages/PinLogin';
+import DashboardPage from './pages/DashboardPage';
+import SectionPage from './pages/SectionPage';
+import OrderPage from './pages/OrderPage';
+import InventoryPage from './pages/InventoryPage';
+import ReservationPage from './pages/ReservationPage';
+import WaiterOrdersPage from './pages/WaiterOrdersPage';
+import CashierPage from './pages/CashierPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import HostessPage from './pages/HostessPage';
+import UserProfilePage from './pages/UserProfilePage'; // New Route
+import UserSettingsPage from './pages/UserSettingsPage'; // New Route
+import ProtectedRoute from './components/ProtectedRoute';
+import NotificationDemoPage from './pages/NotificationDemoPage';
 
 const App = () => {
   return (
-    <Box display="flex" flexDirection={{ base: 'column', md: 'row' }} height="100vh">
-      {/* Main Sidebar */}
-      <SideBar />
-
-      {/* Main Content Area */}
-      <Box
-        as="main"
-        flex="1"
-        marginLeft={{ base: '0', md: '70px' }}  // No margin on mobile, margin on desktop
-        marginBottom={{ base: '70px', md: '0' }} // Add bottom margin on mobile to account for the sidebar at the bottom
-        padding="20px"
-        overflow="auto"  // Allow scrolling on overflow
-        bg="gray.50" // Optional background color for content area
-      >
-        <Routes>
-          {/* Public Route: Menu for creating orders */}
-          <Route path="/menu" element={<PublicMenu />} />
-
+    <Box height="100vh">
+      <Routes>
+        <Route path="/login" element={<PinLogin />} />
+        <Route path="/dashboard/*" element={<DashboardPage />}>
           <Route
-            path="/manage-menu"
+            path="sections"
             element={
-              <ProtectedRoute>
-                <ManageMenu />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route path="/telegram-orders" element={<TelegramOrders />} />
-          <Route path="/table-bills" element={<TableBills />} />
-
-          {/* Protected Routes */}
-          <Route
-            path="/inventory"
-            element={
-              <ProtectedRoute>
-                <ManageMenu />
+              <ProtectedRoute allowedRoles={['admin', 'hostess']}>
+                <SectionPage />
               </ProtectedRoute>
             }
           />
           <Route
-            path="/orders"
+            path="orders"
             element={
-              <ProtectedRoute>
-                <Orders />
+              <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+                <OrderPage />
               </ProtectedRoute>
             }
           />
           <Route
-            path="/analysis"
+            path="inventory"
             element={
-              <ProtectedRoute>
-                <Analysis />
+              <ProtectedRoute allowedRoles={['admin', 'kitchen']}>
+                <InventoryPage />
               </ProtectedRoute>
             }
           />
+          <Route
+            path="reservations"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'hostess']}>
+                <ReservationPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="waiter-orders"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'waiter']}>
+                <WaiterOrdersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="cashier"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'cashier']}>
+                <CashierPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="analytics"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AnalyticsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="hostess"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'hostess']}>
+                <HostessPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="profile"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'waiter', 'hostess', 'cashier', 'kitchen']}>
+                <UserProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="settings"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'waiter', 'hostess', 'cashier', 'kitchen']}>
+                <UserSettingsPage />
+              </ProtectedRoute>
+            }
+          />
+        <Route path="notifications" element={<NotificationDemoPage />} /> {/* New */}
 
-          {/* Settings Page (Public or Protected as needed) */}
-          <Route path="/settings" element={<Settings />} />
-
-          {/* Default Route to Public Menu */}
-          <Route path="/" element={<PublicMenu />} />
-        </Routes>
-      </Box>
+        </Route>
+     
+        <Route path="/" element={<PinLogin />} />
+      </Routes>
     </Box>
   );
 };

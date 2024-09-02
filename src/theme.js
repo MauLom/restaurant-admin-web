@@ -1,18 +1,30 @@
-import { extendTheme } from '@chakra-ui/react';
+import { extendTheme } from "@chakra-ui/react";
 
 const theme = extendTheme({
-  colors: {
-    brand: {
-      50: '#e3f2f9',
-      100: '#c5e4f3',
-      200: '#a2d4ec',
-      300: '#7ac1e4',
-      400: '#47a9da',
-      500: '#0088cc',
-      600: '#007ab8',
-      700: '#006ba1',
-      800: '#005885',
-      900: '#003f5e',
+  styles: {
+    global: {
+      "html, body, #root": {
+        height: "100%",
+        margin: 0,
+        padding: 0,
+        backgroundColor: "#1c1c1c",
+        color: "#fff",
+        fontFamily: "'Arial', sans-serif",
+      },
+      ".logo": {
+        fontSize: "2rem",
+        fontWeight: "bold",
+        color: "#fff",
+      },
+    },
+  },
+  components: {
+    Button: {
+      baseStyle: {
+        _focus: {
+          boxShadow: "none",
+        },
+      },
     },
   },
 });
