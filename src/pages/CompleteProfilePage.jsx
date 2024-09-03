@@ -38,13 +38,25 @@ function PinLogin() {
       // Update the context with the logged-in user's information
       login(user);
 
-      console.log("Lo que esto sea", user)
-      // Check if the user's profile is complete (alias and role are not empty)
-      if (!user.role) {
+      if (!profileResponse.data.isProfileComplete) {
         navigate('/complete-profile');
       } else {
         switch (user.role) {
-         
+          case 'waiter':
+            navigate('/dashboard/waiter-orders');
+            break;
+          case 'admin':
+            navigate('/dashboard/analytics');
+            break;
+          case 'hostess':
+            navigate('/dashboard/reservations');
+            break;
+          case 'cashier':
+            navigate('/dashboard/cashier');
+            break;
+          case 'kitchen':
+            navigate('/dashboard/inventory');
+            break;
           default:
             navigate('/dashboard');
         }

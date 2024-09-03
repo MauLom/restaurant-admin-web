@@ -11,16 +11,21 @@ import WaiterOrdersPage from './pages/WaiterOrdersPage';
 import CashierPage from './pages/CashierPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import HostessPage from './pages/HostessPage';
-import UserProfilePage from './pages/UserProfilePage'; // New Route
-import UserSettingsPage from './pages/UserSettingsPage'; // New Route
+import UserProfilePage from './pages/UserProfilePage';
+import UserSettingsPage from './pages/UserSettingsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import NotificationDemoPage from './pages/NotificationDemoPage';
-
+import CompleteProfilePage from './pages/CompleteProfilePage';
+import GeneratePins from './components/GeneratePins';
+import MenuCategoryManagement from './components/MenuCategoryManagement'; // Import the component
+import MenuItemManagement from './components/MenuItemManagement'; // Import the component
+import KitchenOrdersPage from './pages/KitchenOrdersPage';
 const App = () => {
   return (
     <Box height="100vh">
       <Routes>
         <Route path="/login" element={<PinLogin />} />
+        <Route path="/complete-profile" element={<CompleteProfilePage />} />
         <Route path="/dashboard/*" element={<DashboardPage />}>
           <Route
             path="sections"
@@ -102,10 +107,41 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-        <Route path="notifications" element={<NotificationDemoPage />} /> {/* New */}
-
+          <Route
+            path="generate-pins"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <GeneratePins />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="manage-categories"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <MenuCategoryManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="manage-items"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <MenuItemManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="kitchen-orders"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'kitchen']}>
+                <KitchenOrdersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="notifications" element={<NotificationDemoPage />} />
         </Route>
-     
+
         <Route path="/" element={<PinLogin />} />
       </Routes>
     </Box>

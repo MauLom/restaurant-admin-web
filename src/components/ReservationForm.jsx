@@ -1,22 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, VStack, Input, Button, Select, useToast, Text } from '@chakra-ui/react';
 import { useLanguage } from '../context/LanguageContext';
-
-const tableData = [
-  { id: 1, number: "T1", status: "available" },
-  { id: 2, number: "T2", status: "occupied" },
-  { id: 3, number: "T3", status: "reserved" },
-  { id: 4, number: "T4", status: "available" },
-  { id: 5, number: "T5", status: "occupied" }
-];
+import api from '../services/api'; // Import the API service
 
 function ReservationForm() {
+  const [tables, setTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState('');
   const [customerName, setCustomerName] = useState('');
   const toast = useToast();
   const { t } = useLanguage();
 
-  const handleReserve = () => {
+  useEffect(() => {
+    const fetchTables = async () => {
+      try {
+        const response = await api.get('/sections');
+        const sections = response.data;
+        const availableTables = sections.flatMap(section => section.tables.filter(table => table.status === 'available'));
+        setTables(availableTables);
+      } catch (error) {
+        console.error('Error fetching tables:', error);
+      }
+    };
+
+    fetchTables();
+  }, []);
+
+  const handleReserve = async () => {
     if (!selectedTable || !customerName) {
       toast({
         title: t('invalidInputTitle'),
@@ -28,18 +37,43 @@ function ReservationForm() {
       return;
     }
 
-    toast({
-      title: t('tableReservedTitle'),
-      description: t('tableReservedDescription')
-        .replace('{table}', selectedTable)
-        .replace('{customer}', customerName),
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
+    try {
+      const selectedTableData = tables.find(table => table.number === selectedTable);
+      await api.post('/reservations', {
+        tableId: selectedTableData._id,
+        customerName,
+        reservationTime: new Date(),
+      });
 
-    setSelectedTable('');
-    setCustomerName('');
+      toast({
+        title: t('tableReservedTitle'),
+        description: t('tableReservedDescription')
+          .replace('{table}', selectedTable)
+          .replace('{customer}', customerName),
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      setSelectedTable('');
+      setCustomerName('');
+
+      // Refresh the tables list after reservation
+      const response = await api.get('/sections');
+      const sections = response.data;
+      const availableTables = sections.flatMap(section => section.tables.filter(table => table.status === 'available'));
+      setTables(availableTables);
+
+    } catch (error) {
+      console.error('Error making reservation:', error);
+      toast({
+        title: t('reservationErrorTitle'),
+        description: t('reservationErrorDescription'),
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   return (
@@ -51,8 +85,8 @@ function ReservationForm() {
           value={selectedTable}
           onChange={(e) => setSelectedTable(e.target.value)}
         >
-          {tableData.filter(table => table.status === 'available').map(table => (
-            <option key={table.id} value={table.number}>
+          {tables.map(table => (
+            <option key={table._id} value={table.number}>
               {t('table')} {table.number}
             </option>
           ))}

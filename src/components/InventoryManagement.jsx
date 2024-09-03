@@ -1,25 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, VStack, HStack, Button, Text, Input, NumberInput, NumberInputField, useToast } from '@chakra-ui/react';
 import { useLanguage } from '../context/LanguageContext';
-
-const initialInventory = [
-  { id: 1, name: "Steak", quantity: 50, price: 20.00 },
-  { id: 2, name: "Wine", quantity: 30, price: 15.00 },
-  { id: 3, name: "Salad", quantity: 40, price: 10.00 }
-];
+import api from '../services/api';
 
 function InventoryManagement() {
-  const [inventory, setInventory] = useState(initialInventory);
+  const [inventory, setInventory] = useState([]);
   const [newItem, setNewItem] = useState({ name: '', quantity: 0, price: 0 });
   const toast = useToast();
   const { t } = useLanguage();
+
+  useEffect(() => {
+    const fetchInventory = async () => {
+      try {
+        const response = await api.get('/inventory');
+        setInventory(response.data);
+      } catch (error) {
+        console.error('Error fetching inventory:', error);
+      }
+    };
+
+    fetchInventory();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewItem({ ...newItem, [name]: value });
   };
 
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
     if (!newItem.name || newItem.quantity <= 0 || newItem.price <= 0) {
       toast({
         title: t('invalidInputTitle'),
@@ -31,13 +39,50 @@ function InventoryManagement() {
       return;
     }
 
-    const newItemId = inventory.length ? inventory[inventory.length - 1].id + 1 : 1;
-    setInventory([...inventory, { ...newItem, id: newItemId }]);
-    setNewItem({ name: '', quantity: 0, price: 0 });
+    try {
+      const response = await api.post('/inventory', newItem);
+      setInventory([...inventory, response.data]);
+      setNewItem({ name: '', quantity: 0, price: 0 });
+      toast({
+        title: t('itemAddedTitle'),
+        description: t('itemAddedDescription'),
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error adding inventory item:', error);
+      toast({
+        title: t('errorTitle'),
+        description: t('errorDescription'),
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
-  const handleDeleteItem = (id) => {
-    setInventory(inventory.filter(item => item.id !== id));
+  const handleDeleteItem = async (id) => {
+    try {
+      await api.delete(`/inventory/${id}`);
+      setInventory(inventory.filter(item => item._id !== id));
+      toast({
+        title: t('itemDeletedTitle'),
+        description: t('itemDeletedDescription'),
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error deleting inventory item:', error);
+      toast({
+        title: t('errorTitle'),
+        description: t('errorDescription'),
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   return (
@@ -45,10 +90,10 @@ function InventoryManagement() {
       <Text fontSize="2xl" mb={4}>{t('inventoryManagement')}</Text>
       <VStack spacing={4} align="start">
         {inventory.map(item => (
-          <Box key={item.id} p={4} borderWidth="1px" borderRadius="lg" width="100%">
+          <Box key={item._id} p={4} borderWidth="1px" borderRadius="lg" width="100%">
             <HStack justify="space-between">
               <Text>{item.name} - {t('quantity')}: {item.quantity} - {t('price')}: ${item.price.toFixed(2)}</Text>
-              <Button colorScheme="red" size="sm" onClick={() => handleDeleteItem(item.id)}>
+              <Button colorScheme="red" size="sm" onClick={() => handleDeleteItem(item._id)}>
                 {t('delete')}
               </Button>
             </HStack>

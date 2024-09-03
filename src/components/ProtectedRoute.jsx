@@ -1,18 +1,20 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+import { useAuthContext } from '../context/AuthContext';
 
-// function ProtectedRoute({ children, allowedRoles }) {
-//   const { user } = useAuth();
+function ProtectedRoute({ children, allowedRoles }) {
+  const { user } = useAuthContext();
 
-//   if (!user || !allowedRoles.includes(user.role)) {
-//     return <Navigate to="/login" />;
-//   }
+  if (!user) {
+    console.log("No hay usuario", user)
+    return <Navigate to="/login" />;
+  }
 
-//   return children;
-// }
+  if (!allowedRoles.includes(user.role)) {
+    return <Navigate to="/unauthorized" />; // Optional: Create an unauthorized page or redirect to a default page
+  }
 
-function ProtectedRoute({ children }) {
-  return children; // Bypass all checks and just render the children
+  return children;
 }
+
 export default ProtectedRoute;

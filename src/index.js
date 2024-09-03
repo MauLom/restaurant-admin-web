@@ -8,6 +8,7 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { LanguageProvider } from './context/LanguageContext';
+import { AuthProvider } from './context/AuthContext';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
@@ -17,7 +18,9 @@ root.render(
     <BrowserRouter>
       <LanguageProvider>
         <UserProvider>
+          <AuthProvider>
           <App />
+          </AuthProvider>
         </UserProvider>
       </LanguageProvider>
     </BrowserRouter>

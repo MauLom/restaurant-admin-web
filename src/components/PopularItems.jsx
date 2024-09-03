@@ -1,15 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, VStack, Text } from '@chakra-ui/react';
 import { useLanguage } from '../context/LanguageContext';
-
-const popularItems = [
-  { name: 'Steak', orders: 50 },
-  { name: 'Wine', orders: 45 },
-  { name: 'Salad', orders: 40 }
-];
+import api from '../services/api';
 
 function PopularItems() {
   const { t } = useLanguage();
+  const [popularItems, setPopularItems] = useState([]);
+
+  useEffect(() => {
+    const fetchPopularItems = async () => {
+      try {
+        const response = await api.get('/analytics/popular-items');
+        setPopularItems(response.data);
+      } catch (error) {
+        console.error('Error fetching popular items:', error);
+      }
+    };
+
+    fetchPopularItems();
+  }, []);
 
   return (
     <Box p={4} borderWidth="1px" borderRadius="lg" mt={8}>
