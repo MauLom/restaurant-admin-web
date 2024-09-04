@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Flex, Select } from '@chakra-ui/react';
+import React, { useContext, useState, useEffect } from 'react';
+import { Box, Flex, Select, useBreakpointValue } from '@chakra-ui/react';
 import CategorySelector from '../components/CategorySelector';
 import ItemSelector from '../components/ItemSelector';
 import OrderSummary from '../components/OrderSummary';
 import api from '../services/api';
+import { UserContext } from '../context/UserContext';  
 
 function OrderPage() {
+  const { user } = useContext(UserContext);  
+  const waiterId = user?._id; 
+
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
   const [total, setTotal] = useState(0);
@@ -14,7 +18,8 @@ function OrderPage() {
   const [tables, setTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState('');
 
-  // Fetch physical sections on load
+  const isMobile = useBreakpointValue({ base: true, md: false });
+
   useEffect(() => {
     const fetchPhysicalSections = async () => {
       try {
@@ -28,7 +33,6 @@ function OrderPage() {
     fetchPhysicalSections();
   }, []);
 
-  // Fetch tables when a physical section is selected
   useEffect(() => {
     const fetchTables = async () => {
       if (selectedPhysicalSection) {
@@ -70,7 +74,6 @@ function OrderPage() {
         }];
       }
 
-      // Update the total after modifying order items
       setTotal(newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0));
       return newItems;
     });
@@ -79,10 +82,7 @@ function OrderPage() {
   const handleRemoveItem = (itemId) => {
     setOrderItems((prevItems) => {
       const newItems = prevItems.filter(item => item.itemId !== itemId);
-      
-      // Update the total after removing an item
       setTotal(newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0));
-      
       return newItems;
     });
   };
@@ -94,9 +94,10 @@ function OrderPage() {
     }
 
     try {
-      console.log('Submitting order:', orderItems)
+      console.log("waiter ID", user);
       const response = await api.post('/orders', {
         tableId: selectedTable,
+        waiterId,  // Include the waiterId in the order
         items: orderItems.map(item => ({
           itemId: item.itemId,
           name: item.name,
@@ -110,7 +111,6 @@ function OrderPage() {
 
       if (response.status === 201) {
         alert('Order created successfully!');
-        // Reset order
         setOrderItems([]);
         setTotal(0);
         setSelectedTable('');
@@ -125,23 +125,29 @@ function OrderPage() {
   };
 
   return (
-    <Flex height="100vh">
+    <Flex height="100vh" direction={isMobile ? 'column' : 'row'}>
+      {isMobile && (
+        <Box flex="1" p={4} bg="gray.900">
+          <OrderSummary 
+            orderItems={orderItems} 
+            total={total} 
+            onRemoveItem={handleRemoveItem} 
+            onSubmit={handleSubmitOrder} 
+          />
+        </Box>
+      )}
+
       <Box flex="3" p={4}>
-        {/* Physical Section Select */}
         <Select
           placeholder="Select Section"
           value={selectedPhysicalSection}
           onChange={(e) => setSelectedPhysicalSection(e.target.value)}
           mb={4}
           sx={{
-            bg: 'white', // Background color
-            color: 'black', // Font color
-            _hover: {
-              bg: 'gray.200', // Background color on hover
-            },
-            _focus: {
-              borderColor: 'blue.500', // Border color on focus
-            },
+            bg: 'white',
+            color: 'black',
+            _hover: { bg: 'gray.200' },
+            _focus: { borderColor: 'blue.500' },
           }}
         >
           {physicalSections.map(section => (
@@ -151,22 +157,17 @@ function OrderPage() {
           ))}
         </Select>
 
-        {/* Table Select */}
         <Select
           placeholder="Select Table"
           value={selectedTable}
           onChange={(e) => setSelectedTable(e.target.value)}
           mb={4}
-          isDisabled={!selectedPhysicalSection}  
+          isDisabled={!selectedPhysicalSection}
           sx={{
-            bg: 'white', // Background color
-            color: 'black', // Font color
-            _hover: {
-              bg: 'gray.200', // Background color on hover
-            },
-            _focus: {
-              borderColor: 'blue.500', // Border color on focus
-            },
+            bg: 'white',
+            color: 'black',
+            _hover: { bg: 'gray.200' },
+            _focus: { borderColor: 'blue.500' },
           }}
         >
           {tables.map(table => (
@@ -179,14 +180,17 @@ function OrderPage() {
         <CategorySelector onSelect={handleCategorySelect} />
         <ItemSelector selectedCategory={selectedCategory} onAddItem={handleAddItem} />
       </Box>
-      <Box flex="1" p={4} bg="gray.900">
-        <OrderSummary 
-          orderItems={orderItems} 
-          total={total} 
-          onRemoveItem={handleRemoveItem} 
-          onSubmit={handleSubmitOrder} 
-        />
-      </Box>
+
+      {!isMobile && (
+        <Box flex="1" p={4} bg="gray.900">
+          <OrderSummary 
+            orderItems={orderItems} 
+            total={total} 
+            onRemoveItem={handleRemoveItem} 
+            onSubmit={handleSubmitOrder} 
+          />
+        </Box>
+      )}
     </Flex>
   );
 }

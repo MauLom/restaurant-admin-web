@@ -17,7 +17,7 @@ function DashboardPage() {
   return (
     <Flex direction="column" height="100vh">
       <Flex as="header" justify="space-between" align="center" p={4} bg="#333">
-        <Img className="logo" maxW="220px" src="maui-logo.png" />
+        <Img className="logo" maxW="4rem" src="maui-logo.png" />
         <HStack spacing={4}>
           <LanguageSwitcher />
           <Button onClick={handleLogout} variant="ghost" colorScheme="whiteAlpha">

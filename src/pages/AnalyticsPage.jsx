@@ -9,7 +9,6 @@ function AnalyticsPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-
   useEffect(() => {
     // Fetch sales summary
     const fetchSalesSummary = async () => {
@@ -29,6 +28,7 @@ function AnalyticsPage() {
     const fetchPopularItems = async () => {
       try {
         const response = await api.get(`/analytics/popular-items?startDate=${startDate}&endDate=${endDate}`);
+        // console.log("response.data.popularItems", response.data.popularItems)
         setPopularItems(response.data.popularItems);
       } catch (error) {
         console.error('Error fetching popular items:', error);
@@ -44,6 +44,7 @@ function AnalyticsPage() {
       try {
         const response = await api.get(`/analytics/waiter-tips?startDate=${startDate}&endDate=${endDate}`);
         setWaiterTips(response.data);
+        console.log("response.data", response.data)
       } catch (error) {
         console.error('Error fetching waiter tips:', error);
       }
@@ -64,12 +65,12 @@ function AnalyticsPage() {
         <Text>Total Tips: ${salesData.totalTips}</Text>
         <Text>Grand Total: ${salesData.grandTotal}</Text>
       </Box>
-      <Box mt={4}>
+      {/* <Box mt={4}>
         <Text fontSize="2xl">Popular Items</Text>
         {popularItems.map((item, index) => (
           <Text key={index}>{item.name} - {item.quantity} ordered</Text>
         ))}
-      </Box>
+      </Box> */}
       <Box mt={4}>
         <Text fontSize="2xl">Waiter Tips</Text>
         {Object.entries(waiterTips).map(([waiter, tips], index) => (

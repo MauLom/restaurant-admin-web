@@ -3,11 +3,13 @@ import { Box, Button, VStack, HStack, Text, Center, Flex, Grid, Img } from '@cha
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { useAuthContext } from '../context/AuthContext'; 
+import { useAuthContext } from '../context/AuthContext';
+import { useUserContext } from '../context/UserContext';
 
 function PinLogin() {
   const { t } = useLanguage();
-  const { login } = useAuthContext(); 
+  const { login } = useAuthContext();  // Get login method from AuthContext
+  const { setUser } = useUserContext(); // Get setUser from UserContext
 
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
@@ -25,30 +27,50 @@ function PinLogin() {
 
   const handleLogin = async () => {
     try {
+      // Make the API request to login via PIN
       const response = await api.post('/users/login-pin', { pin });
       const token = response.data.token;
+
+      // Store token in localStorage
       localStorage.setItem('token', token);
 
+      // Fetch user profile after login
       const profileResponse = await api.get('/users/profile', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const user = profileResponse.data.user;
 
+      // Store the user object in UserContext
+      setUser(user);
+
+      // Use AuthContext login method to store auth status
       login(user);
 
+      // Navigate based on user role or ask to complete profile
       if (!user.role) {
         navigate('/complete-profile');
       } else {
         switch (user.role) {
-         
+          case 'waiter':
+            navigate('/dashboard/orders');
+            break;
+          case 'admin':
+            navigate('/dashboard');
+            break;
+          case 'cashier':
+            navigate('/dashboard/cashier');
+            break;
+          case 'kitchen':
+            navigate('/dashboard/kitchen-orders');
+            break;
           default:
             navigate('/dashboard');
         }
       }
     } catch (error) {
-      setError(t('invalidPin'));
-      setPin('');
+      setError(t('invalidPin'));  // Show invalid pin message if login fails
+      setPin('');  // Clear the pin input
     }
   };
 

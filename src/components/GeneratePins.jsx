@@ -7,15 +7,16 @@ function GeneratePins() {
   const [pins, setPins] = useState([]);
   const [newPin, setNewPin] = useState('');
   const [role, setRole] = useState(''); // State for selected role
+  const [username, setUsername] = useState(''); // State for username
   const toast = useToast();
   const { t } = useLanguage();
 
   // Generate new PIN
   const handleGeneratePin = async () => {
-    if (!role || !newPin) {
+    if (!role || !newPin || !username) {
       toast({
         title: t('invalidInputTitle'),
-        description: t('roleAndPinRequired'),
+        description: t('rolePinAndUsernameRequired'), // Update the error message
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -24,10 +25,11 @@ function GeneratePins() {
     }
 
     try {
-      const response = await api.post('/users/pins', { role, pin: newPin });
+      const response = await api.post('/users/pins', { role, pin: newPin, username });
       setPins([...pins, response.data]);
       setNewPin('');
       setRole(''); // Reset the role after generating the PIN
+      setUsername(''); // Reset the username after generating the PIN
       toast({
         title: t('pinGeneratedTitle'),
         description: t('pinGeneratedDescription'),
@@ -91,21 +93,31 @@ function GeneratePins() {
           <option value="cashier">{t('cashier')}</option>
           <option value="kitchen">{t('kitchen')}</option>
         </Select>
+
+        <Input
+          placeholder={t('usernamePlaceholder')} // New input for username
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+
         <Input
           placeholder={t('pinPlaceholder')}
           value={newPin}
           onChange={(e) => setNewPin(e.target.value)}
         />
+
         <Button colorScheme="blue" onClick={handleGeneratePin}>
           {t('generatePinButton')}
         </Button>
       </VStack>
+
       <Box mt={8}>
         <Text fontSize="lg" mb={2}>{t('existingPins')}</Text>
         <VStack spacing={4} align="start">
           {pins.map((pin, index) => (
             <Box key={index} p={4} borderWidth="1px" borderRadius="lg" width="100%">
               <Text>{t('pin')}: {pin.pin}</Text>
+              <Text>{t('username')}: {pin.username}</Text> {/* Show username */}
               <Text>{t('role')}: {pin.role}</Text>
               <Text>{t('expiresAt')}: {new Date(pin.pinExpiration).toLocaleString()}</Text>
             </Box>

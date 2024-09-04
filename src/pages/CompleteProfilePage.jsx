@@ -70,7 +70,7 @@ function PinLogin() {
   return (
     <Flex height="90vh" direction="column" align="center" justify="center">
       <Center flex="1">
-        <Img className="logo" maxW="220px" src="maui-logo.png" />
+        <Img className="logo" maxW="4rem" src="maui-logo.png" />
       </Center>
       <Box textAlign="center">
         <Text fontSize="2xl" mb={4}>{t('enterPin')}</Text>
