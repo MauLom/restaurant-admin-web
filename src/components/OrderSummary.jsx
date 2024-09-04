@@ -24,7 +24,7 @@ function OrderSummary({ orderItems, total, onRemoveItem, onSubmit }) {
       </HStack>
       <HStack mt={4} spacing={4}>
         <Button colorScheme="blue" onClick={onSubmit}>Submit Order</Button>
-        <Button>Comments</Button>
+        {/* <Button>Comments</Button> */}
       </HStack>
     </Box>
   );

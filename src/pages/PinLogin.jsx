@@ -3,11 +3,11 @@ import { Box, Button, VStack, HStack, Text, Center, Flex, Grid, Img } from '@cha
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { useAuthContext } from '../context/AuthContext'; // Import useAuthContext
+import { useAuthContext } from '../context/AuthContext'; 
 
 function PinLogin() {
   const { t } = useLanguage();
-  const { login } = useAuthContext(); // Get the login function from context
+  const { login } = useAuthContext(); 
 
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
@@ -35,11 +35,8 @@ function PinLogin() {
 
       const user = profileResponse.data.user;
 
-      // Update the context with the logged-in user's information
       login(user);
 
-      console.log("Lo que esto sea", user)
-      // Check if the user's profile is complete (alias and role are not empty)
       if (!user.role) {
         navigate('/complete-profile');
       } else {

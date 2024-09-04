@@ -94,6 +94,7 @@ function OrderPage() {
     }
 
     try {
+      console.log('Submitting order:', orderItems)
       const response = await api.post('/orders', {
         tableId: selectedTable,
         items: orderItems.map(item => ({

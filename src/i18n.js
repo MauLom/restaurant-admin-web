@@ -84,7 +84,10 @@ const translations = {
     errorDeletingSection: "There was an error deleting the section.",
     confirmDelete: "Confirm Delete",
     deleteConfirmationText: "Are you sure you want to delete this section? This action cannot be undone.",
-    cancel: "Cancel"
+    cancel: "Cancel",
+    preparationOrders: "Preparation Orders",
+    manageItems: "Manage Items",
+    manageCategories: "Manage Categories"
   },
   es: {
     addItem: 'Agregar Artículo',
@@ -171,7 +174,10 @@ const translations = {
     errorDeletingSection: "Hubo un error borrando la seccion.",
     confirmDelete: "Confirmar borrado",
     deleteConfirmationText: "Esta seguro de borrar la seccion? esta accion no puede ser revertida",
-    cancel: "Cancelar"
+    cancel: "Cancelar",
+    preparationOrders: "Ordenes en preparacion",
+    manageItems: "Administrar Items",
+    manageCategories: "Administrar Categorias",
   }
 };
 

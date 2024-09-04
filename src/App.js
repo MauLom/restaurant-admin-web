@@ -19,7 +19,7 @@ import CompleteProfilePage from './pages/CompleteProfilePage';
 import GeneratePins from './components/GeneratePins';
 import MenuCategoryManagement from './components/MenuCategoryManagement'; // Import the component
 import MenuItemManagement from './components/MenuItemManagement'; // Import the component
-import KitchenOrdersPage from './pages/KitchenOrdersPage';
+import OrdersInPreparationPage from './pages/OrdersInPreparationPage';
 const App = () => {
   return (
     <Box height="100vh">
@@ -135,7 +135,7 @@ const App = () => {
             path="kitchen-orders"
             element={
               <ProtectedRoute allowedRoles={['admin', 'kitchen']}>
-                <KitchenOrdersPage />
+                <OrdersInPreparationPage />
               </ProtectedRoute>
             }
           />

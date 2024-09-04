@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, VStack, HStack, Button, useBreakpointValue, Tooltip } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
-import { FaListAlt, FaClipboardList, FaUtensils, FaUserCog, FaChartLine, FaCashRegister, FaBell, FaCogs, FaKey, FaTags, FaHamburger } from 'react-icons/fa';
+import { FaListAlt, FaClipboardList, FaUtensils, FaChartLine, FaCashRegister, FaKey, FaTags, FaHamburger } from 'react-icons/fa';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuthContext } from '../context/AuthContext';
 
@@ -19,14 +19,14 @@ function ResponsiveSidebar() {
   const menuItems = [
     { name: t('orders'), path: '/dashboard/orders', icon: FaListAlt, roles: ['admin', 'waiter'] },
     { name: t('sections'), path: '/dashboard/sections', icon: FaClipboardList, roles: ['admin', 'hostess'] },
-    { name: t('reservations'), path: '/dashboard/reservations', icon: FaUtensils, roles: ['admin', 'hostess'] },
+    // { name: t('reservations'), path: '/dashboard/reservations', icon: FaUtensils, roles: ['admin', 'hostess'] },
     { name: t('waiterOrders'), path: '/dashboard/waiter-orders', icon: FaListAlt, roles: ['admin', 'waiter'] },
     { name: t('cashier'), path: '/dashboard/cashier', icon: FaCashRegister, roles: ['admin', 'cashier'] },
     { name: t('analytics'), path: '/dashboard/analytics', icon: FaChartLine, roles: ['admin'] },
     { name: t('manageCategories'), path: '/dashboard/manage-categories', icon: FaTags, roles: ['admin'] },
     { name: t('manageItems'), path: '/dashboard/manage-items', icon: FaHamburger, roles: ['admin'] },
-    { name: t('kitchenOrders'), path: '/dashboard/kitchen-orders', icon: FaUtensils, roles: ['admin', 'kitchen'] }, // New item for kitchen staff
-    { name: t('profile'), path: '/dashboard/profile', icon: FaUserCog, roles: ['admin', 'waiter', 'hostess', 'cashier', 'kitchen'] },
+    { name: t('preparationOrders'), path: '/dashboard/kitchen-orders', icon: FaUtensils, roles: ['admin', 'kitchen'] }, 
+    // { name: t('profile'), path: '/dashboard/profile', icon: FaUserCog, roles: ['admin', 'waiter', 'hostess', 'cashier', 'kitchen'] },
     // { name: t('settings'), path: '/dashboard/settings', icon: FaCogs, roles: ['admin', 'waiter', 'hostess', 'cashier', 'kitchen'] },
     { name: t('generatePins'), path: '/dashboard/generate-pins', icon: FaKey, roles: ['admin'] },
     // { name: t('notifications'), path: '/dashboard/notifications', icon: FaBell, roles: ['admin', 'waiter', 'hostess', 'cashier', 'kitchen'] },

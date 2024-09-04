@@ -1,4 +1,3 @@
-// src/components/MenuItemManagement.jsx
 import React, { useState, useEffect } from 'react';
 import { Box, VStack, HStack, Button, Input, Text, Select, useToast } from '@chakra-ui/react';
 import api from '../services/api';
@@ -84,7 +83,7 @@ function MenuItemManagement() {
       <VStack spacing={4}>
         {items.map(item => (
           <HStack key={item._id} width="100%" justify="space-between">
-            <Text>{item.name} - {item.category.name} - ${item.price}</Text>
+            <Text>{item.name} - {item.category.name} ({item.category.area}) - ${item.price.toFixed(2)}</Text>
             <Button colorScheme="red" onClick={() => handleDeleteItem(item._id)}>
               Delete
             </Button>
@@ -114,7 +113,7 @@ function MenuItemManagement() {
           >
             {categories.map(category => (
               <option key={category._id} value={category._id}>
-                {category.name}
+                {category.name} ({category.area})
               </option>
             ))}
           </Select>

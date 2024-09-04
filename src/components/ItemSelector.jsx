@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { VStack, HStack, Text, Flex, IconButton, Input } from '@chakra-ui/react';
+import { VStack, HStack, Text, Flex, IconButton } from '@chakra-ui/react';
 import { FaPlus, FaMinus } from 'react-icons/fa';
 import api from '../services/api';
 
@@ -35,7 +35,7 @@ function ItemSelector({ selectedCategory, onAddItem }) {
               onClick={() => onAddItem(item._id, -1, item)}
             />
 
-            <Input type="number" value={item.quantity || 0} readOnly width="50px" textAlign="center" />
+            {/* <Input type="number" value={item.quantity || 0} readOnly width="50px" textAlign="center" /> */}
             <IconButton
               icon={<FaPlus />}
               size="sm"

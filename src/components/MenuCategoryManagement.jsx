@@ -1,11 +1,11 @@
-// src/components/MenuCategoryManagement.jsx
 import React, { useState, useEffect } from 'react';
-import { Box, VStack, HStack, Button, Input, Text, useToast } from '@chakra-ui/react';
+import { Box, VStack, HStack, Button, Input, Select, Text, useToast } from '@chakra-ui/react';
 import api from '../services/api';
 
 function MenuCategoryManagement() {
   const [categories, setCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryArea, setNewCategoryArea] = useState('kitchen'); // Default area
   const toast = useToast();
 
   useEffect(() => {
@@ -30,9 +30,10 @@ function MenuCategoryManagement() {
 
   const handleAddCategory = async () => {
     try {
-      const response = await api.post('/menu/categories', { name: newCategoryName });
+      const response = await api.post('/menu/categories', { name: newCategoryName, area: newCategoryArea });
       setCategories([...categories, response.data]);
       setNewCategoryName('');
+      setNewCategoryArea('kitchen'); // Reset to default area
       toast({
         title: 'Category added',
         description: 'New category has been added successfully.',
@@ -81,7 +82,7 @@ function MenuCategoryManagement() {
       <VStack spacing={4}>
         {categories.map(category => (
           <HStack key={category._id} width="100%" justify="space-between">
-            <Text>{category.name}</Text>
+            <Text>{category.name} ({category.area})</Text>
             <Button colorScheme="red" onClick={() => handleDeleteCategory(category._id)}>
               Delete
             </Button>
@@ -93,6 +94,13 @@ function MenuCategoryManagement() {
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
           />
+          <Select
+            value={newCategoryArea}
+            onChange={(e) => setNewCategoryArea(e.target.value)}
+          >
+            <option value="kitchen">Kitchen</option>
+            <option value="bar">Bar</option>
+          </Select>
           <Button colorScheme="blue" onClick={handleAddCategory}>
             Add Category
           </Button>
