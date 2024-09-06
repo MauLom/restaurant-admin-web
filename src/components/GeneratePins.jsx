@@ -92,6 +92,8 @@ function GeneratePins() {
           <option value="hostess">{t('hostess')}</option>
           <option value="cashier">{t('cashier')}</option>
           <option value="kitchen">{t('kitchen')}</option>
+          <option value="bar">{t('bar')}</option>
+
         </Select>
 
         <Input

@@ -9,9 +9,8 @@ function OrdersPreparationPage() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        // Fetch all orders that are not fully ready
-        const response = await api.get('/orders?kitchen=true'); // Fetch kitchen/bar orders
-        const filteredOrders = response.data.filter(order => order.status !== 'ready');
+        const response = await api.get('/orders?kitchen=true');
+        const filteredOrders = response.data.filter(order => order.status !== 'ready' && order.status !== 'paid');
         setOrders(filteredOrders);
       } catch (error) {
         console.error('Error fetching orders:', error);
@@ -21,13 +20,11 @@ function OrdersPreparationPage() {
     fetchOrders();
   }, []);
 
-  // Function to update the status of a specific item within an order
   const handleMarkItemAsReady = async (orderId, itemId) => {
     try {
-      // Call the backend to update the item's status to 'ready'
       const response = await api.put(`/orders/${orderId}/items/${itemId}`, { status: 'ready' });
 
-      // Update the frontend with the new status
+
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order._id === orderId
@@ -36,7 +33,7 @@ function OrdersPreparationPage() {
                 items: order.items.map((item) =>
                   item.itemId === itemId ? { ...item, status: 'ready' } : item
                 ),
-                status: response.data.status, // Update the order status if it's fully ready
+                status: response.data.status, 
               }
             : order
         )
@@ -46,7 +43,6 @@ function OrdersPreparationPage() {
     }
   };
 
-  // Group orders by area
   const groupedOrders = preparationAreas.map((area) => ({
     area,
     orders: orders.filter((order) => order.items.some((item) => item.area === area)),
@@ -68,10 +64,10 @@ function OrdersPreparationPage() {
               <VStack spacing={4}>
                 {group.orders.map((order) => (
                   <Box key={order._id} p={4} bg="gray.800" color="white" borderRadius="md" width="full">
-                    <Text fontSize="lg">Order #{order._id}</Text>
+                    <Text fontSize="lg">Orden #{order._id.substring(order._id.length -4,order._id.length)}</Text> 
                     <VStack spacing={2} mt={2}>
                       {order.items
-                        .filter((item) => item.area === group.area) // Only show items from the current area
+                        .filter((item) => item.area === group.area) 
                         .map((item, index) => (
                           <HStack key={index} justifyContent="space-between" width="full">
                             <Text>{item.name} (x{item.quantity})</Text>
@@ -82,14 +78,14 @@ function OrdersPreparationPage() {
                                 onClick={() => handleMarkItemAsReady(order._id, item.itemId)}
                                 isDisabled={item.status === 'ready'}
                               >
-                                Mark as Ready
+                                Marcar como lista
                               </Button>
                             </HStack>
                           </HStack>
                         ))}
                     </VStack>
                     {order.status === 'ready' && (
-                      <Text fontSize="sm" color="green.500">Order is fully ready!</Text>
+                      <Text fontSize="sm" color="green.500">Orden totalmente lista!</Text>
                     )}
                   </Box>
                 ))}
