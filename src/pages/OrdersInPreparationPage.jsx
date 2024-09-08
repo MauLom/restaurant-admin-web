@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Box, VStack, HStack, Text, Button, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react';
 import api from '../services/api';
 import { useAuthContext } from '../context/AuthContext';
+import { io } from 'socket.io-client';  // Import Socket.IO client
 
 function OrdersPreparationPage() {
   const [orders, setOrders] = useState([]);
-  const [preparationAreas, setPreparationAreas] = useState(['kitchen', 'bar']); // Correctly initialize state as an array
+  const [preparationAreas, setPreparationAreas] = useState(['kitchen', 'bar']); // Initial areas
   const { user } = useAuthContext();
 
+  // Effect to fetch initial orders and handle real-time updates via Socket.IO
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -21,24 +23,38 @@ function OrdersPreparationPage() {
 
     fetchOrders();
 
-    // Set preparation areas based on user role
     if (user.role !== 'admin') {
-      // Ensure that only the role-related tab is shown
+      // Set specific areas based on the user's role
       if (user.role === 'bar') {
-        console.log('Setting preparation areas to bar');
         setPreparationAreas(['bar']);
       } else if (user.role === 'kitchen') {
-        console.log('Setting preparation areas to kitchen');
         setPreparationAreas(['kitchen']);
-
       }
     }
+
+    // Setup WebSocket connection
+    const socket = io('http://localhost:5000');  // Adjust the URL if needed
+    socket.on('new-order', (newOrder) => {
+      setOrders((prevOrders) => [...prevOrders, newOrder]);
+    });
+
+    socket.on('update-order', (updatedOrder) => {
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === updatedOrder._id ? updatedOrder : order
+        )
+      );
+    });
+
+    // Cleanup when component unmounts
+    return () => {
+      socket.disconnect();  // Clean up WebSocket connection
+    };
   }, [user.role]);
 
   const handleMarkItemAsReady = async (orderId, itemId) => {
     try {
       const response = await api.put(`/orders/${orderId}/items/${itemId}`, { status: 'ready' });
-
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order._id === orderId
@@ -78,7 +94,7 @@ function OrdersPreparationPage() {
               <VStack spacing={4}>
                 {group.orders.map((order) => (
                   <Box key={order._id} p={4} bg="gray.800" color="white" borderRadius="md" width="full">
-                    <Text fontSize="lg">Orden #{order._id.substring(order._id.length - 4, order._id.length)}</Text>
+                    <Text fontSize="lg">Order #{order._id.substring(order._id.length - 4)}</Text>
                     <VStack spacing={2} mt={2}>
                       {order.items
                         .filter((item) => item.area === group.area)
@@ -92,14 +108,14 @@ function OrdersPreparationPage() {
                                 onClick={() => handleMarkItemAsReady(order._id, item.itemId)}
                                 isDisabled={item.status === 'ready'}
                               >
-                                Marcar como lista
+                                Mark as Ready
                               </Button>
                             </HStack>
                           </HStack>
                         ))}
                     </VStack>
                     {order.status === 'ready' && (
-                      <Text fontSize="sm" color="green.500">Orden totalmente lista!</Text>
+                      <Text fontSize="sm" color="green.500">Order fully ready!</Text>
                     )}
                   </Box>
                 ))}
