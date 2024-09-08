@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Box, VStack, HStack, Text, Button, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react';
 import api from '../services/api';
+import { useAuthContext } from '../context/AuthContext';
 
 function OrdersPreparationPage() {
   const [orders, setOrders] = useState([]);
-  const preparationAreas = ['kitchen', 'bar']; 
+  const [preparationAreas, setPreparationAreas] = useState(['kitchen', 'bar']); // Correctly initialize state as an array
+  const { user } = useAuthContext();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -18,12 +20,24 @@ function OrdersPreparationPage() {
     };
 
     fetchOrders();
-  }, []);
+
+    // Set preparation areas based on user role
+    if (user.role !== 'admin') {
+      // Ensure that only the role-related tab is shown
+      if (user.role === 'bar') {
+        console.log('Setting preparation areas to bar');
+        setPreparationAreas(['bar']);
+      } else if (user.role === 'kitchen') {
+        console.log('Setting preparation areas to kitchen');
+        setPreparationAreas(['kitchen']);
+
+      }
+    }
+  }, [user.role]);
 
   const handleMarkItemAsReady = async (orderId, itemId) => {
     try {
       const response = await api.put(`/orders/${orderId}/items/${itemId}`, { status: 'ready' });
-
 
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
@@ -33,7 +47,7 @@ function OrdersPreparationPage() {
                 items: order.items.map((item) =>
                   item.itemId === itemId ? { ...item, status: 'ready' } : item
                 ),
-                status: response.data.status, 
+                status: response.data.status,
               }
             : order
         )
@@ -64,10 +78,10 @@ function OrdersPreparationPage() {
               <VStack spacing={4}>
                 {group.orders.map((order) => (
                   <Box key={order._id} p={4} bg="gray.800" color="white" borderRadius="md" width="full">
-                    <Text fontSize="lg">Orden #{order._id.substring(order._id.length -4,order._id.length)}</Text> 
+                    <Text fontSize="lg">Orden #{order._id.substring(order._id.length - 4, order._id.length)}</Text>
                     <VStack spacing={2} mt={2}>
                       {order.items
-                        .filter((item) => item.area === group.area) 
+                        .filter((item) => item.area === group.area)
                         .map((item, index) => (
                           <HStack key={index} justifyContent="space-between" width="full">
                             <Text>{item.name} (x{item.quantity})</Text>

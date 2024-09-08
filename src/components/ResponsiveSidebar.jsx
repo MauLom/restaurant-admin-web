@@ -25,7 +25,7 @@ function ResponsiveSidebar() {
     { name: t('analytics'), path: '/dashboard/analytics', icon: FaChartLine, roles: ['admin'] },
     { name: t('manageCategories'), path: '/dashboard/manage-categories', icon: FaTags, roles: ['admin'] },
     { name: t('manageItems'), path: '/dashboard/manage-items', icon: FaHamburger, roles: ['admin'] },
-    { name: t('preparationOrders'), path: '/dashboard/kitchen-orders', icon: FaUtensils, roles: ['admin', 'kitchen'] }, 
+    { name: t('preparationOrders'), path: '/dashboard/kitchen-orders', icon: FaUtensils, roles: ['admin', 'kitchen', 'bar'] }, 
     // { name: t('profile'), path: '/dashboard/profile', icon: FaUserCog, roles: ['admin', 'waiter', 'hostess', 'cashier', 'kitchen'] },
     // { name: t('settings'), path: '/dashboard/settings', icon: FaCogs, roles: ['admin', 'waiter', 'hostess', 'cashier', 'kitchen'] },
     { name: t('generatePins'), path: '/dashboard/generate-pins', icon: FaKey, roles: ['admin'] },

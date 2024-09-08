@@ -134,7 +134,7 @@ const App = () => {
           <Route
             path="kitchen-orders"
             element={
-              <ProtectedRoute allowedRoles={['admin', 'kitchen']}>
+              <ProtectedRoute allowedRoles={['admin', 'kitchen', 'bar']}>
                 <OrdersInPreparationPage />
               </ProtectedRoute>
             }
