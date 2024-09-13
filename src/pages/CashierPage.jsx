@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Select, VStack, HStack, Text, Button, Input, useToast, useDisclosure } from '@chakra-ui/react';
-import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton } from '@chakra-ui/react';
+import {
+  Box, Select, VStack, HStack, Text, Button, Input, useToast, useDisclosure,
+  Table, Thead, Tbody, Tr, Th, Td,
+} from '@chakra-ui/react';
+import {
+  Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton,
+} from '@chakra-ui/react';
 import api from '../services/api';
 
 function CashierPage() {
@@ -61,6 +66,16 @@ function CashierPage() {
     return total + tip;
   };
 
+  const calculateTotalPayment = () => {
+    return paymentMethods.reduce((sum, method) => sum + (parseFloat(method.amount) || 0), 0);
+  };
+
+  const calculateTotalCashPayment = () => {
+    return paymentMethods
+      .filter(method => method.method === 'cash')
+      .reduce((sum, method) => sum + (parseFloat(method.amount) || 0), 0);
+  };
+
   const handlePaymentMethodChange = (index, field, value) => {
     const newMethods = [...paymentMethods];
     newMethods[index][field] = value;
@@ -76,7 +91,7 @@ function CashierPage() {
   };
 
   const isPaymentValid = () => {
-    const totalPayment = paymentMethods.reduce((sum, method) => sum + method.amount, 0);
+    const totalPayment = calculateTotalPayment();
     return totalPayment >= calculateGrandTotal();
   };
 
@@ -100,7 +115,7 @@ function CashierPage() {
 
       toast({
         title: "Payment Completed",
-        description: `Payment for the table has been finalized. Total: $${response.data.grandTotal}`,
+        description: `Payment for the table has been finalized.`,
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -123,119 +138,181 @@ function CashierPage() {
     }
   };
 
+  // Calculate values
+  const grandTotal = calculateGrandTotal();
+  const totalPayment = calculateTotalPayment();
+  const totalCashPayment = calculateTotalCashPayment();
+  const change = totalCashPayment - grandTotal;
+
   return (
     <Box p={4}>
-      <Select placeholder="Select Table" onChange={(e) => handleTableSelect(e.target.value)} bg="white" color="black">
-        {tables.map(table => (
-          <option key={table._id} value={table._id}>
-            Table {table.number}
-          </option>
-        ))}
-      </Select>
-
-      <VStack spacing={4} mt={4}>
-        {orders.map(order => (
-          <Box key={order._id} p={4} borderWidth="1px" borderRadius="md" width="full">
-            <Text fontSize="lg">Order #{order._id}</Text>
-            <VStack spacing={2} mt={2}>
-              {order.items.map((item, index) => (
-                <HStack key={index} justifyContent="space-between" width="full">
-                  <Text>{item.name} (x{item.quantity})</Text>
-                  <Input
-                    type="number"
-                    value={item.price}
-                    onChange={(e) => handleCostChange(order._id, index, parseFloat(e.target.value))}
-                    width="100px"
-                  />
-                  <Text>${(item.price * item.quantity).toFixed(2)}</Text>
-                </HStack>
-              ))}
-            </VStack>
-          </Box>
-        ))}
-
-        <HStack justifyContent="space-between" width="full" mt={4}>
-          <Text>Total: ${total.toFixed(2)}</Text>
-          <Text>Tip:</Text>
-          <Input
-            type="number"
-            value={tip}
-            onChange={(e) => setTip(parseFloat(e.target.value) || 0)}
-            width="100px"
-            bg="white" color="black"
-          />
-        </HStack>
-
-        <HStack spacing={4}>
-          <Button colorScheme="blue" onClick={() => handleTipShortcut(5)}>+5% Tip</Button>
-          <Button colorScheme="blue" onClick={() => handleTipShortcut(10)}>+10% Tip</Button>
-          <Button colorScheme="blue" onClick={() => handleTipShortcut(15)}>+15% Tip</Button>
-        </HStack>
-
-        {/* Payment Methods */}
-        <VStack spacing={4} mt={4}>
-          <Text fontSize="lg">Payment Methods</Text>
-          {paymentMethods.map((method, index) => (
-            <HStack key={index} width="full">
-              <Select
-                value={method.method}
-                onChange={(e) => handlePaymentMethodChange(index, 'method', e.target.value)}
-                bg="white" color="black"
-              >
-                <option value="cash">Cash</option>
-                <option value="card">Card</option>
-              </Select>
-              <Input
-                type="number"
-                placeholder="Amount"
-                value={method.amount}
-                onChange={(e) => handlePaymentMethodChange(index, 'amount', parseFloat(e.target.value))}
-                width="150px"
-                bg="white" color="black"
-              />
-              {paymentMethods.length > 1 && (
-                <Button colorScheme="red" onClick={() => handleRemovePaymentMethod(index)}>Remove</Button>
-              )}
-            </HStack>
+      <VStack spacing={4} align="stretch">
+        <Select placeholder="Select Table" onChange={(e) => handleTableSelect(e.target.value)} bg="white" color="black">
+          {tables.map(table => (
+            <option key={table._id} value={table._id}>
+              Table {table.number}
+            </option>
           ))}
-          <Button colorScheme="blue" onClick={handleAddPaymentMethod}>Add Payment Method</Button>
-        </VStack>
+        </Select>
 
-        <HStack justifyContent="space-between" width="full" mt={4}>
-          <Text>Grand Total (with tip): ${calculateGrandTotal().toFixed(2)}</Text>
-        </HStack>
+        {orders.length > 0 && (
+          <VStack spacing={4} align="stretch">
+            {orders.map(order => (
+              <Box key={order._id} p={4} borderWidth="1px" borderRadius="md" width="full">
+                <Text fontSize="lg" fontWeight="bold" mb={2}>Order #{order._id}</Text>
+                <Table variant="simple">
+                  <Thead>
+                    <Tr>
+                      <Th>Item</Th>
+                      <Th>Quantity</Th>
+                      <Th>Price</Th>
+                      <Th>Total</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {order.items.map((item, index) => (
+                      <Tr key={index}>
+                        <Td>{item.name}</Td>
+                        <Td>{item.quantity}</Td>
+                        <Td>
+                          <Input
+                            type="number"
+                            value={item.price}
+                            onChange={(e) =>
+                              handleCostChange(order._id, index, parseFloat(e.target.value))
+                            }
+                            width="100px"
+                            bg="white"
+                            color="black"
+                          />
+                        </Td>
+                        <Td>${(item.price * item.quantity).toFixed(2)}</Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
+            ))}
 
-        <Button colorScheme="green" mt={4} onClick={onOpen}>
-          Finalize Payment
-        </Button>
-
-        {/* Confirmation Modal */}
-        <Modal isOpen={isOpen} onClose={onClose}>
-          <ModalOverlay />
-          <ModalContent >
-            <ModalHeader color={"black"}>Confirm Payment</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Text color={"black"}>Please confirm the following payments:</Text>
-              {paymentMethods.map((method, index) => (
-                <HStack key={index} justifyContent="space-between" mt={4}>
-                  <Text color={"black"}>{method.method.toUpperCase()}</Text>
-                  <Text color={"black"}>${method.amount.toFixed(2)}</Text>
-                </HStack>
-              ))}
-              <HStack justifyContent="space-between" mt={4}>
-                <Text color={"black"}>Total</Text>
-                <Text color={"black"}>${calculateGrandTotal().toFixed(2)}</Text>
+            <VStack align="stretch" spacing={4}>
+              <HStack justifyContent="space-between">
+                <Text fontSize="lg">Subtotal:</Text>
+                <Text fontSize="lg">${total.toFixed(2)}</Text>
               </HStack>
-            </ModalBody>
+              <HStack justifyContent="space-between">
+                <Text fontSize="lg">Tip:</Text>
+                <Input
+                  type="number"
+                  value={tip}
+                  onChange={(e) => setTip(parseFloat(e.target.value) || 0)}
+                  width="100px"
+                  bg="white"
+                  color="black"
+                />
+              </HStack>
+              <HStack spacing={4}>
+                <Button colorScheme="blue" onClick={() => handleTipShortcut(5)}>Add 5% Tip</Button>
+                <Button colorScheme="blue" onClick={() => handleTipShortcut(10)}>Add 10% Tip</Button>
+                <Button colorScheme="blue" onClick={() => handleTipShortcut(15)}>Add 15% Tip</Button>
+              </HStack>
 
-            <ModalFooter>
-              <Button colorScheme="green" onClick={handleFinalizePayment}>
-                Confirm Payment
+              {/* Payment Methods */}
+              <VStack spacing={4} align="stretch">
+                <Text fontSize="lg" fontWeight="bold">Payment Methods</Text>
+                {paymentMethods.map((method, index) => (
+                  <HStack key={index} spacing={4}>
+                    <Select
+                      value={method.method}
+                      onChange={(e) => handlePaymentMethodChange(index, 'method', e.target.value)}
+                      bg="white"
+                      color="black"
+                      width="150px"
+                    >
+                      <option value="cash">Cash</option>
+                      <option value="card">Card</option>
+                    </Select>
+                    <Input
+                      type="number"
+                      placeholder="Amount"
+                      value={method.amount}
+                      onChange={(e) =>
+                        handlePaymentMethodChange(index, 'amount', parseFloat(e.target.value) || 0)
+                      }
+                      width="150px"
+                      bg="white"
+                      color="black"
+                    />
+                    {paymentMethods.length > 1 && (
+                      <Button colorScheme="red" onClick={() => handleRemovePaymentMethod(index)}>Remove</Button>
+                    )}
+                  </HStack>
+                ))}
+                <Button colorScheme="blue" onClick={handleAddPaymentMethod}>Add Payment Method</Button>
+              </VStack>
+
+              {change > 0 && (
+                <Text color="green.500" fontSize="lg">
+                  Change to return: ${change.toFixed(2)}
+                </Text>
+              )}
+
+              <HStack justifyContent="space-between">
+                <Text fontSize="lg" fontWeight="bold">Grand Total (with tip):</Text>
+                <Text fontSize="lg" fontWeight="bold">${grandTotal.toFixed(2)}</Text>
+              </HStack>
+
+              <Button colorScheme="green" onClick={onOpen}>
+                Finalize Payment
               </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+
+              {/* Confirmation Modal */}
+              <Modal isOpen={isOpen} onClose={onClose}>
+                <ModalOverlay />
+                <ModalContent>
+                  <ModalHeader color="black">Confirm Payment</ModalHeader>
+                  <ModalCloseButton />
+                  <ModalBody>
+                    <Text color="black">Please confirm the following payments:</Text>
+                    {paymentMethods.map((method, index) => (
+                      <HStack key={index} justifyContent="space-between" mt={4}>
+                        <Text color="black">{method.method.toUpperCase()}</Text>
+                        <Text color="black">
+                          ${parseFloat(method.amount).toFixed(2)}
+                        </Text>
+                      </HStack>
+                    ))}
+                    <HStack justifyContent="space-between" mt={4}>
+                      <Text color="black" fontWeight="bold">Total Payment</Text>
+                      <Text color="black" fontWeight="bold">
+                        ${totalPayment.toFixed(2)}
+                      </Text>
+                    </HStack>
+                    <HStack justifyContent="space-between" mt={4}>
+                      <Text color="black" fontWeight="bold">Grand Total</Text>
+                      <Text color="black" fontWeight="bold">
+                        ${grandTotal.toFixed(2)}
+                      </Text>
+                    </HStack>
+                    {change > 0 && (
+                      <HStack justifyContent="space-between" mt={4}>
+                        <Text color="black" fontWeight="bold">Change to Return</Text>
+                        <Text color="black" fontWeight="bold">
+                          ${change.toFixed(2)}
+                        </Text>
+                      </HStack>
+                    )}
+                  </ModalBody>
+
+                  <ModalFooter>
+                    <Button colorScheme="green" onClick={handleFinalizePayment}>
+                      Confirm Payment
+                    </Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
+            </VStack>
+          </VStack>
+        )}
       </VStack>
     </Box>
   );
