@@ -13,6 +13,7 @@ function OrderPage() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
   const [total, setTotal] = useState(0);
+  const [comment, setComment] = useState('');
   const [physicalSections, setPhysicalSections] = useState([]);
   const [selectedPhysicalSection, setSelectedPhysicalSection] = useState('');
   const [tables, setTables] = useState([]);
@@ -52,7 +53,7 @@ function OrderPage() {
     setSelectedCategory(categoryId);
   };
 
-  const handleAddItem = (itemId, quantityChange, itemDetails) => {
+  const handleAddItem = (itemId, quantityChange, itemDetails, comments) => {
     setOrderItems((prevItems) => {
       const itemIndex = prevItems.findIndex(item => item.itemId === itemId);
       let newItems;
@@ -60,6 +61,13 @@ function OrderPage() {
         newItems = [...prevItems];
         const updatedItem = { ...newItems[itemIndex] };
         updatedItem.quantity += quantityChange;
+
+        if(quantityChange > 0) {
+          updatedItem.comments.push(comments);
+        } else {
+          updatedItem.comments.pop();
+        }
+
         if (updatedItem.quantity <= 0) {
           newItems.splice(itemIndex, 1);
         } else {
@@ -70,7 +78,8 @@ function OrderPage() {
           itemId, 
           name: itemDetails.name, 
           price: itemDetails.price, 
-          quantity: quantityChange 
+          quantity: quantityChange,
+          comments: [comments]
         }];
       }
 
@@ -103,16 +112,19 @@ function OrderPage() {
           name: item.name,
           price: item.price,
           quantity: item.quantity,
+          comments: item.comments
         })),
         section: 'kitchen',  // Replace this with dynamic section assignment if needed
         physicalSection: selectedPhysicalSection,
         total,
+        comment: comment
       });
 
       if (response.status === 201) {
         alert('Order created successfully!');
         setOrderItems([]);
         setTotal(0);
+        setComment('');
         setSelectedTable('');
         setSelectedPhysicalSection('');
       } else {
@@ -124,6 +136,10 @@ function OrderPage() {
     }
   };
 
+  const setOrderComment = (comment) => {
+    setComment(comment)
+  };
+
   return (
     <Flex height="100vh" direction={isMobile ? 'column' : 'row'}>
       {isMobile && (
@@ -131,6 +147,7 @@ function OrderPage() {
           <OrderSummary 
             orderItems={orderItems} 
             total={total} 
+            setOrderComment={setOrderComment}
             onRemoveItem={handleRemoveItem} 
             onSubmit={handleSubmitOrder} 
           />
