@@ -36,7 +36,7 @@ function ResponsiveSidebar() {
   const filteredMenuItems = menuItems.filter(item => item.roles.includes(user.role));
 
   return isMobile ? (
-    <Box as="nav" width="full" bg="#444" p={4} position="fixed" bottom="0" left="0">
+    <Box as="nav" width="full" bg="#444" p={4} zIndex={10000} position="fixed" bottom="0" left="0">
       <HStack justify="space-around">
         {filteredMenuItems.map((item) => (
           <Tooltip key={item.name} label={item.name} aria-label={item.name}>

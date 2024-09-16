@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { VStack, HStack, Text, Flex, IconButton } from '@chakra-ui/react';
-import { FaPlus, FaMinus } from 'react-icons/fa';
+import { VStack, Text, IconButton, SimpleGrid, Button, Stack, Input, Flex} from '@chakra-ui/react';
+import { FaTrash } from 'react-icons/fa';
 import api from '../services/api';
 
 function ItemSelector({ selectedCategory, onAddItem }) {
   const [items, setItems] = useState([]);
+  const [comment, setComments] = useState([]);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -22,29 +23,39 @@ function ItemSelector({ selectedCategory, onAddItem }) {
     }
   }, [selectedCategory]);
 
+  const handleAddItem = (itemId, quantity, item) => {
+    onAddItem(itemId, quantity, item, comment);
+    setComments('');
+  };
+
+  // Refactored for better user usability
   return (
-    <VStack spacing={4} p={4}>
-      {items.map(item => (
-        <HStack key={item._id} spacing={4} width="full">
-          <Text>{item.name}</Text>
-          <Text>${item.price.toFixed(2)}</Text>
-          <Flex alignItems="center">
-            <IconButton
-              icon={<FaMinus />}
-              size="sm"
-              onClick={() => onAddItem(item._id, -1, item)}
-            />
-
-            {/* <Input type="number" value={item.quantity || 0} readOnly width="50px" textAlign="center" /> */}
-            <IconButton
-              icon={<FaPlus />}
-              size="sm"
-              onClick={() => onAddItem(item._id, 1, item)}
-            />
-
-          </Flex>
-        </HStack>
-      ))}
+    <VStack mt={5} mb={20}>
+    <Input 
+      placeholder='Add comment to product' 
+      value={comment}
+      onChange={(e) => setComments(e.target.value)} 
+    />
+    <SimpleGrid width='full' spacing='40px' marginTop={5}>
+      <Flex gap={5} flexFlow='wrap'>
+        {items.map((item) => (
+          <Stack key={item._id} spacing={0} width={200}>
+          <Button colorScheme="blue" onClick={() => handleAddItem(item._id, 1, item, comment)} height={120} p={10} borderBottomRadius={0}>
+            <VStack>
+              {/* Seria bueno mostrar una imagen de referencia para meseros nuevos les */}
+              {/* <Image src='gibbresh.png' fallbackSrc='maui-logo.png' height={150}/> */}
+              <Text textAlign='center' whiteSpace='normal'>{item.name} </Text>
+              <Text>{item.price.toFixed(2)}</Text>
+            </VStack>
+          </Button>
+          <IconButton colorScheme='red' borderTopRadius={0} 
+            icon={<FaTrash color='white'/>} 
+            onClick={() => handleAddItem(item._id, -1, item)}
+          />
+          </Stack>
+        ))}
+      </Flex>
+    </SimpleGrid>
     </VStack>
   );
 }
