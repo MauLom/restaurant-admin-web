@@ -30,7 +30,7 @@ function ItemSelector({ selectedCategory, onAddItem }) {
 
   // Refactored for better user usability
   return (
-    <VStack marginTop={5}>
+    <VStack mt={5} mb={20}>
     <Input 
       placeholder='Add comment to product' 
       value={comment}
