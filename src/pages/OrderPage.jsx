@@ -147,6 +147,7 @@ function OrderPage() {
           <OrderSummary 
             orderItems={orderItems} 
             total={total} 
+            oderComment={comment}
             setOrderComment={setOrderComment}
             onRemoveItem={handleRemoveItem} 
             onSubmit={handleSubmitOrder} 
@@ -203,6 +204,8 @@ function OrderPage() {
           <OrderSummary 
             orderItems={orderItems} 
             total={total} 
+            oderComment={comment}
+            setOrderComment={setOrderComment}
             onRemoveItem={handleRemoveItem} 
             onSubmit={handleSubmitOrder} 
           />

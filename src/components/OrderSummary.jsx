@@ -3,7 +3,7 @@ import { Box, VStack, HStack, Text, Button, Divider, IconButton,List, ListIcon, 
 import { FaTrashAlt, FaComment } from 'react-icons/fa';
 import { Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon} from '@chakra-ui/react'
 
-function OrderSummary({ orderItems, total, setOrderComment, onRemoveItem, onSubmit }) {  
+function OrderSummary({ orderItems, total, oderComment, setOrderComment, onRemoveItem, onSubmit }) {  
   return (
     <Box p={4} bg="gray.800" color="white" borderRadius="md" width="full">
       <Text fontSize="lg" mb={4}>Order Summary</Text>
@@ -46,7 +46,7 @@ function OrderSummary({ orderItems, total, setOrderComment, onRemoveItem, onSubm
         <Button colorScheme="blue" onClick={onSubmit} flex={3} height='full'>
           <Text textAlign='center' whiteSpace='normal'>Submit Order</Text>
         </Button>
-        <Input placeholder='Add general comment' flex={7} height='full' onChange={(e) => setOrderComment(e.target.value)}/>
+        <Input placeholder='Add general comment' flex={7} height='full' onChange={(e) => setOrderComment(e.target.value)} value={oderComment}/>
       </HStack>
     </Box>
   );
