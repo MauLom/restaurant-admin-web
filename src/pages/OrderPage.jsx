@@ -103,7 +103,6 @@ function OrderPage() {
     }
 
     try {
-      console.log("waiter ID", user);
       const response = await api.post('/orders', {
         tableId: selectedTable,
         waiterId,  // Include the waiterId in the order

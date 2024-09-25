@@ -33,8 +33,12 @@ function OrdersPreparationPage() {
     }
 
     // Setup WebSocket connection
-    const socket = io('http://localhost:5000');  // Adjust the URL if needed
+
+    let socketURL = process.env.REACT_APP_API_URL;
+    if(socketURL.includes("/api")) socketURL = socketURL.replace("/api", "");
+    const socket = io(socketURL); 
     socket.on('new-order', (newOrder) => {
+      console.log("Se recibe la emision de new-order");
       setOrders((prevOrders) => [...prevOrders, newOrder]);
     });
 
