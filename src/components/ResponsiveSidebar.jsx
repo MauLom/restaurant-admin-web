@@ -10,7 +10,6 @@ function ResponsiveSidebar() {
   const { t } = useLanguage();
   const { user } = useAuthContext();
 
-  // Ensure user is not null before proceeding
   if (!user || !user.role) {
     console.log("No hay usuario");
     return null; // or return a loading indicator, e.g., <Spinner />

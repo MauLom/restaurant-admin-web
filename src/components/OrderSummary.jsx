@@ -1,55 +1,126 @@
-import React from 'react';
-import { Box, VStack, HStack, Text, Button, Divider, IconButton,List, ListIcon, ListItem, Input} from '@chakra-ui/react';
-import { FaTrashAlt, FaComment } from 'react-icons/fa';
-import { Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon} from '@chakra-ui/react'
+// OrdersSummary.js
+import React, { useState, useEffect } from 'react';
+import { Box, VStack, Text, HStack, Button, useToast, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, Textarea } from '@chakra-ui/react';
+import api from '../services/api';
 
-function OrderSummary({ orderItems, total, oderComment, setOrderComment, onRemoveItem, onSubmit }) {  
+function OrdersSummary({ tableId, refreshTrigger, onOrderUpdated }) {
+  const [orders, setOrders] = useState([]);
+  const [selectedOrderItem, setSelectedOrderItem] = useState(null);
+  const [reason, setReason] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const toast = useToast();
+
+  const fetchOrders = async () => {
+    try {
+      // Se asume que el endpoint GET /orders admite filtrar por tableId
+      const response = await api.get(`/orders?tableId=${tableId}`);
+      setOrders(response.data);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudieron cargar las órdenes de la mesa',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (tableId) {
+      fetchOrders();
+    }
+  }, [tableId, refreshTrigger]);
+
+  // Función para abrir el modal de edición/cancelación para un ítem
+  const handleEditItem = (orderId, item) => {
+    // Por ejemplo, si se quiere cancelar el ítem
+    setSelectedOrderItem({ orderId, item });
+    setReason('');
+    setIsModalOpen(true);
+  };
+
+  // Función para enviar la actualización (por ejemplo, cancelar el ítem)
+  const handleUpdateItemStatus = async () => {
+    try {
+      await api.put(`/orders/${selectedOrderItem.orderId}/items/${selectedOrderItem.item.itemId}`, {
+        status: 'cancelled',
+        reason,
+      });
+      toast({
+        title: 'Ítem actualizado',
+        description: 'Se actualizó el estado del ítem correctamente',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      setIsModalOpen(false);
+      setSelectedOrderItem(null);
+      fetchOrders();
+      // Llamar a un callback para que el padre sepa que se actualizó una orden
+      onOrderUpdated && onOrderUpdated();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo actualizar el ítem',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   return (
-    <Box p={4} bg="gray.800" color="white" borderRadius="md" width="full">
-      <Text fontSize="lg" mb={4}>Order Summary</Text>
-      <VStack spacing={4} mb={4}>
-        <Accordion defaultIndex={[0]} allowMultiple width='full'> 
-          {orderItems.map(item => (
-              <AccordionItem>
-                <AccordionButton>
-                    <HStack as='span' flex='1' textAlign='left' justifyContent='space-between'>
-                      <Text>{item.name}</Text>
-                      <Text>(x{item.quantity})</Text>
-                      <Text>${(item.price * item.quantity).toFixed(2)}</Text>
-                      <IconButton icon={<FaTrashAlt />} size="sm" 
-                      onClick={() => onRemoveItem(item.itemId)} />
-                    </HStack>
-                  <AccordionIcon />
-                </AccordionButton>
-                <AccordionPanel pl={10} pt={0}>
-                  <HStack>
-                    <List>
-                      {item.comments.map((comment, index) => (
-                        <ListItem key={index}>
-                          <Text fontSize='md'>{item.name}</Text>
-                          <Text fontSize='xs' pl={5}><ListIcon as={FaComment} />{comment}</Text>
-                        </ListItem>
-                      ))}
-                    </List>
-                  </HStack>
-                </AccordionPanel>
-              </AccordionItem>
-          ))}
-        </Accordion>
-      </VStack>
-      <Divider mb={4} />
-      <HStack justifyContent="space-between">
-        <Text>Total</Text>
-        <Text>$ {total.toFixed(2)}</Text>
-      </HStack>
-      <HStack mt={4} spacing={4} width='full' height={50}>
-        <Button colorScheme="blue" onClick={onSubmit} flex={3} height='full'>
-          <Text textAlign='center' whiteSpace='normal'>Submit Order</Text>
-        </Button>
-        <Input placeholder='Add general comment' flex={7} height='full' onChange={(e) => setOrderComment(e.target.value)} value={oderComment}/>
-      </HStack>
-    </Box>
+    <VStack align="stretch" spacing={4} p={4} borderWidth="1px" borderRadius="md">
+      <Text fontSize="lg" fontWeight="bold">Órdenes de la Mesa</Text>
+      {orders.length === 0 ? (
+        <Text>No hay órdenes en curso.</Text>
+      ) : (
+        orders.map(order => (
+          <Box key={order._id} p={2} borderWidth="1px" borderRadius="md">
+            <Text fontWeight="semibold">Orden: {order._id}</Text>
+            <Text>Status: {order.status}</Text>
+            <Text>Total: ${order.total.toFixed(2)}</Text>
+            {order.items.map(item => (
+              <HStack key={item.itemId} justify="space-between" mt={2}>
+                <Text>
+                  {item.name} x {item.quantity} (${(item.price * item.quantity).toFixed(2)})
+                </Text>
+                {/* Solo permitir edición si el estado no es "delivered" ni "cancelled" */}
+                {item.status !== 'delivered' && item.status !== 'cancelled' && (
+                  <Button size="sm" colorScheme="yellow" onClick={() => handleEditItem(order._id, item)}>
+                    Editar / Cancelar
+                  </Button>
+                )}
+              </HStack>
+            ))}
+          </Box>
+        ))
+      )}
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Confirmar cambio en el ítem</ModalHeader>
+          <ModalBody>
+            <Textarea 
+              placeholder="Especifique el motivo (ej: sin cacahuates)" 
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={() => setIsModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button colorScheme="red" onClick={handleUpdateItemStatus}>
+              Confirmar
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </VStack>
   );
 }
 
-export default OrderSummary;
+export default OrdersSummary;

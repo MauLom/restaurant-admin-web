@@ -1,215 +1,89 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { Box, Flex, Select, useBreakpointValue } from '@chakra-ui/react';
-import CategorySelector from '../components/CategorySelector';
-import ItemSelector from '../components/ItemSelector';
-import OrderSummary from '../components/OrderSummary';
+import React, { useState, useEffect, useContext } from 'react';
+import { Flex, useToast } from '@chakra-ui/react';
 import api from '../services/api';
-import { UserContext } from '../context/UserContext';  
+import { UserContext } from '../context/UserContext';
+import TableSelection from '../components/TableSelection';
+import OpenTableModal from '../components/OpenTableModal';
+import OrderForm from '../components/OrderForm';
 
 function OrderPage() {
-  const { user } = useContext(UserContext);  
-  const waiterId = user?._id; 
+  const { user } = useContext(UserContext);
+  const toast = useToast();
 
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [orderItems, setOrderItems] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [comment, setComment] = useState('');
-  const [physicalSections, setPhysicalSections] = useState([]);
-  const [selectedPhysicalSection, setSelectedPhysicalSection] = useState('');
-  const [tables, setTables] = useState([]);
-  const [selectedTable, setSelectedTable] = useState('');
+  const [sections, setSections] = useState([]);
+  const [selectedTable, setSelectedTable] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
 
-  const isMobile = useBreakpointValue({ base: true, md: false });
+  const fetchSections = async () => {
+    try {
+      const response = await api.get('/sections');
+      setSections(response.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar las secciones",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
 
   useEffect(() => {
-    const fetchPhysicalSections = async () => {
-      try {
-        const response = await api.get('/sections');
-        setPhysicalSections(response.data);
-      } catch (error) {
-        console.error('Error fetching physical sections:', error);
-      }
-    };
-
-    fetchPhysicalSections();
+    fetchSections();
   }, []);
 
-  useEffect(() => {
-    const fetchTables = async () => {
-      if (selectedPhysicalSection) {
-        try {
-          const response = await api.get(`/sections/${selectedPhysicalSection}/tables`);
-          setTables(response.data.tables);
-        } catch (error) {
-          console.error('Error fetching tables:', error);
-        }
-      }
-    };
-
-    fetchTables();
-  }, [selectedPhysicalSection]);
-
-  const handleCategorySelect = (categoryId) => {
-    setSelectedCategory(categoryId);
-  };
-
-  const handleAddItem = (itemId, quantityChange, itemDetails, comments) => {
-    setOrderItems((prevItems) => {
-      const itemIndex = prevItems.findIndex(item => item.itemId === itemId);
-      let newItems;
-      if (itemIndex > -1) {
-        newItems = [...prevItems];
-        const updatedItem = { ...newItems[itemIndex] };
-        updatedItem.quantity += quantityChange;
-
-        if(quantityChange > 0) {
-          updatedItem.comments.push(comments);
-        } else {
-          updatedItem.comments.pop();
-        }
-
-        if (updatedItem.quantity <= 0) {
-          newItems.splice(itemIndex, 1);
-        } else {
-          newItems[itemIndex] = updatedItem;
-        }
-      } else {
-        newItems = [...prevItems, { 
-          itemId, 
-          name: itemDetails.name, 
-          price: itemDetails.price, 
-          quantity: quantityChange,
-          comments: [comments]
-        }];
-      }
-
-      setTotal(newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0));
-      return newItems;
-    });
-  };
-
-  const handleRemoveItem = (itemId) => {
-    setOrderItems((prevItems) => {
-      const newItems = prevItems.filter(item => item.itemId !== itemId);
-      setTotal(newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0));
-      return newItems;
-    });
-  };
-
-  const handleSubmitOrder = async () => {
-    if (!selectedTable || orderItems.length === 0) {
-      alert('Please select a table and add items to the order.');
-      return;
+  const handleTableClick = (table) => {
+    if (table.status === "occupied") {
+      setSelectedTable(table);
+    } else {
+      setSelectedTable(table);
+      setOpenModal(true);
     }
+  };
 
+  const handleConfirmTable = async () => {
     try {
-      const response = await api.post('/orders', {
-        tableId: selectedTable,
-        waiterId,  // Include the waiterId in the order
-        items: orderItems.map(item => ({
-          itemId: item.itemId,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          comments: item.comments
-        })),
-        section: 'kitchen',  // Replace this with dynamic section assignment if needed
-        physicalSection: selectedPhysicalSection,
-        total,
-        comment: comment
+      await api.put(`/tables/${selectedTable._id}`, { status: 'occupied', number: selectedTable.number });
+      toast({
+        title: "Mesa abierta",
+        description: `La mesa ${selectedTable.number} se actualizó a ocupada.`,
+        status: "success",
+        duration: 2000,
+        isClosable: true,
       });
-
-      if (response.status === 201) {
-        alert('Order created successfully!');
-        setOrderItems([]);
-        setTotal(0);
-        setComment('');
-        setSelectedTable('');
-        setSelectedPhysicalSection('');
-      } else {
-        alert('Failed to create order');
-      }
+      setOpenModal(false);
+      await fetchSections();
     } catch (error) {
-      console.error('Error creating order:', error);
-      alert('Error creating order');
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el estado de la mesa",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
-  const setOrderComment = (comment) => {
-    setComment(comment)
+  const handleBackToTables = async () => {
+    setSelectedTable(null);
+    await fetchSections();
   };
 
   return (
-    <Flex height="100vh" direction={isMobile ? 'column' : 'row'}>
-      {isMobile && (
-        <Box flex="1" p={4} bg="gray.900">
-          <OrderSummary 
-            orderItems={orderItems} 
-            total={total} 
-            oderComment={comment}
-            setOrderComment={setOrderComment}
-            onRemoveItem={handleRemoveItem} 
-            onSubmit={handleSubmitOrder} 
-          />
-        </Box>
+    <Flex height="100vh" direction="column" p={4}>
+      { !selectedTable ? (
+        <TableSelection sections={sections} onTableClick={handleTableClick} />
+      ) : (
+        <OrderForm table={selectedTable} onBack={handleBackToTables} />
       )}
 
-      <Box flex="3" p={4}>
-        <Select
-          placeholder="Select Section"
-          value={selectedPhysicalSection}
-          onChange={(e) => setSelectedPhysicalSection(e.target.value)}
-          mb={4}
-          sx={{
-            bg: 'white',
-            color: 'black',
-            _hover: { bg: 'gray.200' },
-            _focus: { borderColor: 'blue.500' },
-          }}
-        >
-          {physicalSections.map(section => (
-            <option key={section._id} value={section._id}>
-              {section.name}
-            </option>
-          ))}
-        </Select>
-
-        <Select
-          placeholder="Select Table"
-          value={selectedTable}
-          onChange={(e) => setSelectedTable(e.target.value)}
-          mb={4}
-          isDisabled={!selectedPhysicalSection}
-          sx={{
-            bg: 'white',
-            color: 'black',
-            _hover: { bg: 'gray.200' },
-            _focus: { borderColor: 'blue.500' },
-          }}
-        >
-          {tables.map(table => (
-            <option key={table._id} value={table._id}>
-              {`Table ${table.number}`}
-            </option>
-          ))}
-        </Select>
-
-        <CategorySelector onSelect={handleCategorySelect} />
-        <ItemSelector selectedCategory={selectedCategory} onAddItem={handleAddItem} />
-      </Box>
-
-      {!isMobile && (
-        <Box flex="1" p={4} bg="gray.900">
-          <OrderSummary 
-            orderItems={orderItems} 
-            total={total} 
-            oderComment={comment}
-            setOrderComment={setOrderComment}
-            onRemoveItem={handleRemoveItem} 
-            onSubmit={handleSubmitOrder} 
-          />
-        </Box>
-      )}
+      <OpenTableModal
+        isOpen={openModal}
+        table={selectedTable}
+        onClose={() => setOpenModal(false)}
+        onConfirm={handleConfirmTable}
+      />
     </Flex>
   );
 }
