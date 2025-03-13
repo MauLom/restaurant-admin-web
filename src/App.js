@@ -1,31 +1,30 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { Box } from '@chakra-ui/react';
-import PinLogin from './pages/PinLogin';
-import DashboardPage from './pages/DashboardPage';
-import SectionPage from './pages/SectionPage';
-import OrderPage from './pages/OrderPage';
-import InventoryPage from './pages/InventoryPage';
-import ReservationPage from './pages/ReservationPage';
-import WaiterOrdersPage from './pages/WaiterOrdersPage';
-import CashierPage from './pages/CashierPage';
-import AnalyticsPage from './pages/AnalyticsPage';
-import HostessPage from './pages/HostessPage';
-import UserProfilePage from './pages/UserProfilePage';
-import UserSettingsPage from './pages/UserSettingsPage';
-import ProtectedRoute from './components/ProtectedRoute';
-import NotificationDemoPage from './pages/NotificationDemoPage';
-import CompleteProfilePage from './pages/CompleteProfilePage';
-import GeneratePins from './components/GeneratePins';
-import MenuCategoryManagement from './components/MenuCategoryManagement'; // Import the component
-import MenuItemManagement from './components/MenuItemManagement'; // Import the component
-import OrdersInPreparationPage from './pages/OrdersInPreparationPage';
+import PinLogin from './layout/PinLogin';
+import DashboardPage from './layout/DashboardPage';
+import ProtectedRoute from './shared/components/ProtectedRoute';
+import GeneratePins from './shared/components/GeneratePins';
+import MenuCategoryManagement from './shared/components/MenuCategoryManagement'; 
+import MenuItemManagement from './shared/components/MenuItemManagement'; 
+import OrderPage from './features/orders/pages/OrderPage';
+import OrdersPreparationPage from './features/orders/pages/OrdersInPreparationPage';
+import SectionPage from './features/restaurantLayoutManagement/pages/SectionPage';
+import AnalyticsPage from './features/analytics/pages/AnalyticsPage';
+import InventoryPage from './features/inventory/pages/InventoryPage';
+import CashierPage from './features/teamManagement/pages/CashierPage';
+import HostessPage from './features/teamManagement/pages/HostessPage';
+import ReservationPage from './features/teamManagement/components/ReservationPage';
+import UserProfilePage from './features/teamManagement/pages/UserProfilePage';
+import UserSettingsPage from './features/teamManagement/pages/UserSettingsPage';
+import NotificationPage from './features/teamManagement/pages/NotificationPage';
+import WaiterOrdersPage from './features/teamManagement/pages/WaiterOrdersPage';
 const App = () => {
   return (
     <Box height="100vh">
       <Routes>
         <Route path="/login" element={<PinLogin />} />
-        <Route path="/complete-profile" element={<CompleteProfilePage />} />
+        {/* <Route path="/complete-profile" element={<CompleteProfilePage />} /> */}
         <Route path="/dashboard/*" element={<DashboardPage />}>
           <Route
             path="sections"
@@ -135,11 +134,11 @@ const App = () => {
             path="kitchen-orders"
             element={
               <ProtectedRoute allowedRoles={['admin', 'kitchen', 'bar']}>
-                <OrdersInPreparationPage />
+                <OrdersPreparationPage />
               </ProtectedRoute>
             }
           />
-          <Route path="notifications" element={<NotificationDemoPage />} />
+          <Route path="notifications" element={<NotificationPage />} />
         </Route>
 
         <Route path="/" element={<PinLogin />} />
