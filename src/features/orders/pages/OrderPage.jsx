@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Flex, useToast, Button, VStack, Heading, Divider } from '@chakra-ui/react';
+import { Flex, useToast, Button, VStack, Heading, Divider, Input } from '@chakra-ui/react';
 import api from '../../../services/api';
 import TableSelection from '../components/TableSelection';
 import OpenTableModal from '../components/OpenTableModal';
 import OrderForm from '../components/OrderForm';
 import OrderCard from '../components/OrderCard'; // Asegúrate de tener este componente
+import PaymentMethodSelector from '../components/PaymentMethodSelector';
 
 function OrderPage() {
   const toast = useToast();
 
   const [sections, setSections] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
+  const [tipAll, setTipAll] = useState(0);
+  const [paymentMethodsAll, setPaymentMethodsAll] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [orders, setOrders] = useState([]);
   const [creatingNewOrder, setCreatingNewOrder] = useState(false);
@@ -94,6 +97,36 @@ function OrderPage() {
     }
   };
 
+  const handlePayAllOrders = async () => {
+    try {
+      await api.post(`/orders/payment/${selectedTable._id}`, {
+        tip: parseFloat(tipAll),
+        paymentMethods: paymentMethodsAll
+      });
+
+
+      toast({
+        title: 'Pago realizado',
+        description: `Se pagaron todas las órdenes de la mesa ${selectedTable.number}.`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+      await fetchOrdersByTable(selectedTable._id);
+      await fetchSections();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudieron pagar todas las órdenes.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+
   const handleBackToTables = async () => {
     setSelectedTable(null);
     setOrders([]);
@@ -122,6 +155,24 @@ function OrderPage() {
           {orders.map((order) => (
             <OrderCard key={order._id} order={order} onPaid={() => fetchOrdersByTable(selectedTable._id)} />
           ))}
+          <Input
+            type="number"
+            placeholder="Propina para todas las órdenes"
+            value={tipAll}
+            onChange={(e) => setTipAll(e.target.value)}
+            size="sm"
+          />
+          <PaymentMethodSelector
+            paymentMethods={paymentMethodsAll}
+            setPaymentMethods={setPaymentMethodsAll}
+          />
+          <Button
+            colorScheme="green"
+            onClick={handlePayAllOrders}
+            isDisabled={!orders.some(o => o.status === 'ready' && !o.paid)}
+          >
+            💳 Pagar todas las órdenes
+          </Button>
           <Divider />
           <Button colorScheme="teal" onClick={handleCreateNewOrder}>
             ➕ Agregar nueva orden
