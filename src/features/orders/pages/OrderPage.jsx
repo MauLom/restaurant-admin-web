@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Flex, useToast } from '@chakra-ui/react';
+import { Flex, useToast, Button, VStack, Heading, Divider } from '@chakra-ui/react';
 import api from '../../../services/api';
 import TableSelection from '../components/TableSelection';
 import OpenTableModal from '../components/OpenTableModal';
 import OrderForm from '../components/OrderForm';
+import OrderCard from '../components/OrderCard'; // Asegúrate de tener este componente
 
 function OrderPage() {
-  // const { user } = useContext(UserContext);
   const toast = useToast();
 
   const [sections, setSections] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [creatingNewOrder, setCreatingNewOrder] = useState(false);
 
   const fetchSections = async () => {
     try {
@@ -28,35 +30,63 @@ function OrderPage() {
     }
   };
 
+  const fetchOrdersByTable = async (tableId) => {
+    try {
+      const res = await api.get(`/orders?tableId=${tableId}`);
+      setOrders(res.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar las órdenes",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   useEffect(() => {
     fetchSections();
   }, []);
 
+  useEffect(() => {
+    if (selectedTable && selectedTable.status === 'occupied') {
+      fetchOrdersByTable(selectedTable._id);
+    }
+  }, [selectedTable]);
+
   const handleTableClick = (table) => {
-    if (table.status === "occupied") {
-      setSelectedTable(table);
-    } else {
-      setSelectedTable(table);
+    setSelectedTable(table);
+    if (table.status !== "occupied") {
       setOpenModal(true);
     }
   };
 
-  const handleConfirmTable = async () => {
+  const handleConfirmTable = async (comment, numberOfGuests, waiterId) => {
     try {
-      await api.put(`/tables/${selectedTable._id}`, { status: 'occupied', number: selectedTable.number });
+      await api.post('/orders', {
+        tableId: selectedTable._id,
+        waiterId,
+        items: [],
+        comment,
+        numberOfGuests
+      });
+
       toast({
-        title: "Mesa abierta",
-        description: `La mesa ${selectedTable.number} se actualizó a ocupada.`,
+        title: "Mesa aperturada",
+        description: `La mesa ${selectedTable.number} fue aperturada con éxito.`,
         status: "success",
         duration: 2000,
         isClosable: true,
       });
+
       setOpenModal(false);
-      await fetchSections();
+      fetchSections();
+      fetchOrdersByTable(selectedTable._id);
     } catch (error) {
       toast({
         title: "Error",
-        description: "No se pudo actualizar el estado de la mesa",
+        description: "No se pudo aperturar la mesa",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -66,15 +96,40 @@ function OrderPage() {
 
   const handleBackToTables = async () => {
     setSelectedTable(null);
+    setOrders([]);
+    setCreatingNewOrder(false);
     await fetchSections();
+  };
+
+  const handleCreateNewOrder = () => {
+    setCreatingNewOrder(true);
+  };
+
+  const handleOrderCreated = () => {
+    setCreatingNewOrder(false);
+    fetchOrdersByTable(selectedTable._id);
   };
 
   return (
     <Flex height="100vh" direction="column" p={4}>
-      { !selectedTable ? (
+      {!selectedTable ? (
         <TableSelection sections={sections} onTableClick={handleTableClick} />
+      ) : creatingNewOrder ? (
+        <OrderForm table={selectedTable} onBack={handleBackToTables} onSubmitSuccess={handleOrderCreated} />
       ) : (
-        <OrderForm table={selectedTable} onBack={handleBackToTables} />
+        <VStack align="stretch" spacing={4}>
+          <Heading size="lg">Mesa {selectedTable.number}</Heading>
+          {orders.map((order) => (
+            <OrderCard key={order._id} order={order} onPaid={() => fetchOrdersByTable(selectedTable._id)} />
+          ))}
+          <Divider />
+          <Button colorScheme="teal" onClick={handleCreateNewOrder}>
+            ➕ Agregar nueva orden
+          </Button>
+          <Button variant="ghost" onClick={handleBackToTables}>
+            🔙 Volver a mesas
+          </Button>
+        </VStack>
       )}
 
       <OpenTableModal

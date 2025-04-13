@@ -62,7 +62,7 @@ const App = () => {
             path="waiter-orders"
             element={
               <ProtectedRoute allowedRoles={['admin', 'waiter']}>
-                <WaiterOrdersPage />
+                {/* <WaiterOrdersPagez   /> */}
               </ProtectedRoute>
             }
           />

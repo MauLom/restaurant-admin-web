@@ -63,7 +63,7 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
           <Button colorScheme="gray" mr={3} onClick={onClose}>
             Cancelar
           </Button>
-          <Button colorScheme="red" onClick={onConfirm}>
+          <Button colorScheme="red" onClick={() => onConfirm(comment, numDiners, selectedWaiter)}>
             Abrir Mesa
           </Button>
         </ModalFooter>
