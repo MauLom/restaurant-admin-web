@@ -1,6 +1,6 @@
-# Restaurant Admin Web App
+# 🍽️ Restaurant Admin Web App
 
-This is the frontend part of the Restaurant Admin project. The application provides an interface for restaurant staff to manage orders, reservations, inventory, and other restaurant-related activities. The frontend is built with React and integrates with the backend API to perform various operations.
+This is the frontend interface of the Restaurant Admin System. It is built using React and provides role-based access for staff such as waiters, kitchen personnel, cashiers, and administrators to manage restaurant operations effectively.
 
 ## Table of Contents
 
@@ -15,19 +15,44 @@ This is the frontend part of the Restaurant Admin project. The application provi
 
 ## Features
 
-- **Order Management**: Create, update, and track orders from different tables.
-- **Reservation System**: Manage reservations with real-time table availability.
-- **Inventory Management**: Add, update, and delete inventory items.
-- **User Authentication**: Secure login with PIN-based authentication.
-- **Real-Time Notifications**: Notify kitchen and bar staff of new orders.
-- **Responsive Design**: Optimized for both desktop and mobile devices.
+### 👨‍🍳 Waiters
+- Open tables with guest count and optional comments.
+- Create **multiple orders** for the same table.
+- Add item notes and manage item quantities dynamically.
+- See product availability and **stock warnings** instantly.
+- Get toast alerts when adding over stock limits.
+- View **daily analytics** by table: revenue, tips, and order count.
+- Select historical dates for performance tracking.
+
+### 🧑‍🍳 Kitchen & Bar
+- (Planned) Visual interface to view and update item prep status.
+
+### 💳 Cashiers
+- See all pending orders for payment per table.
+- Input **multiple payment methods** (e.g., cash + card).
+- Add tips and finalize payments with clear validation.
+
+### 🧑‍💼 Administrators
+- Visualize analytics (sales, top items, tips per waiter).
+- (Planned) Manage menu items, categories, and prices.
+- (Planned) Manage users, roles, and system settings.
+- Configure operational thresholds like low stock alerts.
 
 ## Technologies Used
 
-- **React**: For building the user interface.
-- **Chakra UI**: For component styling and layout.
-- **Axios**: For making API requests.
-- **React Router**: For navigation and routing.
-- **Redux**: For state management.
-- **Jest**: For unit and integration testing.
-- **ESLint & Prettier**: For code formatting and linting.
+- **React** – SPA framework for building the interface
+- **Chakra UI** – Modular and accessible component library
+- **Axios** – HTTP client for REST API interaction
+- **React Router** – Navigation and route handling
+- **Redux** – (Optional) For complex state management (in progress)
+- **Day.js** – For date handling
+- **Jest** – Unit/integration testing
+- **ESLint & Prettier** – Code quality tools
+
+## Project Highlights
+
+- Feature-based architecture (`features/orders`, `features/inventory`, etc.)
+- Centralized API handler (`/services/api.js`)
+- Toasts for user feedback and inventory warnings
+- Context support (`UserContext`, `LanguageContext`)
+- Responsive design for tablets and point-of-sale stations
