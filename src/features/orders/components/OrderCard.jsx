@@ -14,7 +14,7 @@ import PaymentMethodSelector from './PaymentMethodSelector';
 
 function OrderCard({ order, onPaid }) {
     const toast = useToast();
-    const [tip, setTip] = useState(0);
+    const [tip, setTip] = useState(null);
     const [paymentMethods, setPaymentMethods] = useState([{ method: '', amount: order.total + parseFloat(tip) }]);
 
     console.log("paymentMethods on orderCard", paymentMethods);
@@ -82,7 +82,7 @@ function OrderCard({ order, onPaid }) {
                         paymentMethods={paymentMethods}
                         setPaymentMethods={setPaymentMethods}
                         expectedTotal={
-                            order?.total + parseFloat(tip)
+                            order?.total + parseFloat(tip || 0)
                         }
                     />
                     <Button

@@ -14,7 +14,7 @@ function OrderPage() {
 
   const [sections, setSections] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
-  const [tipAll, setTipAll] = useState(0);
+  const [tipAll, setTipAll] = useState(null);
   const [paymentMethodsAll, setPaymentMethodsAll] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [orders, setOrders] = useState([]);
@@ -225,7 +225,7 @@ function OrderPage() {
             expectedTotal={
               orders
                 .filter(order => !order.paid)
-                .reduce((total, order) => total + order.total, 0) + parseFloat(tipAll)
+                .reduce((total, order) => total + order.total, 0) + parseFloat(tipAll || 0)
             }
           />
 
