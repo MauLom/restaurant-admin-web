@@ -109,12 +109,51 @@ function OrderPage() {
   };
 
 
-
   const handlePayAllOrders = async () => {
+    const unpaidOrders = orders.filter(order => !order.paid);
+    const expectedTotal = unpaidOrders.reduce((sum, order) => sum + order.total, 0) + parseFloat(tipAll || 0);
+    const totalEntered = paymentMethodsAll.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0);
+
+    // Validaciones
+    if (paymentMethodsAll.length === 0) {
+      toast({
+        title: 'Métodos de pago faltantes',
+        description: 'Agrega al menos un método de pago para continuar.',
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    const invalidMethod = paymentMethodsAll.some(pm => !pm.method || !pm.amount || parseFloat(pm.amount) <= 0);
+    if (invalidMethod) {
+      toast({
+        title: 'Métodos de pago inválidos',
+        description: 'Verifica que todos los métodos tengan un tipo y un monto válido.',
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    if (Math.abs(totalEntered - expectedTotal) > 0.01) {
+      toast({
+        title: 'Montos no coinciden',
+        description: `El total ingresado ($${totalEntered.toFixed(2)}) no coincide con el total esperado ($${expectedTotal.toFixed(2)}).`,
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    // Si pasa todas las validaciones, ejecutar pago
     try {
       await api.post(`/orders/payment/${selectedTable._id}`, {
         tip: parseFloat(tipAll),
-        paymentMethods: paymentMethodsAll
+        paymentMethods: paymentMethodsAll,
       });
 
       toast({
@@ -127,6 +166,8 @@ function OrderPage() {
 
       await fetchOrdersByTable(selectedTable._id);
       await fetchSections();
+      setPaymentMethodsAll([]);
+      setTipAll(0);
     } catch (error) {
       toast({
         title: 'Error',
