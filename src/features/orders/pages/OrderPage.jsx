@@ -63,9 +63,9 @@ function OrderPage() {
   const handleTableClick = (table) => {
     if (table.status !== "occupied") {
       setOpenModal(true);
-      setSelectedTable({ ...table, _pendingOpen: true }); // Marcamos que está pendiente
+      setSelectedTable({ ...table, _pendingOpen: true });
     } else {
-      setSelectedTable(table); // Si ya está ocupada, podemos ir directo
+      setSelectedTable(table);
     }
   };
 
@@ -88,12 +88,10 @@ function OrderPage() {
 
       setOpenModal(false);
 
-      // Establecer la mesa como seleccionada sin la bandera temporal
       const updatedTable = { ...selectedTable };
       delete updatedTable._pendingOpen;
       setSelectedTable(updatedTable);
 
-      // Refrescar datos
       await fetchSections();
       await fetchOrdersByTable(updatedTable._id);
     } catch (error) {
@@ -108,13 +106,11 @@ function OrderPage() {
     }
   };
 
-
   const handlePayAllOrders = async () => {
     const unpaidOrders = orders.filter(order => !order.paid);
     const expectedTotal = unpaidOrders.reduce((sum, order) => sum + order.total, 0) + parseFloat(tipAll || 0);
     const totalEntered = paymentMethodsAll.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0);
 
-    // Validaciones
     if (paymentMethodsAll.length === 0) {
       toast({
         title: 'Métodos de pago faltantes',
@@ -149,7 +145,6 @@ function OrderPage() {
       return;
     }
 
-    // Si pasa todas las validaciones, ejecutar pago
     try {
       await api.post(`/orders/payment/${selectedTable._id}`, {
         tip: parseFloat(tipAll),
@@ -172,6 +167,28 @@ function OrderPage() {
       toast({
         title: 'Error',
         description: 'No se pudieron pagar todas las órdenes.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleCloseSession = async () => {
+    try {
+      await api.put(`/tableSession/close-by-table/${selectedTable._id}`);
+      toast({
+        title: 'Sesión cerrada',
+        description: 'La sesión de la mesa fue cerrada correctamente.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      handleBackToTables();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo cerrar la sesión. Asegúrate que todas las órdenes estén pagadas.',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -237,6 +254,16 @@ function OrderPage() {
           >
             💳 Pagar todas las órdenes
           </Button>
+
+          <Button
+            bg="purple.500"
+            _hover={{ bg: 'purple.600' }}
+            onClick={handleCloseSession}
+            isDisabled={orders.some(order => !order.paid)}
+          >
+            🛑 Cerrar sesión de la mesa
+          </Button>
+
           <Divider borderColor="gray.600" />
           <Button bg="teal.500" _hover={{ bg: 'teal.600' }} onClick={handleCreateNewOrder}>
             ➕ Agregar nueva orden
