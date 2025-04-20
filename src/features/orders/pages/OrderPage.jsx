@@ -182,9 +182,12 @@ function OrderPage() {
             paymentMethods={paymentMethodsAll}
             setPaymentMethods={setPaymentMethodsAll}
             expectedTotal={
-              orders.reduce((total, order) => total + order.total, 0) + parseFloat(tipAll)
+              orders
+                .filter(order => !order.paid)
+                .reduce((total, order) => total + order.total, 0) + parseFloat(tipAll)
             }
           />
+
           <Button
             bg="green.500"
             _hover={{ bg: 'green.600' }}
