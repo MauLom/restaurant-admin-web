@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Box, VStack, HStack, Text, Button, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react';
 import api from '../../../services/api';
 import { useAuthContext } from '../../../context/AuthContext';
-import { io } from 'socket.io-client';  // Import Socket.IO client
+import { io } from 'socket.io-client';
 
 function OrdersPreparationPage() {
   const [orders, setOrders] = useState([]);
-  const [preparationAreas, setPreparationAreas] = useState(['kitchen', 'bar']); // Initial areas
+  const [preparationAreas, setPreparationAreas] = useState(['kitchen', 'bar']);
   const { user } = useAuthContext();
 
   useEffect(() => {
@@ -23,7 +23,6 @@ function OrdersPreparationPage() {
     fetchOrders();
 
     if (user.role !== 'admin') {
-      // Set specific areas based on the user's role
       if (user.role === 'bar') {
         setPreparationAreas(['bar']);
       } else if (user.role === 'kitchen') {
@@ -31,13 +30,10 @@ function OrdersPreparationPage() {
       }
     }
 
-    // Setup WebSocket connection
-
     let socketURL = process.env.REACT_APP_API_URL;
-    if(socketURL.includes("/api")) socketURL = socketURL.replace("/api", "");
-    const socket = io(socketURL); 
+    if (socketURL.includes("/api")) socketURL = socketURL.replace("/api", "");
+    const socket = io(socketURL);
     socket.on('new-order', (newOrder) => {
-      console.log("Se recibe la emision de new-order");
       setOrders((prevOrders) => [...prevOrders, newOrder]);
     });
 
@@ -49,9 +45,8 @@ function OrdersPreparationPage() {
       );
     });
 
-    // Cleanup when component unmounts
     return () => {
-      socket.disconnect();  // Clean up WebSocket connection
+      socket.disconnect();
     };
   }, [user.role]);
 
@@ -62,12 +57,12 @@ function OrdersPreparationPage() {
         prevOrders.map((order) =>
           order._id === orderId
             ? {
-                ...order,
-                items: order.items.map((item) =>
-                  item.itemId === itemId ? { ...item, status: 'ready' } : item
-                ),
-                status: response.data.status,
-              }
+              ...order,
+              items: order.items.map((item) =>
+                item.itemId === itemId ? { ...item, status: 'ready' } : item
+              ),
+              status: response.data.status,
+            }
             : order
         )
       );
@@ -94,31 +89,49 @@ function OrdersPreparationPage() {
         <TabPanels>
           {groupedOrders.map((group) => (
             <TabPanel key={group.area}>
-              <VStack spacing={4}>
+              <VStack spacing={4} align="stretch">
                 {group.orders.map((order) => (
-                  <Box key={order._id} p={4} bg="gray.800" color="white" borderRadius="md" width="full">
-                    <Text fontSize="lg">Order #{order._id.substring(order._id.length - 4)}</Text>
-                    <VStack spacing={2} mt={2}>
+                  <Box key={order._id} p={4} bg="gray.800" color="white" borderRadius="md">
+                    <Text fontSize="lg" mb={2}>Order #{order._id.substring(order._id.length - 4)}</Text>
+                    <VStack spacing={3} align="stretch">
                       {order.items
                         .filter((item) => item.area === group.area)
                         .map((item, index) => (
-                          <HStack key={index} justifyContent="space-between" width="full">
-                            <Text>{item.name} (x{item.quantity})</Text>
-                            <HStack>
-                              <Text>{item.status}</Text>
-                              <Button
-                                colorScheme="green"
-                                onClick={() => handleMarkItemAsReady(order._id, item.itemId)}
-                                isDisabled={item.status === 'ready'}
-                              >
-                                Mark as Ready
-                              </Button>
+                          <Box key={index} p={3} borderWidth="1px" borderRadius="md" bg="gray.700">
+                            <HStack justifyContent="space-between" mb={2}>
+                              <Text fontWeight="bold">{item.name} (x{item.quantity})</Text>
+                              <HStack>
+                                <Text>{item.status}</Text>
+                                <Button
+                                  colorScheme="green"
+                                  size="sm"
+                                  onClick={() => handleMarkItemAsReady(order._id, item.itemId)}
+                                  isDisabled={item.status === 'ready'}
+                                >
+                                  Mark as Ready
+                                </Button>
+                              </HStack>
                             </HStack>
-                          </HStack>
+                            {item.description && (
+                              <Text fontSize="sm" color="gray.300" mb={2}>
+                                📝 {item.description}
+                              </Text>
+                            )}
+                            {item.ingredients && item.ingredients.length > 0 && (
+                              <VStack align="start" spacing={1}>
+                                <Text fontSize="sm" fontWeight="bold">Ingredientes:</Text>
+                                {item.ingredients.map((ing, idx) => (
+                                  <Text fontSize="sm" key={idx}>
+                                    • {ing.name || ing.inventoryItem?.name} — {ing.quantity} {ing.unit || ''}
+                                  </Text>
+                                ))}
+                              </VStack>
+                            )}
+                          </Box>
                         ))}
                     </VStack>
                     {order.status === 'ready' && (
-                      <Text fontSize="sm" color="green.500">Order fully ready!</Text>
+                      <Text fontSize="sm" color="green.500" mt={2}>Order fully ready!</Text>
                     )}
                   </Box>
                 ))}
