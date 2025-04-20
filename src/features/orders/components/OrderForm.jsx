@@ -2,23 +2,22 @@ import React, { useState, useEffect, useContext } from 'react';
 import {
   Box, Button, Grid, Text, VStack, HStack, IconButton, useToast, Textarea, Wrap, WrapItem
 } from '@chakra-ui/react';
-import { FaPlus, FaMinus, FaTrash } from 'react-icons/fa';
+import { FaPlus, FaMinus, FaTrash, FaCashRegister } from 'react-icons/fa';
 import api from '../../../services/api';
 import { UserContext } from '../../../context/UserContext';
 import { Badge } from '@chakra-ui/react';
 
 function OrderForm({ table, onBack }) {
   const toast = useToast();
-  const { user } = useContext(UserContext); // Obtenemos el usuario logueado (mesero)
+  const { user } = useContext(UserContext);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
   const [orderItems, setOrderItems] = useState([]);
   const [comment, setComment] = useState('');
   const [inventory, setInventory] = useState([]);
-  const [lowStockThreshold, setLowStockThreshold] = useState(3); // fallback por defecto
+  const [lowStockThreshold, setLowStockThreshold] = useState(3);
 
-  // Obtener categorías dinámicamente al montar el componente
   useEffect(() => {
     const fetchInventory = async () => {
       try {
@@ -61,7 +60,6 @@ function OrderForm({ table, onBack }) {
     fetchCategories();
   }, [toast]);
 
-  // Obtener los items del menú filtrados por la categoría seleccionada (por su _id)
   useEffect(() => {
     if (selectedCategory) {
       const fetchItems = async () => {
@@ -84,7 +82,6 @@ function OrderForm({ table, onBack }) {
     }
   }, [selectedCategory, toast]);
 
-  // Función para agregar o quitar ítems de la orden
   const handleAddItem = (item, delta) => {
     setOrderItems(prevItems => {
       const existingItem = prevItems.find(i => i._id === item._id);
@@ -93,7 +90,6 @@ function OrderForm({ table, onBack }) {
       if (existingItem) {
         const updatedQuantity = existingItem.quantity + delta;
 
-        // Validación: no exceder inventario
         if (stock !== null && updatedQuantity > stock) {
           toast({
             title: 'Stock insuficiente',
@@ -131,20 +127,16 @@ function OrderForm({ table, onBack }) {
     });
   };
 
-
-  // Actualizar la nota para un ítem en la orden
   const handleNoteChange = (itemId, note) => {
     setOrderItems(prevItems =>
       prevItems.map(i => i._id === itemId ? { ...i, note } : i)
     );
   };
 
-  // Calcular el total de la orden
   const calculateTotal = () => {
     return orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   };
 
-  // Enviar la orden a la API, incluyendo el waiterId obtenido desde el UserContext
   const handleSubmitOrder = async () => {
     if (orderItems.length === 0) {
       toast({
@@ -159,7 +151,7 @@ function OrderForm({ table, onBack }) {
     try {
       const orderPayload = {
         tableId: table._id,
-        waiterId: user?._id, // Se envía el ID del mesero
+        waiterId: user?._id,
         items: orderItems.map(item => ({
           itemId: item._id,
           name: item.name,
@@ -168,7 +160,7 @@ function OrderForm({ table, onBack }) {
           quantity: item.quantity,
           area: item.category?.area,
         })),
-        comment, // Comentarios generales de la orden
+        comment,
       };
       await api.post('/orders', orderPayload);
       toast({
@@ -178,7 +170,6 @@ function OrderForm({ table, onBack }) {
         duration: 3000,
         isClosable: true,
       });
-      // Reiniciamos los estados
       setOrderItems([]);
       setComment('');
     } catch (error) {
@@ -192,29 +183,51 @@ function OrderForm({ table, onBack }) {
     }
   };
 
+  const handleSendToCashier = async () => {
+    try {
+      await api.put(`/tables/${table._id}`, { status: 'ready_for_payment' });
+      toast({
+        title: 'Mesa lista para cobro',
+        description: 'El cajero ha sido notificado.',
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo notificar al cajero',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   const isItemAvailable = (itemName) => {
     const found = inventory.find(inv => inv.name.toLowerCase() === itemName.toLowerCase());
     return found ? found.quantity > 0 : true;
   };
+
   const getItemStock = (itemName) => {
     const found = inventory.find(inv => inv.name.toLowerCase() === itemName.toLowerCase());
     return found ? found.quantity : null;
   };
+
   const isLowStock = (itemName) => {
     const found = inventory.find(inv => inv.name.toLowerCase() === itemName.toLowerCase());
     return found ? found.quantity > 0 && found.quantity <= lowStockThreshold : false;
   };
 
   return (
-    <VStack align="stretch" spacing={6}>
-      <Button mb={4} onClick={onBack}>
+    <VStack align="stretch" spacing={6} bg="#1a202c" color="white" p={4} borderRadius="md">
+      <Button mb={4} onClick={onBack} bg="gray.600" _hover={{ bg: 'gray.500' }} color="white">
         Volver a Mesas
       </Button>
-      <Text fontSize="xl" fontWeight="bold">
+      <Text fontSize="xl" fontWeight="bold" color="teal.200">
         Orden para la mesa {table.number}
       </Text>
 
-      {/* Sección de categorías */}
       <Box p={4}>
         <Text mb={2} fontWeight="semibold">Categorías:</Text>
         <Wrap spacing="12px">
@@ -223,6 +236,7 @@ function OrderForm({ table, onBack }) {
               <Button
                 onClick={() => setSelectedCategory(category)}
                 variant={selectedCategory?._id === category._id ? "solid" : "outline"}
+                colorScheme="teal"
               >
                 {category.name}
               </Button>
@@ -231,7 +245,6 @@ function OrderForm({ table, onBack }) {
         </Wrap>
       </Box>
 
-      {/* Sección de menú */}
       <Box p={4}>
         <Text mb={2} fontWeight="semibold">Menú:</Text>
         <Grid templateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap={4}>
@@ -242,7 +255,7 @@ function OrderForm({ table, onBack }) {
             const canAddMore = stock === null || selectedQty < stock;
 
             return (
-              <VStack key={item._id} p={2} borderWidth="1px" borderRadius="md" opacity={available ? 1 : 0.5}>
+              <VStack key={item._id} p={2} borderWidth="1px" borderRadius="md" opacity={available ? 1 : 0.5} bg="gray.700">
                 {isLowStock(item.name) && (
                   <Badge colorScheme="yellow" mb={1}>
                     Pocas unidades
@@ -258,7 +271,7 @@ function OrderForm({ table, onBack }) {
                 </Button>
 
                 {!available && (
-                  <Text fontSize="xs" color="red">
+                  <Text fontSize="xs" color="red.300">
                     No disponible en inventario
                   </Text>
                 )}
@@ -293,19 +306,17 @@ function OrderForm({ table, onBack }) {
               </VStack>
             );
           })}
-
         </Grid>
       </Box>
 
-      {/* Resumen de la orden */}
-      <Box p={4} borderWidth="1px" borderRadius="md">
+      <Box p={4} borderWidth="1px" borderRadius="md" bg="gray.800">
         <Text fontSize="lg" fontWeight="bold" mb={2}>Resumen de la Orden</Text>
         {orderItems.length === 0 ? (
           <Text>No se han seleccionado ítems.</Text>
         ) : (
           <VStack spacing={4} align="stretch">
             {orderItems.map(item => (
-              <Box key={item._id} p={2} borderWidth="1px" borderRadius="md">
+              <Box key={item._id} p={2} borderWidth="1px" borderRadius="md" bg="gray.700">
                 <HStack justify="space-between">
                   <Text fontWeight="semibold">{item.name}</Text>
                   <Text>
@@ -317,6 +328,9 @@ function OrderForm({ table, onBack }) {
                   placeholder="Agregar nota (ej. sin cacahuates)"
                   value={item.note}
                   onChange={(e) => handleNoteChange(item._id, e.target.value)}
+                  bg="gray.600"
+                  color="white"
+                  _placeholder={{ color: 'gray.300' }}
                 />
               </Box>
             ))}
@@ -324,7 +338,6 @@ function OrderForm({ table, onBack }) {
         )}
       </Box>
 
-      {/* Total y comentarios generales */}
       <Box p={4}>
         <Text fontWeight="bold">Total: ${calculateTotal().toFixed(2)}</Text>
       </Box>
@@ -332,10 +345,18 @@ function OrderForm({ table, onBack }) {
         placeholder="Comentarios generales para la orden"
         value={comment}
         onChange={(e) => setComment(e.target.value)}
+        bg="gray.700"
+        color="white"
+        _placeholder={{ color: 'gray.400' }}
       />
-      <Button mt={4} colorScheme="teal" onClick={handleSubmitOrder}>
-        Confirmar Orden
-      </Button>
+      <HStack>
+        <Button mt={4} bg="teal.500" _hover={{ bg: 'teal.600' }} onClick={handleSubmitOrder} color="white">
+          Confirmar Orden
+        </Button>
+        <Button mt={4} bg="orange.500" _hover={{ bg: 'orange.600' }} onClick={handleSendToCashier} leftIcon={<FaCashRegister />} color="white">
+          Enviar al Cajero
+        </Button>
+      </HStack>
     </VStack>
   );
 }

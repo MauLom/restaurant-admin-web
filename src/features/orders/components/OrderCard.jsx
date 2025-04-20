@@ -16,8 +16,14 @@ function OrderCard({ order, onPaid }) {
     const toast = useToast();
     const [tip, setTip] = useState(0);
     const [paymentMethods, setPaymentMethods] = useState([{ method: '', amount: order.total + parseFloat(tip) }]);
-    const [paymentMethodsAll, setPaymentMethodsAll] = useState([]);
 
+    console.log("paymentMethods on orderCard", paymentMethods);
+    console.log("order", order);
+    console.log("orderStatus", order.status);
+    console.log("orderPaid", order.paid);
+    console.log("order?.total + parseFloat(tip)", order?.total + parseFloat(tip));
+    console.log("The reduce part", paymentMethods.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0))
+    console.log("evaluated", paymentMethods.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0) !== order?.total + parseFloat(tip));
     const handlePayOrder = async () => {
         try {
             await api.post(`/orders/pay/${order._id}`, {
@@ -73,22 +79,23 @@ function OrderCard({ order, onPaid }) {
                         size="sm"
                     />
                     <PaymentMethodSelector
-                        paymentMethods={paymentMethodsAll}
-                        setPaymentMethods={setPaymentMethodsAll}
+                        paymentMethods={paymentMethods}
+                        setPaymentMethods={setPaymentMethods}
                         expectedTotal={
-                            order.reduce((acc, o) => acc + o.total, 0) + parseFloat(tip)
+                            order?.total + parseFloat(tip)
                         }
                     />
                     <Button
                         colorScheme="green"
                         onClick={handlePayOrder}
                         isDisabled={
-                            !order.some(o => o.status === 'ready' && !o.paid) ||
-                            paymentMethodsAll.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0) !==
-                            order.reduce((acc, o) => acc + o.total, 0) + parseFloat(tip)
+                            order.status === 'ready' && 
+                            !order.paid &&
+                            paymentMethods.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0) !==
+                            order?.total + parseFloat(tip)
                         }
                     >
-                        💳 Pagar todas las órdenes
+                        💳 Pagar la orden
                     </Button>
                 </>
             )}

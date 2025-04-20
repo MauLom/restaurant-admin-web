@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   VStack,
@@ -39,31 +39,39 @@ function SectionList() {
   const cancelRef = React.useRef();
   const toast = useToast();
 
-  // Fetch sections on component mount
-  useEffect(() => {
-    const fetchSections = async () => {
-      try {
-        const response = await api.get('/sections');
-        setSections(response.data);
-      } catch (error) {
-        console.error('Error fetching sections:', error);
-        toast({
-          title: t('errorTitle'),
-          description: t('errorFetchingSections'),
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    };
 
-    fetchSections();
+  const fetchSections = useCallback(async () => {
+    try {
+      const response = await api.get('/sections');
+      setSections(response.data);
+    } catch (error) {
+      console.error('Error fetching sections:', error);
+      toast({
+        title: t('errorTitle'),
+        description: t('errorFetchingSections'),
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   }, [t, toast]);
-
+  
+  // 2. Llamada inicial
+  useEffect(() => {
+    fetchSections();
+  }, [fetchSections]);
+  
+  // 3. Opcional: mantener selectedSection actualizado si necesitas
+  useEffect(() => {
+    if (!selectedSection) return;
+    const latest = sections.find(sec => sec._id === selectedSection._id);
+    if (latest) setSelectedSection(latest);
+  }, [sections, selectedSection]);
   // Handle selecting a section
   const handleSectionClick = (section) => {
     setSelectedSection(section);
   };
+
 
   // Handle adding a new section
   const handleSectionAdded = (newSection) => {
@@ -161,11 +169,13 @@ function SectionList() {
     }
 
     try {
-      const response = await api.post(`/sections/${selectedSection._id}/tables`, newTable);
-      setSelectedSection((prevSection) => ({
-        ...prevSection,
-        tables: [...prevSection.tables, response.data],
-      }));
+      await api.post(`/sections/${selectedSection._id}/tables`, newTable);
+      // const response = await api.post(`/sections/${selectedSection._id}/tables`, newTable);
+      // setSelectedSection((prevSection) => ({
+      //   ...prevSection,
+      //   tables: [...prevSection.tables, response.data],
+      // }));
+      await fetchSections();
       setNewTable({ number: '', status: 'available' });
       toast({
         title: t('tableAddedTitle'),
@@ -255,7 +265,7 @@ function SectionList() {
                       leftIcon={<AddIcon />}
                       colorScheme="blue"
                       size="sm"
-                      onClick={() => {}}
+                      onClick={() => { }}
                     >
                       {t('addTable')}
                     </Button>

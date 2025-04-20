@@ -7,6 +7,7 @@ function PaymentMethodSelector({ paymentMethods, setPaymentMethods, expectedTota
     const difference = expectedTotal - totalEntered;
     const isExact = Math.abs(difference) < 0.01;
 
+    console.log("expected total", expectedTotal);
 
     const handleChange = (index, field, value) => {
         const updated = [...paymentMethods];
@@ -29,13 +30,15 @@ function PaymentMethodSelector({ paymentMethods, setPaymentMethods, expectedTota
             {paymentMethods.map((pm, index) => (
                 <HStack key={index}>
                     <Select
+                        bg="gray.700"
+                        _placeholder={{ color: 'gray.400' }}
                         placeholder="Método"
                         value={pm.method}
                         onChange={(e) => handleChange(index, 'method', e.target.value)}
                     >
-                        <option value="cash">Efectivo</option>
-                        <option value="card">Tarjeta</option>
-                        <option value="transfer">Transferencia</option>
+                        <option style={{ backgroundColor: '#2D3748' }} value="cash">Efectivo</option>
+                        <option style={{ backgroundColor: '#2D3748' }} value="card">Tarjeta</option>
+                        <option style={{ backgroundColor: '#2D3748' }} value="transfer">Transferencia</option>
                     </Select>
 
 
@@ -55,8 +58,9 @@ function PaymentMethodSelector({ paymentMethods, setPaymentMethods, expectedTota
                 </HStack>
             ))}
             <VStack align="start" spacing={1} mt={3}>
-                <strong>Total esperado:</strong> ${expectedTotal.toFixed(2)}
-                <strong>Total ingresado:</strong> ${totalEntered.toFixed(2)}
+
+                <strong>Total esperado: ${expectedTotal}</strong>
+                <strong>Total ingresado: ${totalEntered.toFixed(2)}</strong>
                 {isExact ? (
                     <p style={{ color: 'green' }}>✅ El total coincide.</p>
                 ) : (
