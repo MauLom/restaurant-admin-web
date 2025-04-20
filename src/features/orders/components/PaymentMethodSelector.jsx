@@ -41,7 +41,6 @@ function PaymentMethodSelector({ paymentMethods, setPaymentMethods, expectedTota
                         <option style={{ backgroundColor: '#2D3748' }} value="transfer">Transferencia</option>
                     </Select>
 
-
                     <Input
                         type="number"
                         placeholder="Monto"
