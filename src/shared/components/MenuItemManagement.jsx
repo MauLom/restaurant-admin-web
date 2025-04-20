@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
+import {
   Box, VStack, HStack, Button, Input, Text, Select, useToast, Grid, Image, IconButton, Collapse, Heading,
-  AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter 
+  AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter
 } from '@chakra-ui/react';
 import { FaTrash, FaEdit, FaPlus } from 'react-icons/fa';
 import api from '../../services/api';
 
 function MenuItemManagement() {
   const [categories, setCategories] = useState([]);
+  const [inventoryItems, setInventoryItems] = useState([]);
   const [items, setItems] = useState([]);
-  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', category: '', image: '' });
+  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', category: '', image: '', ingredients: [] });
   const [editingItem, setEditingItem] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const toast = useToast();
@@ -17,19 +18,22 @@ function MenuItemManagement() {
   const [deletingItem, setDeletingItem] = useState(null);
   const cancelRef = useRef();
 
-  // Cargar categorías e ítems al montar el componente
   useEffect(() => {
-    const fetchCategoriesAndItems = async () => {
+    const fetchData = async () => {
       try {
-        const categoriesResponse = await api.get('/menu/categories');
-        const itemsResponse = await api.get('/menu/items');
-        setCategories(categoriesResponse.data);
-        setItems(itemsResponse.data);
+        const [categoriesRes, itemsRes, inventoryRes] = await Promise.all([
+          api.get('/menu/categories'),
+          api.get('/menu/items'),
+          api.get('/inventory')
+        ]);
+        setCategories(categoriesRes.data);
+        setItems(itemsRes.data);
+        setInventoryItems(inventoryRes.data);
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
           title: 'Error',
-          description: 'Failed to fetch categories or items.',
+          description: 'Failed to fetch data.',
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -37,16 +41,33 @@ function MenuItemManagement() {
       }
     };
 
-    fetchCategoriesAndItems();
+    fetchData();
   }, [toast]);
 
-  // Reinicia el formulario
   const resetForm = () => {
-    setNewItem({ name: '', description: '', price: '', category: '', image: '' });
+    setNewItem({ name: '', description: '', price: '', category: '', image: '', ingredients: [] });
     setEditingItem(null);
   };
 
-  // Agregar un nuevo item
+  const handleAddIngredient = () => {
+    setNewItem({
+      ...newItem,
+      ingredients: [...newItem.ingredients, { inventoryItem: '', quantity: '' }]
+    });
+  };
+
+  const handleIngredientChange = (index, field, value) => {
+    const updatedIngredients = [...newItem.ingredients];
+    updatedIngredients[index][field] = value;
+    setNewItem({ ...newItem, ingredients: updatedIngredients });
+  };
+
+  const handleRemoveIngredient = (index) => {
+    const updatedIngredients = [...newItem.ingredients];
+    updatedIngredients.splice(index, 1);
+    setNewItem({ ...newItem, ingredients: updatedIngredients });
+  };
+
   const handleAddItem = async () => {
     try {
       const response = await api.post('/menu/items', newItem);
@@ -72,10 +93,8 @@ function MenuItemManagement() {
     }
   };
 
-  // Actualizar un item existente
   const handleUpdateItem = async () => {
     try {
-      // Se asume que existe el endpoint PUT /menu/items/:itemId
       const response = await api.put(`/menu/items/${editingItem._id}`, newItem);
       const updatedItem = response.data;
       setItems(items.map(item => item._id === updatedItem._id ? updatedItem : item));
@@ -100,7 +119,6 @@ function MenuItemManagement() {
     }
   };
 
-  // Confirmar eliminación de item
   const handleDeleteItem = async (itemId) => {
     try {
       await api.delete(`/menu/items/${itemId}`);
@@ -125,7 +143,6 @@ function MenuItemManagement() {
     }
   };
 
-  // Inicia el proceso de edición, precargando el formulario
   const handleEditItem = (item) => {
     setEditingItem(item);
     setNewItem({
@@ -134,6 +151,7 @@ function MenuItemManagement() {
       price: item.price,
       category: item.category?._id || '',
       image: item.image || '',
+      ingredients: item.ingredients || []
     });
     setShowAddForm(true);
   };
@@ -143,10 +161,10 @@ function MenuItemManagement() {
       <Heading as="h2" size="xl" mb={4}>
         Manage Menu Items
       </Heading>
-      <Button 
-        leftIcon={<FaPlus />} 
-        colorScheme="blue" 
-        mb={4} 
+      <Button
+        leftIcon={<FaPlus />}
+        colorScheme="blue"
+        mb={4}
         onClick={() => {
           setShowAddForm(!showAddForm);
           if (showAddForm) resetForm();
@@ -158,38 +176,48 @@ function MenuItemManagement() {
       <Collapse in={showAddForm} animateOpacity>
         <Box p={4} mb={4} borderWidth="1px" borderRadius="lg" shadow="md">
           <VStack spacing={4}>
-            <Input
-              placeholder="Item Name"
-              value={newItem.name}
-              onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-            />
-            <Input
-              placeholder="Description"
-              value={newItem.description}
-              onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-            />
-            <Input
-              placeholder="Price"
-              type="number"
-              value={newItem.price}
-              onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
-            />
-            <Input
-              placeholder="Image URL (optional)"
-              value={newItem.image}
-              onChange={(e) => setNewItem({ ...newItem, image: e.target.value })}
-            />
-            <Select
-              placeholder="Select Category"
-              value={newItem.category}
-              onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-            >
+            <Input placeholder="Item Name" value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} />
+            <Input placeholder="Description" value={newItem.description} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} />
+            <Input placeholder="Price" type="number" value={newItem.price} onChange={(e) => setNewItem({ ...newItem, price: e.target.value })} />
+            <Input placeholder="Image URL (optional)" value={newItem.image} onChange={(e) => setNewItem({ ...newItem, image: e.target.value })} />
+            <Select placeholder="Select Category" value={newItem.category} onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}>
               {categories.map(category => (
                 <option key={category._id} value={category._id}>
                   {category.name} ({category.area})
                 </option>
               ))}
             </Select>
+
+            {/* Ingredientes */}
+            <Box width="100%">
+              <Text fontWeight="bold">Ingredientes</Text>
+              <VStack spacing={2} align="stretch">
+                {newItem.ingredients.map((ing, index) => (
+                  <HStack key={index}>
+                    <Select
+                      placeholder="Selecciona ingrediente"
+                      value={ing.inventoryItem}
+                      onChange={(e) => handleIngredientChange(index, 'inventoryItem', e.target.value)}
+                    >
+                      {inventoryItems.map(inv => (
+                        <option key={inv._id} value={inv._id}>{inv.name}</option>
+                      ))}
+                    </Select>
+                    <Input
+                      placeholder="Cantidad"
+                      type="number"
+                      value={ing.quantity}
+                      onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)}
+                    />
+                    <Button size="sm" colorScheme="red" onClick={() => handleRemoveIngredient(index)}>
+                      Quitar
+                    </Button>
+                  </HStack>
+                ))}
+                <Button size="sm" onClick={handleAddIngredient}>+ Agregar ingrediente</Button>
+              </VStack>
+            </Box>
+
             <Button colorScheme="green" onClick={editingItem ? handleUpdateItem : handleAddItem}>
               {editingItem ? 'Update Item' : 'Save Item'}
             </Button>
@@ -197,89 +225,40 @@ function MenuItemManagement() {
         </Box>
       </Collapse>
 
-      <Grid templateColumns={{ base: "repeat(1, 1fr)", md: "repeat(3, 1fr)" }} gap={4}>
+      <Grid templateColumns={{ base: 'repeat(1, 1fr)', md: 'repeat(3, 1fr)' }} gap={4}>
         {items.map(item => (
-          <Box 
-            key={item._id} 
-            borderWidth="1px" 
-            borderRadius="lg" 
-            overflow="hidden" 
-            p={4} 
-            shadow="md"
-          >
+          <Box key={item._id} borderWidth="1px" borderRadius="lg" overflow="hidden" p={4} shadow="md">
             <Box mb={4} textAlign="center">
               {item.image ? (
-                <Image 
-                  src={item.image} 
-                  alt={item.name} 
-                  boxSize="150px" 
-                  objectFit="cover" 
-                  mx="auto" 
-                  borderRadius="md" 
-                />
+                <Image src={item.image} alt={item.name} boxSize="150px" objectFit="cover" mx="auto" borderRadius="md" />
               ) : (
-                <Box 
-                  boxSize="150px" 
-                  bg="gray.200" 
-                  mx="auto" 
-                  display="flex" 
-                  alignItems="center" 
-                  justifyContent="center" 
-                  borderRadius="md"
-                >
+                <Box boxSize="150px" bg="gray.200" mx="auto" display="flex" alignItems="center" justifyContent="center" borderRadius="md">
                   <Text>No Image</Text>
                 </Box>
               )}
             </Box>
             <VStack spacing={2} align="stretch">
               <Text fontWeight="bold">{item.name}</Text>
-              <Text fontSize="sm" color="gray.600">
-                {item.category?.name} ({item.category?.area})
-              </Text>
-              <Text fontSize="md" color="teal.500">
-                ${parseFloat(item.price).toFixed(2)}
-              </Text>
+              <Text fontSize="sm" color="gray.600">{item.category?.name} ({item.category?.area})</Text>
+              <Text fontSize="md" color="teal.500">${parseFloat(item.price).toFixed(2)}</Text>
               <HStack justify="space-between">
-                <IconButton
-                  icon={<FaEdit />}
-                  colorScheme="yellow"
-                  onClick={() => handleEditItem(item)}
-                  aria-label="Edit Item"
-                />
-                <IconButton
-                  icon={<FaTrash />}
-                  colorScheme="red"
-                  onClick={() => setDeletingItem(item)}
-                  aria-label="Delete Item"
-                />
+                <IconButton icon={<FaEdit />} colorScheme="yellow" onClick={() => handleEditItem(item)} aria-label="Edit Item" />
+                <IconButton icon={<FaTrash />} colorScheme="red" onClick={() => setDeletingItem(item)} aria-label="Delete Item" />
               </HStack>
             </VStack>
           </Box>
         ))}
       </Grid>
 
-      {/* AlertDialog de confirmación para eliminar */}
       {deletingItem && (
-        <AlertDialog
-          isOpen={Boolean(deletingItem)}
-          leastDestructiveRef={cancelRef}
-          onClose={() => setDeletingItem(null)}
-        >
+        <AlertDialog isOpen={Boolean(deletingItem)} leastDestructiveRef={cancelRef} onClose={() => setDeletingItem(null)}>
           <AlertDialogOverlay>
             <AlertDialogContent>
-              <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                Delete Item
-              </AlertDialogHeader>
-              <AlertDialogBody>
-                ¿Seguro de eliminar el producto "{deletingItem.name}"?
-              </AlertDialogBody>
+              <AlertDialogHeader fontSize="lg" fontWeight="bold">Delete Item</AlertDialogHeader>
+              <AlertDialogBody>¿Seguro de eliminar el producto "{deletingItem.name}"?</AlertDialogBody>
               <AlertDialogFooter>
-                <Button ref={cancelRef} onClick={() => setDeletingItem(null)}>
-                  Cancel
-                </Button>
-                <Button colorScheme="red" onClick={() => handleDeleteItem(deletingItem._id)} ml={3}>
-                  Delete
-                </Button>
+                <Button ref={cancelRef} onClick={() => setDeletingItem(null)}>Cancel</Button>
+                <Button colorScheme="red" onClick={() => handleDeleteItem(deletingItem._id)} ml={3}>Delete</Button>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialogOverlay>

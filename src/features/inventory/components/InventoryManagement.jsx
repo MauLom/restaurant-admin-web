@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Box, VStack, HStack, Button, Text, Input, NumberInput, NumberInputField, useToast } from '@chakra-ui/react';
+import {
+  Box, VStack, HStack, Button, Text, Input, NumberInput, NumberInputField, useToast, Textarea
+} from '@chakra-ui/react';
 import { useLanguage } from '../../../context/LanguageContext';
 import api from '../../../services/api';
 
 function InventoryManagement() {
   const [inventory, setInventory] = useState([]);
-  const [newItem, setNewItem] = useState({ name: '', quantity: 0, price: 0 });
+  const [newItem, setNewItem] = useState({ name: '', quantity: 0, price: 0, cost: 0, tags: '', preparationInstructions: '' });
   const toast = useToast();
   const { t } = useLanguage();
 
@@ -40,9 +42,13 @@ function InventoryManagement() {
     }
 
     try {
-      const response = await api.post('/inventory', newItem);
+      const payload = {
+        ...newItem,
+        tags: newItem.tags.split(',').map(tag => tag.trim()),
+      };
+      const response = await api.post('/inventory', payload);
       setInventory([...inventory, response.data]);
-      setNewItem({ name: '', quantity: 0, price: 0 });
+      setNewItem({ name: '', quantity: 0, price: 0, cost: 0, tags: '', preparationInstructions: '' });
       toast({
         title: t('itemAddedTitle'),
         description: t('itemAddedDescription'),
@@ -124,6 +130,25 @@ function InventoryManagement() {
               onChange={handleInputChange}
             />
           </NumberInput>
+          <NumberInput value={newItem.cost} min={0} precision={2} step={0.01}>
+            <NumberInputField
+              placeholder="Costo del producto"
+              name="cost"
+              onChange={handleInputChange}
+            />
+          </NumberInput>
+          <Input
+            placeholder="Etiquetas separadas por coma"
+            value={newItem.tags}
+            name="tags"
+            onChange={handleInputChange}
+          />
+          <Textarea
+            placeholder="Instrucciones de preparación (si aplica)"
+            value={newItem.preparationInstructions}
+            name="preparationInstructions"
+            onChange={handleInputChange}
+          />
           <Button colorScheme="green" onClick={handleAddItem}>{t('addItem')}</Button>
         </VStack>
       </Box>
