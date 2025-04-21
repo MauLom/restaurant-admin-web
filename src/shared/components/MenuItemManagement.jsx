@@ -52,7 +52,7 @@ function MenuItemManagement() {
   const handleAddIngredient = () => {
     setNewItem({
       ...newItem,
-      ingredients: [...newItem.ingredients, { inventoryItem: '', quantity: '' }]
+      ingredients: [...newItem.ingredients, { inventoryItem: '', quantity: '', unit: '' }]
     });
   };
 
@@ -158,18 +158,8 @@ function MenuItemManagement() {
 
   return (
     <Box p={4}>
-      <Heading as="h2" size="xl" mb={4}>
-        Manage Menu Items
-      </Heading>
-      <Button
-        leftIcon={<FaPlus />}
-        colorScheme="blue"
-        mb={4}
-        onClick={() => {
-          setShowAddForm(!showAddForm);
-          if (showAddForm) resetForm();
-        }}
-      >
+      <Heading as="h2" size="xl" mb={4}>Manage Menu Items</Heading>
+      <Button leftIcon={<FaPlus />} colorScheme="blue" mb={4} onClick={() => { setShowAddForm(!showAddForm); if (showAddForm) resetForm(); }}>
         {showAddForm ? 'Close Form' : 'Add New Item'}
       </Button>
 
@@ -182,45 +172,34 @@ function MenuItemManagement() {
             <Input placeholder="Image URL (optional)" value={newItem.image} onChange={(e) => setNewItem({ ...newItem, image: e.target.value })} />
             <Select placeholder="Select Category" value={newItem.category} onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}>
               {categories.map(category => (
-                <option key={category._id} value={category._id}>
-                  {category.name} ({category.area})
-                </option>
+                <option key={category._id} value={category._id}>{category.name} ({category.area})</option>
               ))}
             </Select>
 
-            {/* Ingredientes */}
             <Box width="100%">
               <Text fontWeight="bold">Ingredientes</Text>
               <VStack spacing={2} align="stretch">
                 {newItem.ingredients.map((ing, index) => (
-                  <HStack key={index}>
-                    <Select
-                      placeholder="Selecciona ingrediente"
-                      value={ing.inventoryItem}
-                      onChange={(e) => handleIngredientChange(index, 'inventoryItem', e.target.value)}
-                    >
+                  <HStack key={index} align="start">
+                    <Select placeholder="Selecciona ingrediente" value={ing.inventoryItem} onChange={(e) => handleIngredientChange(index, 'inventoryItem', e.target.value)}>
                       {inventoryItems.map(inv => (
                         <option key={inv._id} value={inv._id}>{inv.name}</option>
                       ))}
                     </Select>
-                    <Input
-                      placeholder="Cantidad"
-                      type="number"
-                      value={ing.quantity}
-                      onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)}
-                    />
-                    <Button size="sm" colorScheme="red" onClick={() => handleRemoveIngredient(index)}>
-                      Quitar
-                    </Button>
+                    <Input placeholder="Cantidad" type="number" value={ing.quantity} onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)} />
+                    <Select placeholder="Unidad" value={ing.unit} onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}>
+                      <option value="ml">ml</option>
+                      <option value="g">g</option>
+                      <option value="unit">unidad</option>
+                    </Select>
+                    <Button size="sm" colorScheme="red" onClick={() => handleRemoveIngredient(index)}>Quitar</Button>
                   </HStack>
                 ))}
                 <Button size="sm" onClick={handleAddIngredient}>+ Agregar ingrediente</Button>
               </VStack>
             </Box>
 
-            <Button colorScheme="green" onClick={editingItem ? handleUpdateItem : handleAddItem}>
-              {editingItem ? 'Update Item' : 'Save Item'}
-            </Button>
+            <Button colorScheme="green" onClick={editingItem ? handleUpdateItem : handleAddItem}>{editingItem ? 'Update Item' : 'Save Item'}</Button>
           </VStack>
         </Box>
       </Collapse>
