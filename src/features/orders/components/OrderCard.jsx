@@ -1,103 +1,134 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-    Box,
-    Text,
-    VStack,
-    HStack,
-    Tag,
-    Button,
-    Input,
+  Box, Text, VStack, HStack, Tag, Button, Input, Checkbox, Divider
 } from '@chakra-ui/react';
 import api from '../../../services/api';
 import PaymentMethodSelector from './PaymentMethodSelector';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 
 function OrderCard({ order, onPaid }) {
-    const toast = useCustomToast();
-    const [tip, setTip] = useState(null);
-    const [paymentMethods, setPaymentMethods] = useState([{ method: '', amount: order.total + parseFloat(tip) }]);
+  const toast = useCustomToast();
+  const [tip, setTip] = useState(0);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]);
 
-    const handlePayOrder = async () => {
-        try {
-            await api.post(`/orders/pay/${order._id}`, {
-                tip: parseFloat(tip),
-                paymentMethods,
-            });
-
-            toast({
-                title: 'Orden pagada',
-                description: `La orden fue pagada correctamente.`,
-                status: 'success',
-                duration: 3000,
-                isClosable: true,
-            });
-
-            if (onPaid) onPaid();
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'No se pudo procesar el pago de esta orden.',
-                status: 'error',
-                duration: 3000,
-                isClosable: true,
-            });
-        }
-    };
-
-    return (
-        <Box borderWidth="1px" borderRadius="md" p={4}>
-            <HStack justify="space-between">
-                <Text fontWeight="bold">Orden #{order._id.slice(-4)}</Text>
-                <Tag colorScheme={order.status === 'ready' ? 'green' : 'orange'}>
-                    {order.status.toUpperCase()}
-                </Tag>
-            </HStack>
-
-            <Text fontSize="sm" color="gray.500">Total: ${order.total.toFixed(2)}</Text>
-
-            <VStack align="start" mt={2}>
-                {order.items.map((item, idx) => (
-                    <Text key={idx}>• {item.quantity} x ${item.price} --- {item.name}</Text>
-                ))}
-            </VStack>
-
-            {order.status === 'ready' && !order.paid && (
-                <>
-                    <Input
-                        type="number"
-                        mt={3}
-                        placeholder="Propina opcional"
-                        value={tip}
-                        onChange={(e) => setTip(e.target.value)}
-                        size="sm"
-                    />
-                    <PaymentMethodSelector
-                        paymentMethods={paymentMethods}
-                        setPaymentMethods={setPaymentMethods}
-                        expectedTotal={
-                            order?.total + parseFloat(tip || 0)
-                        }
-                    />
-                    <Button
-                        colorScheme="green"
-                        onClick={handlePayOrder}
-                        isDisabled={
-                            order.status === 'ready' && 
-                            !order.paid &&
-                            paymentMethods.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0) !==
-                            order?.total + parseFloat(tip)
-                        }
-                    >
-                        💳 Pagar la orden
-                    </Button>
-                </>
-            )}
-
-            {order.paid && (
-                <Tag mt={4} colorScheme="blue">Pagada</Tag>
-            )}
-        </Box>
+  const handleItemToggle = (itemId) => {
+    setSelectedItems(prev =>
+      prev.includes(itemId)
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
     );
+  };
+
+  const calculateSubtotal = () => {
+    const selected = order.items.filter(item => selectedItems.includes(item.itemId));
+    return selected.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  };
+
+  const handlePaySelectedItems = async () => {
+    try {
+      const payload = {
+        itemsToPay: selectedItems,
+        paymentMethods,
+        tip: parseFloat(tip) || 0,
+      };
+      await api.post(`/orders/partial-payment/${order._id}`, payload);
+
+      toast({
+        title: 'Pago parcial realizado',
+        description: `Se pagaron ${selectedItems.length} ítem(s) exitosamente.`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+      if (onPaid) onPaid();
+    } catch (error) {
+      console.error('Error pagando parcial:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo procesar el pago parcial.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (selectedItems.length > 0) {
+      const subtotal = calculateSubtotal();
+      setPaymentMethods([{ method: '', amount: subtotal }]);
+    } else {
+      setPaymentMethods([]);
+    }
+  }, [selectedItems]);
+
+  return (
+    <Box borderWidth="1px" borderRadius="md" p={4}>
+      <HStack justify="space-between">
+        <Text fontWeight="bold">Orden #{order._id.slice(-4)}</Text>
+        <Tag colorScheme={order.status === 'ready' ? 'green' : 'orange'}>
+          {order.status.toUpperCase()}
+        </Tag>
+      </HStack>
+
+      <Text fontSize="sm" color="gray.400">Total de la orden: ${order.total.toFixed(2)}</Text>
+
+      <VStack align="start" mt={2} spacing={2}>
+        {order.items.map((item, idx) => (
+          <Box key={idx} p={2} bg={item.paid ? 'gray.700' : 'gray.800'} borderRadius="md" width="100%">
+            <HStack justify="space-between">
+              <Text fontWeight="semibold">{item.name}</Text>
+              <Text fontSize="sm">{item.quantity} x ${item.price}</Text>
+            </HStack>
+            {!item.paid && (
+              <Checkbox
+                size="sm"
+                colorScheme="teal"
+                isChecked={selectedItems.includes(item.itemId)}
+                onChange={() => handleItemToggle(item.itemId)}
+              >
+                Seleccionar para cobrar
+              </Checkbox>
+            )}
+            {item.paid && <Tag size="sm" colorScheme="blue" mt={1}>Pagado</Tag>}
+          </Box>
+        ))}
+      </VStack>
+
+      {selectedItems.length > 0 && (
+        <>
+          <Divider my={3} />
+          <Text fontWeight="bold">Subtotal: ${calculateSubtotal().toFixed(2)}</Text>
+          <Input
+            type="number"
+            mt={3}
+            placeholder="Propina opcional"
+            value={tip}
+            onChange={(e) => setTip(e.target.value)}
+            size="sm"
+            bg="gray.700"
+            color="white"
+            _placeholder={{ color: 'gray.400' }}
+          />
+          <PaymentMethodSelector
+            paymentMethods={paymentMethods}
+            setPaymentMethods={setPaymentMethods}
+            expectedTotal={calculateSubtotal() + parseFloat(tip || 0)}
+          />
+          <Button
+            colorScheme="green"
+            onClick={handlePaySelectedItems}
+            mt={2}
+            isDisabled={paymentMethods.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0) !== (calculateSubtotal() + parseFloat(tip || 0))}
+          >
+            💳 Pagar ítems seleccionados
+          </Button>
+        </>
+      )}
+    </Box>
+  );
 }
 
 export default OrderCard;
