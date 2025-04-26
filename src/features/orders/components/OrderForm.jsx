@@ -350,14 +350,16 @@ function OrderForm({ table, onBack }) {
         color="white"
         _placeholder={{ color: 'gray.400' }}
       />
-      <HStack>
-        <Button mt={4} bg="teal.500" _hover={{ bg: 'teal.600' }} onClick={handleSubmitOrder} color="white">
-          Confirmar Orden
-        </Button>
-        <Button mt={4} bg="orange.500" _hover={{ bg: 'orange.600' }} onClick={handleSendToCashier} leftIcon={<FaCashRegister />} color="white">
-          Enviar al Cajero
-        </Button>
-      </HStack>
+      <Box position={{ base: "fixed", md: "static" }} bottom="0" left="0" right="0" bg="gray.900" p={4} zIndex="10" boxShadow="dark-lg" pb={{ base: "100px", md: "15px" }}>
+        <HStack justify="center" spacing={4}>
+          <Button bg="teal.500" _hover={{ bg: 'teal.600' }} onClick={handleSubmitOrder} color="white">
+            Confirmar Orden
+          </Button>
+          <Button bg="orange.500" _hover={{ bg: 'orange.600' }} onClick={handleSendToCashier} leftIcon={<FaCashRegister />} color="white">
+            Enviar al Cajero
+          </Button>
+        </HStack>
+      </Box>
     </VStack>
   );
 }
