@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Text, VStack, HStack, Tag, Button, Input, Checkbox, Divider
 } from '@chakra-ui/react';
@@ -20,10 +20,10 @@ function OrderCard({ order, onPaid }) {
     );
   };
 
-  const calculateSubtotal = () => {
+  const calculateSubtotal = useCallback(() => {
     const selected = order.items.filter(item => selectedItems.includes(item.itemId));
     return selected.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  };
+  }, [order.items, selectedItems]);
 
   const handlePaySelectedItems = async () => {
     try {
@@ -62,7 +62,7 @@ function OrderCard({ order, onPaid }) {
     } else {
       setPaymentMethods([]);
     }
-  }, [selectedItems]);
+  }, [selectedItems, calculateSubtotal]);
 
   return (
     <Box borderWidth="1px" borderRadius="md" p={4}>
