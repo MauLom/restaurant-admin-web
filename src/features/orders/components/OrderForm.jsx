@@ -7,7 +7,7 @@ import api from '../../../services/api';
 import { UserContext } from '../../../context/UserContext';
 import { Badge } from '@chakra-ui/react';
 import { useCustomToast } from '../../../hooks/useCustomToast';
-
+import { ItemSearchBar } from './ItemSearchBar'; // Asegúrate de importar el componente de búsqueda
 function OrderForm({ table, onBack }) {
   const toast = useCustomToast();
   const { user } = useContext(UserContext);
@@ -18,6 +18,13 @@ function OrderForm({ table, onBack }) {
   const [comment, setComment] = useState('');
   const [inventory, setInventory] = useState([]);
   const [lowStockThreshold, setLowStockThreshold] = useState(3);
+  const [filteredItems, setFilteredItems] = useState([]);
+
+  useEffect(() => {
+    setFilteredItems(menuItems); // Inicialmente mostramos todos
+  }, [menuItems]);
+
+
 
   useEffect(() => {
     const fetchInventory = async () => {
@@ -248,9 +255,12 @@ function OrderForm({ table, onBack }) {
       </Box>
 
       <Box p={4}>
-        <Text mb={2} fontWeight="semibold">Menú:</Text>
+        <HStack justify="space-between" align="center" mb={2}>
+          <Text fontWeight="semibold">Menú:</Text>
+          <ItemSearchBar items={menuItems} onFilter={setFilteredItems} />
+        </HStack>
         <Grid templateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap={4}>
-          {menuItems.map(item => {
+          {filteredItems.map(item => {
             const available = isItemAvailable(item.name);
             const stock = getItemStock(item.name);
             const selectedQty = orderItems.find(i => i._id === item._id)?.quantity || 0;
@@ -310,6 +320,7 @@ function OrderForm({ table, onBack }) {
           })}
         </Grid>
       </Box>
+
 
       <Box p={4} borderWidth="1px" borderRadius="md" bg="gray.800">
         <Text fontSize="lg" fontWeight="bold" mb={2}>Resumen de la Orden</Text>
