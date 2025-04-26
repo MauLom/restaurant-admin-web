@@ -59,7 +59,7 @@ function AnalyticsPage() {
       <VStack spacing={6} align="stretch">
         <Heading size="lg" color="teal.200">📊 Resumen de Analíticas</Heading>
 
-        <HStack spacing={4} justify="flex-start">
+        <HStack spacing={4} wrap="wrap">
           <Box>
             <Text fontWeight="bold">Fecha Inicio</Text>
             <Input
@@ -88,7 +88,7 @@ function AnalyticsPage() {
           <HStack justify="center" mt={10}><Spinner size="xl" color="teal.300" /></HStack>
         ) : (
           <VStack spacing={6}>
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6}>
+            <SimpleGrid columns={{ base: 2, lg: 4 }} spacing={6}>
               <Stat bg="gray.700" p={4} borderRadius="lg">
                 <StatLabel>Total en Ventas</StatLabel>
                 <StatNumber>{formatCurrency(salesData?.totalRevenue)}</StatNumber>
@@ -102,13 +102,27 @@ function AnalyticsPage() {
                 <StatNumber>{formatCurrency(salesData?.grandTotal)}</StatNumber>
               </Stat>
               <Stat bg="gray.700" p={4} borderRadius="lg">
-                <StatLabel>Clientes Atendidos</StatLabel>
-                <StatNumber>{dailySummary?.customersServed || 0}</StatNumber>
+                <StatLabel>Comensales Atendidos</StatLabel>
+                <StatNumber>{dailySummary?.totalGuests || 0}</StatNumber>
               </Stat>
             </SimpleGrid>
 
+            {/* Métodos de pago */}
             <Divider borderColor="gray.600" />
+            <Box>
+              <Text fontSize="xl" fontWeight="bold" mb={2} color="teal.200">💳 Métodos de Pago</Text>
+              <VStack align="start" spacing={1}>
+                {salesData?.paymentBreakdown ? (
+                  Object.entries(salesData.paymentBreakdown).map(([method, amount], idx) => (
+                    <Text key={idx}>{method.toUpperCase()}: {formatCurrency(amount)}</Text>
+                  ))
+                ) : (
+                  <Text>No hay datos de pago.</Text>
+                )}
+              </VStack>
+            </Box>
 
+            <Divider borderColor="gray.600" />
             <Box>
               <Text fontSize="xl" fontWeight="bold" mb={2} color="teal.200">🍽️ Propinas por Mesero</Text>
               <VStack align="start" spacing={1}>
@@ -119,7 +133,6 @@ function AnalyticsPage() {
             </Box>
 
             <Divider borderColor="gray.600" />
-
             <Box>
               <Text fontSize="xl" fontWeight="bold" mb={2} color="teal.200">🏆 Productos Más Vendidos</Text>
               <VStack align="start" spacing={1}>
@@ -134,4 +147,5 @@ function AnalyticsPage() {
     </Box>
   );
 }
+
 export default AnalyticsPage;
