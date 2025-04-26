@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Box, VStack, Text, Button, Input, Select, useToast } from '@chakra-ui/react';
+import { Box, VStack, Text, Button, Input, Select } from '@chakra-ui/react';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useCustomToast } from '../../../hooks/useCustomToast';
 
 const tables = [
   { id: 1, number: 'T1', status: 'available' },
@@ -13,7 +14,7 @@ const tables = [
 function TableAssignment() {
   const [selectedTable, setSelectedTable] = useState('');
   const [guestName, setGuestName] = useState('');
-  const toast = useToast();
+  const toast = useCustomToast();
   const { t } = useLanguage();
 
   const handleAssignTable = () => {

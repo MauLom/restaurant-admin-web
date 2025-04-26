@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Box, VStack, HStack, Button, Input, Select, Text, useToast } from '@chakra-ui/react';
+import { Box, VStack, HStack, Button, Input, Select, Text } from '@chakra-ui/react';
 import api from '../../services/api';
+import { useCustomToast } from '../../hooks/useCustomToast';
 
 function MenuCategoryManagement() {
   const [categories, setCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryArea, setNewCategoryArea] = useState('kitchen'); // Default area
-  const toast = useToast();
+  const toast = useCustomToast();
 
   useEffect(() => {
     const fetchCategories = async () => {

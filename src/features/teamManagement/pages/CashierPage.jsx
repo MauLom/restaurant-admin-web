@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, VStack, HStack, Text, Button, Input, useToast, useDisclosure, Stack, Image,
+  Box, VStack, HStack, Text, Button, Input, useDisclosure, Stack, Image,
   Select,
 } from '@chakra-ui/react';
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton,
 } from '@chakra-ui/react';
 import api from '../../../services/api';
+import { useCustomToast } from '../../../hooks/useCustomToast';
 
 function CashierPage() {
   const [tables, setTables] = useState([]);
@@ -15,7 +16,7 @@ function CashierPage() {
   const [total, setTotal] = useState(0);
   const [tip, setTip] = useState(0);
   const [paymentMethods, setPaymentMethods] = useState([{ method: 'cash', amount: 0 }]);
-  const toast = useToast();
+  const toast = useCustomToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   useEffect(() => {

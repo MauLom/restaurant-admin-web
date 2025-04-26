@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, VStack, HStack, Button, Text, Input, NumberInput, NumberInputField, useToast, Select, IconButton
+  Box, VStack, HStack, Button, Text, Input, NumberInput, NumberInputField, Select, IconButton
 } from '@chakra-ui/react';
 import { FaEdit } from 'react-icons/fa';
 import { useLanguage } from '../../../context/LanguageContext';
 import api from '../../../services/api';
+import { useCustomToast } from '../../../hooks/useCustomToast';
 
 function InventoryManagement() {
   const [inventory, setInventory] = useState([]);
   const [newItem, setNewItem] = useState({ name: '', quantity: '', unit: '', equivalentMl: '', equivalentGr: '', cost: '', tags: '' });
   const [editingItemId, setEditingItemId] = useState(null);
-  const toast = useToast();
+  const toast = useCustomToast();
   const { t } = useLanguage();
 
   useEffect(() => {

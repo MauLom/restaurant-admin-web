@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Box, VStack, Input, Button, Select, useToast, Text } from '@chakra-ui/react';
+import { Box, VStack, Input, Button, Select, Text } from '@chakra-ui/react';
 import { useLanguage } from '../../../context/LanguageContext';
-import api from '../../../services/api'; // Import the API service
+import api from '../../../services/api';
+import { useCustomToast } from '../../../hooks/useCustomToast';
 
 function ReservationForm() {
   const [tables, setTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState('');
   const [customerName, setCustomerName] = useState('');
-  const toast = useToast();
+  const toast = useCustomToast();
   const { t } = useLanguage();
 
   useEffect(() => {

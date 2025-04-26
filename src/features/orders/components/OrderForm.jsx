@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useContext } from 'react';
 import {
-  Box, Button, Grid, Text, VStack, HStack, IconButton, useToast, Textarea, Wrap, WrapItem
+  Box, Button, Grid, Text, VStack, HStack, IconButton, Textarea, Wrap, WrapItem
 } from '@chakra-ui/react';
 import { FaPlus, FaMinus, FaTrash, FaCashRegister } from 'react-icons/fa';
 import api from '../../../services/api';
 import { UserContext } from '../../../context/UserContext';
 import { Badge } from '@chakra-ui/react';
+import { useCustomToast } from '../../../hooks/useCustomToast';
 
 function OrderForm({ table, onBack }) {
-  const toast = useToast();
+  const toast = useCustomToast();
   const { user } = useContext(UserContext);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);

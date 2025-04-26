@@ -6,14 +6,14 @@ import {
     HStack,
     Tag,
     Button,
-    useToast,
     Input,
 } from '@chakra-ui/react';
 import api from '../../../services/api';
 import PaymentMethodSelector from './PaymentMethodSelector';
+import { useCustomToast } from '../../../hooks/useCustomToast';
 
 function OrderCard({ order, onPaid }) {
-    const toast = useToast();
+    const toast = useCustomToast();
     const [tip, setTip] = useState(null);
     const [paymentMethods, setPaymentMethods] = useState([{ method: '', amount: order.total + parseFloat(tip) }]);
 

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Box, VStack, HStack, Button, Input, Text, Select, useToast, Grid, Image, IconButton, Collapse, Heading,
+  Box, VStack, HStack, Button, Input, Text, Select, Grid, Image, IconButton, Collapse, Heading,
   AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter
 } from '@chakra-ui/react';
 import { FaTrash, FaEdit, FaPlus } from 'react-icons/fa';
 import api from '../../services/api';
+import { useCustomToast } from '../../hooks/useCustomToast';
 
 function MenuItemManagement() {
   const [categories, setCategories] = useState([]);
@@ -13,7 +14,7 @@ function MenuItemManagement() {
   const [newItem, setNewItem] = useState({ name: '', description: '', price: '', category: '', image: '', ingredients: [] });
   const [editingItem, setEditingItem] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const toast = useToast();
+  const toast = useCustomToast();
 
   const [deletingItem, setDeletingItem] = useState(null);
   const cancelRef = useRef();

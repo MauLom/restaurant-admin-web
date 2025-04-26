@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Flex, useToast, Button, VStack, Heading, Divider, Input, Box
+  Flex, Button, VStack, Heading, Divider, Input, Box
 } from '@chakra-ui/react';
 import api from '../../../services/api';
 import TableSelection from '../components/TableSelection';
@@ -8,9 +8,10 @@ import OpenTableModal from '../components/OpenTableModal';
 import OrderForm from '../components/OrderForm';
 import OrderCard from '../components/OrderCard';
 import PaymentMethodSelector from '../components/PaymentMethodSelector';
+import { useCustomToast } from '../../../hooks/useCustomToast';
 
 function OrderPage() {
-  const toast = useToast();
+  const toast = useCustomToast();
 
   const [sections, setSections] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
@@ -31,9 +32,11 @@ function OrderPage() {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "top-right",
       });
     }
-  }, [toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); 
 
   const fetchOrdersByTableSessionId = useCallback(async (tableId, tableSessionId) => {
     try {
@@ -46,9 +49,11 @@ function OrderPage() {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "top-right",
       });
     }
-  }, [toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); 
 
   useEffect(() => {
     fetchSections();
@@ -58,7 +63,8 @@ function OrderPage() {
     if (selectedTable && selectedTable.status === 'occupied') {
       fetchOrdersByTableSessionId(selectedTable._id,selectedTable.tableSessionId);
     }
-  }, [selectedTable, fetchOrdersByTableSessionId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTable]);
 
   const handleTableClick = (table) => {
     if (table.status !== "occupied") {

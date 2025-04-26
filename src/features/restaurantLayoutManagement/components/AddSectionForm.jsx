@@ -1,13 +1,13 @@
 // src/components/AddSectionForm.jsx
 import React, { useState } from 'react';
-import { Box, Input, Button, VStack, useToast } from '@chakra-ui/react';
+import { Box, Input, Button, VStack } from '@chakra-ui/react';
 import api from '../../../services/api';
 import { useLanguage } from '../../../context/LanguageContext';
-
+import { useCustomToast } from '../../../hooks/useCustomToast';
 function AddSectionForm({ onSectionAdded }) {
   const { t } = useLanguage();
   const [sectionName, setSectionName] = useState('');
-  const toast = useToast();
+  const toast = useCustomToast();
 
   const handleAddSection = async () => {
     try {

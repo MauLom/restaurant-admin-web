@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, VStack, HStack, Switch, Text, useToast } from '@chakra-ui/react';
+import { Box, Button, VStack, HStack, Switch, Text } from '@chakra-ui/react';
 import api from '../../../services/api';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useCustomToast } from '../../../hooks/useCustomToast';
 
 function UserSettings() {
   const [settings, setSettings] = useState({
@@ -9,7 +10,7 @@ function UserSettings() {
     darkMode: false,
   });
 
-  const toast = useToast();
+  const toast = useCustomToast();
   const { t } = useLanguage();
 
   useEffect(() => {

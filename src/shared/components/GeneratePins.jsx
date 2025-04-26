@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Box, VStack, Input, Button, Text, Select, useToast } from '@chakra-ui/react';
+import { Box, VStack, Input, Button, Text, Select } from '@chakra-ui/react';
 import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
+import { useCustomToast } from '../../hooks/useCustomToast';
 
 function GeneratePins() {
   const [pins, setPins] = useState([]);
   const [newPin, setNewPin] = useState('');
   const [role, setRole] = useState(''); // State for selected role
   const [username, setUsername] = useState(''); // State for username
-  const toast = useToast();
+  const toast = useCustomToast();
   const { t } = useLanguage();
 
   // Generate new PIN

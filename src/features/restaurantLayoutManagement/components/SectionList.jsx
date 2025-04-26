@@ -5,7 +5,7 @@ import {
   Button,
   Text,
   useDisclosure,
-  useToast,
+
   AlertDialog,
   AlertDialogOverlay,
   AlertDialogContent,
@@ -26,6 +26,7 @@ import AddSectionForm from './AddSectionForm';
 import { useAuthContext } from '../../../context/AuthContext';
 import { useLanguage } from '../../../context/LanguageContext';
 import api from '../../../services/api';
+import { useCustomToast } from '../../../hooks/useCustomToast';
 
 function SectionList() {
   const { t } = useLanguage();
@@ -37,7 +38,7 @@ function SectionList() {
   const [newTable, setNewTable] = useState({ number: '', status: 'available' });
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
-  const toast = useToast();
+  const toast = useCustomToast();
 
 
   const fetchSections = useCallback(async () => {
