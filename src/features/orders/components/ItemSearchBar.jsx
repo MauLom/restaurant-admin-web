@@ -1,23 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input, HStack, Tooltip, IconButton } from '@chakra-ui/react';
 import { FaQuestionCircle } from 'react-icons/fa';
 
 export function ItemSearchBar({ items, onFilter }) {
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
 
-  const handleInputChange = (e) => {
-    const value = e.target.value;
-    setQuery(value);
-    filterItems(value);
-  };
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 300);
 
-  const filterItems = (searchQuery) => {
-    if (!searchQuery) {
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [query]);
+
+  useEffect(() => {
+    if (!debouncedQuery) {
       onFilter(items);
       return;
     }
 
-    const terms = searchQuery.split(',').map(term => term.trim().toLowerCase());
+    const terms = debouncedQuery.split(',').map(term => term.trim().toLowerCase());
 
     const filtered = items.filter(item => {
       return terms.every(term => {
@@ -40,14 +45,14 @@ export function ItemSearchBar({ items, onFilter }) {
     });
 
     onFilter(filtered);
-  };
+  }, [debouncedQuery, items, onFilter]);
 
   return (
     <HStack mb={4}>
       <Input
         placeholder="Buscar nombre, categoría, >precio, <precio"
         value={query}
-        onChange={handleInputChange}
+        onChange={(e) => setQuery(e.target.value)}
         bg="gray.700"
         color="white"
         _placeholder={{ color: 'gray.400' }}
@@ -59,10 +64,10 @@ export function ItemSearchBar({ items, onFilter }) {
             <div><strong>Ejemplos de búsqueda:</strong></div>
             <div>• `agua` → Nombre contiene agua</div>
             <div>• `bebidas` → Categoría bebidas</div>
-            <div>• `&gt;50` → Precio menor a 50</div>
-            <div>• `bebidas, &gt;50` → Bebidas menores a 50</div>
+            <div>• `{'>'}50` → Precio menor a 50</div>
+            <div>• `bebidas, {'>'}50` → Bebidas menores a 50</div>
           </>
-            }
+        }
         aria-label="Instrucciones de búsqueda"
         placement="top"
         hasArrow
