@@ -35,9 +35,9 @@ function OrderPage() {
     }
   }, [toast]);
 
-  const fetchOrdersByTable = useCallback(async (tableId) => {
+  const fetchOrdersByTableSessionId = useCallback(async (tableId, tableSessionId) => {
     try {
-      const res = await api.get(`/orders?tableId=${tableId}`);
+      const res = await api.get(`/orders?tableId=${tableId}&tableSessionId=${tableSessionId}`);
       setOrders(res.data);
     } catch (error) {
       toast({
@@ -56,9 +56,9 @@ function OrderPage() {
 
   useEffect(() => {
     if (selectedTable && selectedTable.status === 'occupied') {
-      fetchOrdersByTable(selectedTable._id);
+      fetchOrdersByTableSessionId(selectedTable._id,selectedTable.tableSessionId);
     }
-  }, [selectedTable, fetchOrdersByTable]);
+  }, [selectedTable, fetchOrdersByTableSessionId]);
 
   const handleTableClick = (table) => {
     if (table.status !== "occupied") {
@@ -71,11 +71,15 @@ function OrderPage() {
 
   const handleConfirmTable = async (comment, numberOfGuests, waiterId) => {
     try {
+
+      let tableSessionData = null;
       await api.post('/tableSession', {
         tableId: selectedTable._id,
         waiterId,
         numberOfGuests,
         comment
+      }).then((res) => {
+        tableSessionData = res.data;
       });
 
       toast({
@@ -88,12 +92,13 @@ function OrderPage() {
 
       setOpenModal(false);
 
-      const updatedTable = { ...selectedTable };
+      const updatedTable = { ...selectedTable, tableSessionId: tableSessionData._id, status: "occupied" };
       delete updatedTable._pendingOpen;
       setSelectedTable(updatedTable);
+      console.log("Mesa aperturada busca sessionId:", updatedTable);
 
       await fetchSections();
-      await fetchOrdersByTable(updatedTable._id);
+      await fetchOrdersByTableSessionId(updatedTable._id, updatedTable.tableSessionId);
     } catch (error) {
       console.error("Error al aperturar mesa:", error);
       toast({
@@ -159,7 +164,7 @@ function OrderPage() {
         isClosable: true,
       });
 
-      await fetchOrdersByTable(selectedTable._id);
+      await fetchOrdersByTableSessionId(selectedTable._id, selectedTable.tableSessionId);
       await fetchSections();
       setPaymentMethodsAll([]);
       setTipAll(0);
@@ -209,7 +214,7 @@ function OrderPage() {
 
   const handleOrderCreated = () => {
     setCreatingNewOrder(false);
-    fetchOrdersByTable(selectedTable._id);
+    fetchOrdersByTableSessionId(selectedTable._id, selectedTable.tableSessionId);
   };
 
   return (
@@ -222,7 +227,7 @@ function OrderPage() {
         <VStack align="stretch" spacing={4}>
           <Heading size="lg" color="teal.200">Mesa {selectedTable.number}</Heading>
           {orders.map((order) => (
-            <OrderCard key={order._id} order={order} onPaid={() => fetchOrdersByTable(selectedTable._id)} />
+            <OrderCard key={order._id} order={order} onPaid={() => fetchOrdersByTableSessionId(selectedTable._id, selectedTable.tableSessionId)} />
           ))}
           <Box>
             <Input

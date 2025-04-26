@@ -160,6 +160,7 @@ function OrderForm({ table, onBack }) {
           quantity: item.quantity,
           area: item.category?.area,
         })),
+        tableSessionId: table.tableSessionId,
         comment,
       };
       await api.post('/orders', orderPayload);
