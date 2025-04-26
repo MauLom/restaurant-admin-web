@@ -1,129 +1,137 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Text, HStack, Input, VStack, Divider } from '@chakra-ui/react';
-import dayjs from 'dayjs'; // Import dayjs to handle dates
+import {
+  Box, Text, HStack, Input, VStack, Divider, Spinner, Stat, StatLabel, StatNumber, SimpleGrid, Heading
+} from '@chakra-ui/react';
 import api from '../../../services/api';
+import dayjs from 'dayjs';
+import { useCustomToast } from '../../../hooks/useCustomToast';
 
 function AnalyticsPage() {
-  // Set the initial default date range to the last 24 hours
+  const toast = useCustomToast();
+
   const initialStartDate = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
   const initialEndDate = dayjs().format('YYYY-MM-DD');
 
-  const [salesData, setSalesData] = useState({ totalRevenue: 0, totalTips: 0, grandTotal: 0 });
-  const [waiterTips, setWaiterTips] = useState({});
+  const [salesData, setSalesData] = useState(null);
+  const [dailySummary, setDailySummary] = useState(null);
+  const [waiterTips, setWaiterTips] = useState([]);
+  const [popularItems, setPopularItems] = useState([]);
   const [startDate, setStartDate] = useState(initialStartDate);
   const [endDate, setEndDate] = useState(initialEndDate);
 
-  useEffect(() => {
-    // Fetch sales summary
-    const fetchSalesSummary = async () => {
-      try {
-        const response = await api.get(`/analytics/sales-summary?startDate=${startDate}&endDate=${endDate}`);
-        setSalesData(response.data);
-      } catch (error) {
-        console.error('Error fetching sales summary:', error);
-      }
-    };
-
-    fetchSalesSummary();
-  }, [startDate, endDate]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch popular items
-    const fetchPopularItems = async () => {
+    async function fetchAnalytics() {
+      setLoading(true);
       try {
-        const response = await api.get(`/analytics/popular-items?startDate=${startDate}&endDate=${endDate}`);
-        // setPopularItems(response.data.popularItems);
+        const [salesRes, summaryRes, tipsRes, itemsRes] = await Promise.all([
+          api.get(`/analytics/sales-summary?startDate=${startDate}&endDate=${endDate}`),
+          api.get('/analytics/daily-summary'),
+          api.get(`/analytics/waiter-tips?startDate=${startDate}&endDate=${endDate}`),
+          api.get(`/analytics/popular-items?startDate=${startDate}&endDate=${endDate}`)
+        ]);
+
+        setSalesData(salesRes.data);
+        setDailySummary(summaryRes.data);
+        setWaiterTips(tipsRes.data);
+        setPopularItems(itemsRes.data);
       } catch (error) {
-        console.error('Error fetching popular items:', error);
+        console.error('Error fetching analytics:', error);
+        toast({
+          title: 'Error',
+          description: 'No se pudo cargar el resumen de analíticas.',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setLoading(false);
       }
-    };
+    }
+    fetchAnalytics();
+  }, [startDate, endDate, toast]);
 
-    fetchPopularItems();
-  }, [startDate, endDate]);
-
-  useEffect(() => {
-    // Fetch waiter tips
-    const fetchWaiterTips = async () => {
-      try {
-        const response = await api.get(`/analytics/waiter-tips?startDate=${startDate}&endDate=${endDate}`);
-        setWaiterTips(response.data);
-      } catch (error) {
-        console.error('Error fetching waiter tips:', error);
-      }
-    };
-
-    fetchWaiterTips();
-  }, [startDate, endDate]);
+  const formatCurrency = (amount) => `$${(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
 
   return (
-    <Box color={"black"} p={6} maxW="container.lg" mx="auto" bg="gray.50" borderRadius="lg" boxShadow="lg">
+    <Box color="white" p={6} maxW="container.xl" mx="auto">
       <VStack spacing={6} align="stretch">
-        {/* Date Range Selectors */}
-        <HStack spacing={4} justify="space-between" width="100%">
+        <Heading size="lg" color="teal.200">📊 Resumen de Analíticas</Heading>
+
+        <HStack spacing={4} justify="flex-start">
           <Box>
-            <Text fontWeight="bold" mb={1}>Start Date</Text>
+            <Text fontWeight="bold">Fecha Inicio</Text>
             <Input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              bg="white"
+              bg="gray.700"
+              color="white"
+              _placeholder={{ color: 'gray.400' }}
             />
           </Box>
           <Box>
-            <Text fontWeight="bold" mb={1}>End Date</Text>
+            <Text fontWeight="bold">Fecha Fin</Text>
             <Input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              bg="white"
+              bg="gray.700"
+              color="white"
+              _placeholder={{ color: 'gray.400' }}
             />
           </Box>
         </HStack>
 
-        <Divider />
+        {loading ? (
+          <HStack justify="center" mt={10}><Spinner size="xl" color="teal.300" /></HStack>
+        ) : (
+          <VStack spacing={6}>
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6}>
+              <Stat bg="gray.700" p={4} borderRadius="lg">
+                <StatLabel>Total en Ventas</StatLabel>
+                <StatNumber>{formatCurrency(salesData?.totalRevenue)}</StatNumber>
+              </Stat>
+              <Stat bg="gray.700" p={4} borderRadius="lg">
+                <StatLabel>Total de Propinas</StatLabel>
+                <StatNumber>{formatCurrency(salesData?.totalTips)}</StatNumber>
+              </Stat>
+              <Stat bg="gray.700" p={4} borderRadius="lg">
+                <StatLabel>Total General</StatLabel>
+                <StatNumber>{formatCurrency(salesData?.grandTotal)}</StatNumber>
+              </Stat>
+              <Stat bg="gray.700" p={4} borderRadius="lg">
+                <StatLabel>Clientes Atendidos</StatLabel>
+                <StatNumber>{dailySummary?.customersServed || 0}</StatNumber>
+              </Stat>
+            </SimpleGrid>
 
-        {/* Sales Summary */}
-        <Box p={4} bg="white" borderRadius="md" shadow="md">
-          <Text fontSize="2xl" fontWeight="bold" mb={4}>Sales Summary</Text>
-          <VStack spacing={2} align="start">
-            <Text fontSize="lg"><strong>Total Revenue:</strong> ${salesData.totalRevenue}</Text>
-            <Text fontSize="lg"><strong>Total Tips:</strong> ${salesData.totalTips}</Text>
-            <Text fontSize="lg"><strong>Grand Total:</strong> ${salesData.grandTotal}</Text>
+            <Divider borderColor="gray.600" />
+
+            <Box>
+              <Text fontSize="xl" fontWeight="bold" mb={2} color="teal.200">🍽️ Propinas por Mesero</Text>
+              <VStack align="start" spacing={1}>
+                {waiterTips.length > 0 ? waiterTips.map((w, idx) => (
+                  <Text key={idx}>{w.waiter}: {formatCurrency(w.tip)}</Text>
+                )) : <Text>No hay propinas registradas.</Text>}
+              </VStack>
+            </Box>
+
+            <Divider borderColor="gray.600" />
+
+            <Box>
+              <Text fontSize="xl" fontWeight="bold" mb={2} color="teal.200">🏆 Productos Más Vendidos</Text>
+              <VStack align="start" spacing={1}>
+                {popularItems.length > 0 ? popularItems.map((item, idx) => (
+                  <Text key={idx}>{item.name}: {item.orders} unidades</Text>
+                )) : <Text>No hay productos populares.</Text>}
+              </VStack>
+            </Box>
           </VStack>
-        </Box>
-
-        <Divider />
-
-        {/* Waiter Tips */}
-        <Box p={4} bg="white" borderRadius="md" shadow="md">
-          <Text fontSize="2xl" fontWeight="bold" mb={4}>Waiter Tips</Text>
-          <VStack spacing={2} align="start">
-            {Object.entries(waiterTips).length > 0 ? (
-              Object.entries(waiterTips).map(([waiter, tips], index) => (
-                <Text key={index}><strong>{waiter}:</strong> ${tips}</Text>
-              ))
-            ) : (
-              <Text>No tips available for this period.</Text>
-            )}
-          </VStack>
-        </Box>
-
-        {/* Uncomment this if you want to display popular items */}
-        {/* <Box p={4} bg="white" borderRadius="md" shadow="md">
-          <Text fontSize="2xl" fontWeight="bold" mb={4}>Popular Items</Text>
-          <VStack spacing={2} align="start">
-            {popularItems.length > 0 ? (
-              popularItems.map((item, index) => (
-                <Text key={index}>{item.name} - {item.quantity} ordered</Text>
-              ))
-            ) : (
-              <Text>No popular items for this period.</Text>
-            )}
-          </VStack>
-        </Box> */}
+        )}
       </VStack>
     </Box>
   );
 }
-
 export default AnalyticsPage;
