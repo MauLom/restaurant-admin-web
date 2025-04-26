@@ -17,13 +17,6 @@ function OrderCard({ order, onPaid }) {
     const [tip, setTip] = useState(null);
     const [paymentMethods, setPaymentMethods] = useState([{ method: '', amount: order.total + parseFloat(tip) }]);
 
-    console.log("paymentMethods on orderCard", paymentMethods);
-    console.log("order", order);
-    console.log("orderStatus", order.status);
-    console.log("orderPaid", order.paid);
-    console.log("order?.total + parseFloat(tip)", order?.total + parseFloat(tip));
-    console.log("The reduce part", paymentMethods.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0))
-    console.log("evaluated", paymentMethods.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0) !== order?.total + parseFloat(tip));
     const handlePayOrder = async () => {
         try {
             await api.post(`/orders/pay/${order._id}`, {
@@ -64,7 +57,7 @@ function OrderCard({ order, onPaid }) {
 
             <VStack align="start" mt={2}>
                 {order.items.map((item, idx) => (
-                    <Text key={idx}>• {item.quantity} x {item.name}</Text>
+                    <Text key={idx}>• {item.quantity} x ${item.price} --- {item.name}</Text>
                 ))}
             </VStack>
 
