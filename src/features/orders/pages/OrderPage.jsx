@@ -35,8 +35,8 @@ function OrderPage() {
         position: "top-right",
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchOrdersByTableSessionId = useCallback(async (tableId, tableSessionId) => {
     try {
@@ -52,8 +52,8 @@ function OrderPage() {
         position: "top-right",
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetchSections();
@@ -61,7 +61,7 @@ function OrderPage() {
 
   useEffect(() => {
     if (selectedTable && selectedTable.status === 'occupied') {
-      fetchOrdersByTableSessionId(selectedTable._id,selectedTable.tableSessionId);
+      fetchOrdersByTableSessionId(selectedTable._id, selectedTable.tableSessionId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTable]);
