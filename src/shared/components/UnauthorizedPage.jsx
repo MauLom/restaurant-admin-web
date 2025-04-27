@@ -1,11 +1,11 @@
 import React from 'react';
 import { Box, Text, Button, VStack, HStack } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthContext } from '../../context/AuthContext'; // Importamos el contexto de auth
+import { useAuthContext } from '../../context/AuthContext';
 
 function UnauthorizedPage() {
   const navigate = useNavigate();
-  const { logout, user } = useAuthContext(); // Usamos el contexto
+  const { logout, user } = useAuthContext();
 
   const handleGoBack = () => {
     navigate('/dashboard');
@@ -28,12 +28,12 @@ function UnauthorizedPage() {
     >
       <VStack spacing={6}>
         <Text fontSize="4xl" fontWeight="bold" color="teal.300">
-          🚫 Acceso Denegado
+          🚫 Acceso denegado
         </Text>
         <Text fontSize="lg" textAlign="center">
           {user 
-            ? 'No tienes permisos para acceder a esta página con tu cuenta.'
-            : 'No tienes permisos para acceder a esta página.'}
+            ? 'Tu cuenta no tiene permisos para acceder a esta sección.'
+            : 'No tienes permisos para acceder a esta sección.'}
         </Text>
         <HStack spacing={4}>
           <Button
@@ -42,7 +42,7 @@ function UnauthorizedPage() {
             variant="solid"
             _hover={{ bg: 'teal.600' }}
           >
-            Volver al Dashboard
+            Ir al panel principal
           </Button>
           {user && (
             <Button
@@ -51,7 +51,7 @@ function UnauthorizedPage() {
               variant="outline"
               _hover={{ bg: 'red.600', color: 'white' }}
             >
-              Cerrar Sesión
+              Cerrar sesión
             </Button>
           )}
         </HStack>

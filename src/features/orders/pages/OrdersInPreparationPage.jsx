@@ -16,7 +16,7 @@ function OrdersPreparationPage() {
         const filteredOrders = response.data.filter(order => order.status !== 'ready' && order.status !== 'paid');
         setOrders(filteredOrders);
       } catch (error) {
-        console.error('Error fetching orders:', error);
+        console.error('Error al obtener órdenes:', error);
       }
     };
 
@@ -33,6 +33,7 @@ function OrdersPreparationPage() {
     let socketURL = process.env.REACT_APP_API_URL;
     if (socketURL.includes("/api")) socketURL = socketURL.replace("/api", "");
     const socket = io(socketURL);
+
     socket.on('new-order', (newOrder) => {
       setOrders((prevOrders) => [...prevOrders, newOrder]);
     });
@@ -57,17 +58,17 @@ function OrdersPreparationPage() {
         prevOrders.map((order) =>
           order._id === orderId
             ? {
-              ...order,
-              items: order.items.map((item) =>
-                item.itemId === itemId ? { ...item, status: 'ready' } : item
-              ),
-              status: response.data.status,
-            }
+                ...order,
+                items: order.items.map((item) =>
+                  item.itemId === itemId ? { ...item, status: 'ready' } : item
+                ),
+                status: response.data.status,
+              }
             : order
         )
       );
     } catch (error) {
-      console.error('Error updating item status:', error);
+      console.error('Error al actualizar el estado del ítem:', error);
     }
   };
 
@@ -78,11 +79,14 @@ function OrdersPreparationPage() {
 
   return (
     <Box p={4}>
-      <Text fontSize="2xl" mb={4}>Orders in Preparation</Text>
+      <Text fontSize="2xl" mb={4}>Órdenes en Preparación</Text>
+
       <Tabs variant="soft-rounded" colorScheme="teal">
         <TabList>
           {groupedOrders.map((group) => (
-            <Tab key={group.area}>{group.area.charAt(0).toUpperCase() + group.area.slice(1)}</Tab>
+            <Tab key={group.area}>
+              {group.area === 'kitchen' ? 'Cocina' : group.area === 'bar' ? 'Barra' : group.area}
+            </Tab>
           ))}
         </TabList>
 
@@ -92,7 +96,8 @@ function OrdersPreparationPage() {
               <VStack spacing={4} align="stretch">
                 {group.orders.map((order) => (
                   <Box key={order._id} p={4} bg="gray.800" color="white" borderRadius="md">
-                    <Text fontSize="lg" mb={2}>Order #{order._id.substring(order._id.length - 4)}</Text>
+                    <Text fontSize="lg" mb={2}>Orden #{order._id.substring(order._id.length - 4)}</Text>
+
                     <VStack spacing={3} align="stretch">
                       {order.items
                         .filter((item) => item.area === group.area)
@@ -101,22 +106,24 @@ function OrdersPreparationPage() {
                             <HStack justifyContent="space-between" mb={2}>
                               <Text fontWeight="bold">{item.name} (x{item.quantity})</Text>
                               <HStack>
-                                <Text>{item.status}</Text>
+                                <Text>{item.status === 'ready' ? 'Listo' : 'Preparando'}</Text>
                                 <Button
                                   colorScheme="green"
                                   size="sm"
                                   onClick={() => handleMarkItemAsReady(order._id, item.itemId)}
                                   isDisabled={item.status === 'ready'}
                                 >
-                                  Mark as Ready
+                                  Marcar como Listo
                                 </Button>
                               </HStack>
                             </HStack>
+
                             {item.description && (
                               <Text fontSize="sm" color="gray.300" mb={2}>
                                 📝 {item.description}
                               </Text>
                             )}
+
                             {item.ingredients && item.ingredients.length > 0 && (
                               <VStack align="start" spacing={1}>
                                 <Text fontSize="sm" fontWeight="bold">Ingredientes:</Text>
@@ -130,8 +137,9 @@ function OrdersPreparationPage() {
                           </Box>
                         ))}
                     </VStack>
+
                     {order.status === 'ready' && (
-                      <Text fontSize="sm" color="green.500" mt={2}>Order fully ready!</Text>
+                      <Text fontSize="sm" color="green.500" mt={2}>¡Orden lista para entregar!</Text>
                     )}
                   </Box>
                 ))}

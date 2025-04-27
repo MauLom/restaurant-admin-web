@@ -28,15 +28,14 @@ function OrderPage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "No se pudieron cargar las secciones",
+        description: "No se pudieron cargar las secciones.",
         status: "error",
         duration: 3000,
         isClosable: true,
         position: "top-right",
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [toast]);
 
   const fetchOrdersByTableSessionId = useCallback(async (tableId, tableSessionId) => {
     try {
@@ -45,15 +44,14 @@ function OrderPage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "No se pudieron cargar las órdenes",
+        description: "No se pudieron cargar las órdenes.",
         status: "error",
         duration: 3000,
         isClosable: true,
         position: "top-right",
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     fetchSections();
@@ -63,8 +61,7 @@ function OrderPage() {
     if (selectedTable && selectedTable.status === 'occupied') {
       fetchOrdersByTableSessionId(selectedTable._id, selectedTable.tableSessionId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTable]);
+  }, [selectedTable, fetchOrdersByTableSessionId]);
 
   const handleTableClick = (table) => {
     if (table.status !== "occupied") {
@@ -77,20 +74,18 @@ function OrderPage() {
 
   const handleConfirmTable = async (comment, numberOfGuests, waiterId) => {
     try {
-
       let tableSessionData = null;
-      await api.post('/tableSession', {
+      const res = await api.post('/tableSession', {
         tableId: selectedTable._id,
         waiterId,
         numberOfGuests,
         comment
-      }).then((res) => {
-        tableSessionData = res.data;
       });
+      tableSessionData = res.data;
 
       toast({
         title: "Mesa aperturada",
-        description: `La mesa ${selectedTable.number} fue aperturada con éxito.`,
+        description: `La mesa ${selectedTable.number} se aperturó correctamente.`,
         status: "success",
         duration: 2000,
         isClosable: true,
@@ -101,7 +96,6 @@ function OrderPage() {
       const updatedTable = { ...selectedTable, tableSessionId: tableSessionData._id, status: "occupied" };
       delete updatedTable._pendingOpen;
       setSelectedTable(updatedTable);
-      console.log("Mesa aperturada busca sessionId:", updatedTable);
 
       await fetchSections();
       await fetchOrdersByTableSessionId(updatedTable._id, updatedTable.tableSessionId);
@@ -109,7 +103,7 @@ function OrderPage() {
       console.error("Error al aperturar mesa:", error);
       toast({
         title: "Error",
-        description: "No se pudo aperturar la mesa",
+        description: "No se pudo aperturar la mesa.",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -137,7 +131,7 @@ function OrderPage() {
     if (invalidMethod) {
       toast({
         title: 'Métodos de pago inválidos',
-        description: 'Verifica que todos los métodos tengan un tipo y un monto válido.',
+        description: 'Verifica que todos los métodos tengan un tipo y un monto válidos.',
         status: 'warning',
         duration: 3000,
         isClosable: true,
@@ -148,7 +142,7 @@ function OrderPage() {
     if (Math.abs(totalEntered - expectedTotal) > 0.01) {
       toast({
         title: 'Montos no coinciden',
-        description: `El total ingresado ($${totalEntered.toFixed(2)}) no coincide con el total esperado ($${expectedTotal.toFixed(2)}).`,
+        description: `El total ingresado (${totalEntered.toFixed(2)}) no coincide con el total esperado (${expectedTotal.toFixed(2)}).`,
         status: 'warning',
         duration: 3000,
         isClosable: true,
@@ -190,7 +184,7 @@ function OrderPage() {
       await api.put(`/tableSession/close-by-table/${selectedTable._id}`);
       toast({
         title: 'Sesión cerrada',
-        description: 'La sesión de la mesa fue cerrada correctamente.',
+        description: 'La sesión de la mesa se cerró correctamente.',
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -199,7 +193,7 @@ function OrderPage() {
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'No se pudo cerrar la sesión. Asegúrate que todas las órdenes estén pagadas.',
+        description: 'No se pudo cerrar la sesión. Asegúrate de que todas las órdenes estén pagadas.',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -233,7 +227,11 @@ function OrderPage() {
         <VStack align="stretch" spacing={4}>
           <Heading size="lg" color="teal.200">Mesa {selectedTable.number}</Heading>
           {orders.map((order) => (
-            <OrderCard key={order._id} order={order} onPaid={() => fetchOrdersByTableSessionId(selectedTable._id, selectedTable.tableSessionId)} />
+            <OrderCard
+              key={order._id}
+              order={order}
+              onPaid={() => fetchOrdersByTableSessionId(selectedTable._id, selectedTable.tableSessionId)}
+            />
           ))}
           <Box>
             <Input
@@ -250,13 +248,8 @@ function OrderPage() {
           <PaymentMethodSelector
             paymentMethods={paymentMethodsAll}
             setPaymentMethods={setPaymentMethodsAll}
-            expectedTotal={
-              orders
-                .filter(order => !order.paid)
-                .reduce((total, order) => total + order.total, 0) + parseFloat(tipAll || 0)
-            }
+            expectedTotal={orders.filter(order => !order.paid).reduce((total, order) => total + order.total, 0) + parseFloat(tipAll || 0)}
           />
-
           <Button
             bg="green.500"
             _hover={{ bg: 'green.600' }}
@@ -265,7 +258,6 @@ function OrderPage() {
           >
             💳 Pagar todas las órdenes
           </Button>
-
           <Button
             bg="purple.500"
             _hover={{ bg: 'purple.600' }}
@@ -274,7 +266,6 @@ function OrderPage() {
           >
             🛑 Cerrar sesión de la mesa
           </Button>
-
           <Divider borderColor="gray.600" />
           <Button bg="teal.500" _hover={{ bg: 'teal.600' }} onClick={handleCreateNewOrder}>
             ➕ Agregar nueva orden
@@ -284,7 +275,6 @@ function OrderPage() {
           </Button>
         </VStack>
       )}
-
       <OpenTableModal
         isOpen={openModal}
         table={selectedTable}
@@ -294,4 +284,5 @@ function OrderPage() {
     </Flex>
   );
 }
+
 export default OrderPage;

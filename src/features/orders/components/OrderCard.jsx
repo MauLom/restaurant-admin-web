@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Box, Text, VStack, HStack, Tag, Button, Input, Checkbox, Divider
-} from '@chakra-ui/react';
+import { Box, Text, VStack, HStack, Tag, Button, Input, Checkbox, Divider } from '@chakra-ui/react';
 import api from '../../../services/api';
 import PaymentMethodSelector from './PaymentMethodSelector';
 import { useCustomToast } from '../../../hooks/useCustomToast';
@@ -36,7 +34,7 @@ function OrderCard({ order, onPaid }) {
 
       toast({
         title: 'Pago parcial realizado',
-        description: `Se pagaron ${selectedItems.length} ítem(s) exitosamente.`,
+        description: `Se pagaron ${selectedItems.length} ítems exitosamente.`,
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -44,10 +42,10 @@ function OrderCard({ order, onPaid }) {
 
       if (onPaid) onPaid();
     } catch (error) {
-      console.error('Error pagando parcial:', error);
+      console.error('Error al procesar el pago parcial:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo procesar el pago parcial.',
+        description: 'No se pudo completar el pago parcial.',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -69,20 +67,23 @@ function OrderCard({ order, onPaid }) {
       <HStack justify="space-between">
         <Text fontWeight="bold">Orden #{order._id.slice(-4)}</Text>
         <Tag colorScheme={order.status === 'ready' ? 'green' : 'orange'}>
-          {order.status.toUpperCase()}
+          {order.status === 'ready' ? 'Lista' : 'En preparación'}
         </Tag>
       </HStack>
 
-      <Text fontSize="sm" color="gray.400">Total de la orden: ${order.total.toFixed(2)}</Text>
+      <Text fontSize="sm" color="gray.400">
+        Total de la orden: ${order.total.toFixed(2)}
+      </Text>
 
       <VStack align="start" mt={2} spacing={2}>
         {order.items.map((item, idx) => (
           <Box key={idx} p={2} bg={item.paid ? 'gray.700' : 'gray.800'} borderRadius="md" width="100%">
             <HStack justify="space-between">
               <Text fontWeight="semibold">{item.name}</Text>
-              <Text fontSize="sm">{item.quantity} x ${item.price}</Text>
+              <Text fontSize="sm">{item.quantity} x ${item.price.toFixed(2)}</Text>
             </HStack>
-            {!item.paid && (
+
+            {!item.paid ? (
               <Checkbox
                 size="sm"
                 colorScheme="teal"
@@ -91,8 +92,9 @@ function OrderCard({ order, onPaid }) {
               >
                 Seleccionar para cobrar
               </Checkbox>
+            ) : (
+              <Tag size="sm" colorScheme="blue" mt={1}>Pagado</Tag>
             )}
-            {item.paid && <Tag size="sm" colorScheme="blue" mt={1}>Pagado</Tag>}
           </Box>
         ))}
       </VStack>
@@ -100,7 +102,10 @@ function OrderCard({ order, onPaid }) {
       {selectedItems.length > 0 && (
         <>
           <Divider my={3} />
-          <Text fontWeight="bold">Subtotal: ${calculateSubtotal().toFixed(2)}</Text>
+          <Text fontWeight="bold">
+            Subtotal: ${calculateSubtotal().toFixed(2)}
+          </Text>
+
           <Input
             type="number"
             mt={3}
@@ -112,11 +117,13 @@ function OrderCard({ order, onPaid }) {
             color="white"
             _placeholder={{ color: 'gray.400' }}
           />
+
           <PaymentMethodSelector
             paymentMethods={paymentMethods}
             setPaymentMethods={setPaymentMethods}
             expectedTotal={calculateSubtotal() + parseFloat(tip || 0)}
           />
+
           <Button
             colorScheme="green"
             onClick={handlePaySelectedItems}

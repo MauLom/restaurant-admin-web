@@ -5,30 +5,30 @@ import { Link } from 'react-router-dom';
 function ConfigurationPage() {
   const options = [
     { 
-      title: 'Generar Accesos (PINs)', 
-      description: 'Crea accesos para nuevos colaboradores.', 
+      title: 'Generar accesos (PINs)', 
+      description: 'Generar códigos PIN para colaboradores.', 
       link: '/dashboard/generate-pins' 
     },
     { 
-      title: 'Configuración de Perfil', 
-      description: 'Edita tus datos personales y credenciales.', 
+      title: 'Configurar perfil', 
+      description: 'Actualizar datos personales y credenciales.', 
       link: '/dashboard/profile' 
     },
     { 
-      title: 'Ajustes Generales', 
-      description: 'Administra configuraciones del sistema.', 
+      title: 'Configurar sistema', 
+      description: 'Ajustar preferencias y configuraciones generales.', 
       link: '/dashboard/settings' 
     },
     { 
-      title: 'Gestión de Layout', 
-      description: 'Administra las secciones y mesas del restaurante.', 
+      title: 'Gestionar layout', 
+      description: 'Administrar secciones y mesas del restaurante.', 
       link: '/dashboard/sections' 
     },
   ];
 
   return (
     <Box p={6}>
-      <Heading size="lg" mb={6} color="teal.300">⚙️ Configuraciones</Heading>
+      <Heading size="lg" mb={6} color="teal.300">⚙️ Configurar sistema</Heading>
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         {options.map((option, index) => (
           <Box key={index} p={6} bg="gray.700" borderRadius="md" shadow="md">
