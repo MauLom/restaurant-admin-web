@@ -35,9 +35,12 @@ function PinLogin() {
 
       const user = profileResponse.data.user;
 
-      // Update the context with the logged-in user's information
+   
       login(user);
+      setUser(user); 
 
+      console.log('User profile A:', user);
+      console.log('Profile response A:', profileResponse.data);
       if (!profileResponse.data.isProfileComplete) {
         navigate('/complete-profile');
       } else {

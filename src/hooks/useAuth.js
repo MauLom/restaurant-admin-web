@@ -10,6 +10,7 @@ function useAuth() {
   }, []);
 
   const login = (userData) => {
+    console.log('User data:', userData);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
   };

@@ -8,7 +8,7 @@ function ResponsiveSidebar() {
   const isMobile = useBreakpointValue({ base: true, md: false });
   const { user } = useAuthContext();
 
-  if (!user || !user.role) {
+  if (!user) {
     console.log("No hay usuario disponible");
     return null;
   }
