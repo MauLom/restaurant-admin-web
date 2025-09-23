@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, VStack, HStack, Text, Center, Flex, Grid, Img, Input } from '@chakra-ui/react';
+import { Box, Button, VStack, HStack, Text, Center, Flex, Grid, Img, Input, Divider } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuthContext } from '../context/AuthContext';
 import { useUserContext } from '../context/UserContext';
+import { useDemoContext } from '../context/DemoContext';
 import { useCustomToast } from '../hooks/useCustomToast';
 import api from '../services/api';
 
@@ -11,6 +12,7 @@ function PinLogin() {
   const { t } = useLanguage();
   const { login } = useAuthContext();
   const { setUser } = useUserContext();
+  const { enterDemoMode } = useDemoContext();
   const toast = useCustomToast();
   const navigate = useNavigate();
 
@@ -84,6 +86,38 @@ function PinLogin() {
     }
   };
 
+  const handleDemoLogin = () => {
+    try {
+      // Initialize demo data
+      const demoData = enterDemoMode();
+      
+      // Set demo admin user
+      const demoAdmin = demoData.users.find(user => user.role === 'admin');
+      setUser(demoAdmin);
+      login(demoAdmin);
+      
+      // Set demo token
+      localStorage.setItem('token', 'demo-token');
+      
+      toast({
+        title: '¡Bienvenido al Demo!',
+        description: 'Explorando con datos de demostración',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      
+      // Navigate to dashboard
+      navigate('/dashboard/restaurant-status');
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo iniciar el modo demo',
+        status: 'error'
+      });
+    }
+  };
+
   function FirstAdminCreation() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -141,58 +175,81 @@ function PinLogin() {
       {noUsers ? (
         <FirstAdminCreation />
       ) : (
-        <Box textAlign="center">
-          <Text fontSize="2xl" mb={4}>{t('enterPin')}</Text>
-          <HStack justify="center" mb={4}>
-            {[...Array(6)].map((_, i) => (
-              <Box
-                key={i}
-                width="15px"
-                height="15px"
-                borderRadius="50%"
-                bg={i < pin.length ? 'white' : '#444'}
-                mx={1}
-              />
-            ))}
-          </HStack>
-          <VStack spacing={4}>
-            <Grid templateColumns="repeat(3, 1fr)" gap={4}>
-              {Array.from({ length: 9 }, (_, i) => i + 1).map((num) => (
+        <VStack spacing={6}>
+          <Box textAlign="center">
+            <Text fontSize="2xl" mb={4}>{t('enterPin')}</Text>
+            <HStack justify="center" mb={4}>
+              {[...Array(6)].map((_, i) => (
+                <Box
+                  key={i}
+                  width="15px"
+                  height="15px"
+                  borderRadius="50%"
+                  bg={i < pin.length ? 'white' : '#444'}
+                  mx={1}
+                />
+              ))}
+            </HStack>
+            <VStack spacing={4}>
+              <Grid templateColumns="repeat(3, 1fr)" gap={4}>
+                {Array.from({ length: 9 }, (_, i) => i + 1).map((num) => (
+                  <Button
+                    key={num}
+                    onClick={() => handleButtonClick(num.toString())}
+                    width="60px"
+                    height="60px"
+                    borderRadius="50%"
+                    bg="#333"
+                    color="white"
+                    _hover={{ bg: "#555" }}
+                  >
+                    {num}
+                  </Button>
+                ))}
+                <Button onClick={handleDelete} width="60px" height="60px" borderRadius="50%" bg="#333" color="white" _hover={{ bg: "#555" }}>
+                  ⌫
+                </Button>
+                <Button onClick={() => handleButtonClick('0')} width="60px" height="60px" borderRadius="50%" bg="#333" color="white" _hover={{ bg: "#555" }}>
+                  0
+                </Button>
                 <Button
-                  key={num}
-                  onClick={() => handleButtonClick(num.toString())}
+                  onClick={handleLogin}
                   width="60px"
                   height="60px"
                   borderRadius="50%"
-                  bg="#333"
+                  bg={pin.length === 6 ? 'green.500' : 'gray.500'}
                   color="white"
-                  _hover={{ bg: "#555" }}
+                  isDisabled={pin.length !== 6}
+                  _hover={{ bg: pin.length === 6 ? "green.600" : "gray.600" }}
                 >
-                  {num}
+                  ✔
                 </Button>
-              ))}
-              <Button onClick={handleDelete} width="60px" height="60px" borderRadius="50%" bg="#333" color="white" _hover={{ bg: "#555" }}>
-                ⌫
-              </Button>
-              <Button onClick={() => handleButtonClick('0')} width="60px" height="60px" borderRadius="50%" bg="#333" color="white" _hover={{ bg: "#555" }}>
-                0
-              </Button>
-              <Button
-                onClick={handleLogin}
-                width="60px"
-                height="60px"
-                borderRadius="50%"
-                bg={pin.length === 6 ? 'green.500' : 'gray.500'}
-                color="white"
-                isDisabled={pin.length !== 6}
-                _hover={{ bg: pin.length === 6 ? "green.600" : "gray.600" }}
-              >
-                ✔
-              </Button>
-            </Grid>
-            {error && <Text color="red.500">{error}</Text>}
-          </VStack>
-        </Box>
+              </Grid>
+              {error && <Text color="red.500">{error}</Text>}
+            </VStack>
+          </Box>
+
+          <Divider />
+
+          <Box textAlign="center" w="full">
+            <Text fontSize="lg" mb={4} color="gray.300">
+              ¿Quieres probar el sistema?
+            </Text>
+            <Button
+              colorScheme="teal"
+              variant="outline"
+              size="lg"
+              onClick={handleDemoLogin}
+              w="full"
+              maxW="300px"
+            >
+              🎭 Acceder al Demo
+            </Button>
+            <Text fontSize="sm" color="gray.500" mt={2}>
+              Explora todas las funciones con datos de ejemplo
+            </Text>
+          </Box>
+        </VStack>
       )}
     </Flex>
   );
