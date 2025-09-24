@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { extendTheme } from '@chakra-ui/react';
-import { Button } from '../theme/components/Button';
-import { Select } from '../theme/components/Select';
 import { Toast } from '../theme/components/Toast';
 import { clientThemes, getThemeByKey, getRandomTheme } from '../theme/clientThemes';
 
@@ -15,31 +13,143 @@ export const ThemeProvider = ({ children }) => {
   const createChakraTheme = (clientTheme) => {
     return extendTheme({
       styles: {
-        global: {
-          'html, body, #root': {
+        global: (props) => ({
+          'html, body': {
             height: '100%',
             margin: 0,
             padding: 0,
-            backgroundColor: 'background',
-            color: 'text',
+            backgroundColor: clientTheme.colors.background,
+            color: clientTheme.colors.text,
+          },
+          '#root': {
+            height: '100%',
+            backgroundColor: clientTheme.colors.background,
+            color: clientTheme.colors.text,
           },
           '.logo': {
             fontSize: '2rem',
             fontWeight: 'bold',
             color: 'white',
           },
-        },
+          // Override Chakra's default background colors
+          '.chakra-ui-dark': {
+            backgroundColor: clientTheme.colors.background,
+            color: clientTheme.colors.text,
+          },
+          // Ensure cards and containers use theme background
+          '.chakra-container, .chakra-box': {
+            backgroundColor: 'inherit',
+          },
+        }),
       },
       components: {
-        Button,
-        Select,
+        Button: {
+          baseStyle: {
+            borderRadius: 'md',
+            fontWeight: 'semibold',
+          },
+          variants: {
+            solid: {
+              bg: clientTheme.colors.primary[500],
+              color: 'white',
+              _hover: {
+                bg: `${clientTheme.colors.primary[500]}DD`, // Slightly more transparent
+              },
+              _active: {
+                bg: `${clientTheme.colors.primary[500]}BB`,
+              },
+            },
+            outline: {
+              borderColor: clientTheme.colors.primary[500],
+              color: clientTheme.colors.primary[500],
+              _hover: {
+                bg: `${clientTheme.colors.primary[500]}20`,
+              },
+            },
+            ghost: {
+              color: clientTheme.colors.primary[500],
+              _hover: {
+                bg: `${clientTheme.colors.primary[500]}20`,
+              },
+            },
+          },
+          defaultProps: {
+            variant: 'solid',
+          },
+        },
+        Select: {
+          baseStyle: {
+            field: {
+              backgroundColor: clientTheme.colors.background,
+              color: clientTheme.colors.text,
+              borderColor: clientTheme.colors.primary[500],
+            },
+          },
+        },
         Toast,
+        // Add Box component styling
+        Box: {
+          baseStyle: {
+            backgroundColor: 'inherit',
+          },
+        },
+        // Add Card component styling for better theme integration
+        Card: {
+          baseStyle: {
+            backgroundColor: `${clientTheme.colors.background}CC`, // Semi-transparent
+            color: clientTheme.colors.text,
+            borderColor: clientTheme.colors.primary[500],
+          },
+        },
+        // Override Link component to use theme colors
+        Link: {
+          baseStyle: {
+            color: clientTheme.colors.primary[500],
+            _hover: {
+              color: clientTheme.colors.secondary[500],
+              textDecoration: 'none',
+            },
+          },
+        },
       },
-      colors: clientTheme.colors,
+      colors: {
+        ...clientTheme.colors,
+        // Map theme colors to Chakra's semantic color system
+        teal: {
+          500: clientTheme.colors.primary[500],
+        },
+        blue: {
+          500: clientTheme.colors.primary[500],
+        },
+        orange: {
+          500: clientTheme.colors.secondary[500],
+        },
+        // Override Chakra's gray scale to match theme
+        gray: {
+          50: clientTheme.colors.text,
+          100: `${clientTheme.colors.text}E6`,
+          200: `${clientTheme.colors.text}CC`,
+          300: `${clientTheme.colors.text}B3`,
+          400: `${clientTheme.colors.text}99`,
+          500: `${clientTheme.colors.text}80`,
+          600: `${clientTheme.colors.text}66`,
+          700: `${clientTheme.colors.text}4D`,
+          800: `${clientTheme.colors.text}33`,
+          900: `${clientTheme.colors.text}1A`,
+        },
+      },
       fonts: clientTheme.fonts,
       config: {
         initialColorMode: 'dark',
         useSystemColorMode: false,
+      },
+      semanticTokens: {
+        colors: {
+          'chakra-body-text': clientTheme.colors.text,
+          'chakra-body-bg': clientTheme.colors.background,
+          'chakra-border-color': clientTheme.colors.primary[500],
+          'chakra-placeholder-color': `${clientTheme.colors.text}80`,
+        },
       },
     });
   };

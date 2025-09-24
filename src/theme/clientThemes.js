@@ -23,13 +23,13 @@ export const clientThemes = {
   modern: {
     name: 'Modern Blue',
     colors: {
-      background: "#1a202c",
-      text: "#f7fafc",
+      background: "#0d1421", // Deep blue-black
+      text: "#e6f7ff",     // Light blue-white
       primary: {
-        500: "#3182ce", // blue
+        500: "#1890ff", // Vibrant blue
       },
       secondary: {
-        500: "#e53e3e", // red
+        500: "#ff4d4f", // Bright red
       },
     },
     fonts: {
@@ -41,13 +41,13 @@ export const clientThemes = {
   warm: {
     name: 'Warm Sunset',
     colors: {
-      background: "#2d1b20",
-      text: "#fef5e7",
+      background: "#2d1810", // Dark brown
+      text: "#fff8e1",     // Warm cream
       primary: {
-        500: "#d69e2e", // amber
+        500: "#ff9800", // Orange
       },
       secondary: {
-        500: "#9f2b2b", // dark red
+        500: "#f44336", // Red-orange
       },
     },
     fonts: {
@@ -59,13 +59,13 @@ export const clientThemes = {
   forest: {
     name: 'Forest Green',
     colors: {
-      background: "#1a2f1a",
-      text: "#f0fff4",  
+      background: "#1b2815", // Dark forest green
+      text: "#e8f5e8",     // Light mint
       primary: {
-        500: "#38a169", // green
+        500: "#4caf50", // Vibrant green
       },
       secondary: {
-        500: "#ecc94b", // yellow
+        500: "#ffeb3b", // Bright yellow
       },
     },
     fonts: {
@@ -77,13 +77,13 @@ export const clientThemes = {
   purple: {
     name: 'Royal Purple',
     colors: {
-      background: "#2d1b47",
-      text: "#faf5ff",
+      background: "#2a1b3d", // Dark purple
+      text: "#f3e5f5",     // Light lavender
       primary: {
-        500: "#805ad5", // purple
+        500: "#9c27b0", // Vibrant purple
       },
       secondary: {
-        500: "#38b2ac", // teal
+        500: "#00bcd4", // Cyan
       },
     },
     fonts: {
@@ -95,13 +95,13 @@ export const clientThemes = {
   ocean: {
     name: 'Ocean Breeze',
     colors: {
-      background: "#1a365d",
-      text: "#e6fffa",
+      background: "#0f2027", // Deep ocean blue
+      text: "#e0f7fa",     // Light cyan
       primary: {
-        500: "#0bc5ea", // cyan
+        500: "#00acc1", // Ocean blue
       },
       secondary: {
-        500: "#fc8181", // pink
+        500: "#ff5722", // Coral
       },
     },
     fonts: {
@@ -113,13 +113,13 @@ export const clientThemes = {
   earth: {
     name: 'Earth Tones',
     colors: {
-      background: "#2f1b14",
-      text: "#fffaf0",
+      background: "#3e2723", // Rich brown
+      text: "#f9f9f9",     // Off-white
       primary: {
-        500: "#c05621", // brown
+        500: "#8d6e63", // Brown
       },
       secondary: {
-        500: "#68d391", // light green
+        500: "#4caf50", // Earth green
       },
     },
     fonts: {
@@ -131,13 +131,13 @@ export const clientThemes = {
   midnight: {
     name: 'Midnight Blue',
     colors: {
-      background: "#0f1419",
-      text: "#e2e8f0",
+      background: "#0a0e27", // Very dark blue
+      text: "#cfd8dc",     // Cool light gray
       primary: {
-        500: "#4299e1", // light blue
+        500: "#3f51b5", // Indigo
       },
       secondary: {
-        500: "#f56565", // coral
+        500: "#e91e63", // Pink
       },
     },
     fonts: {
