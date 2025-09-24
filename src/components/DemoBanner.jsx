@@ -1,9 +1,11 @@
 import React from 'react';
 import { Box, Text, HStack, Button, Badge } from '@chakra-ui/react';
 import { useDemoContext } from '../context/DemoContext';
+import { useTheme } from '../context/ThemeContext';
 
 const DemoBanner = () => {
   const { isDemoMode, exitDemoMode } = useDemoContext();
+  const { getCurrentThemeName } = useTheme();
 
   if (!isDemoMode) return null;
 
@@ -34,6 +36,11 @@ const DemoBanner = () => {
           <Text fontSize="sm" fontWeight="medium">
             🎭 Estás en modo demostración - Todos los datos son de ejemplo
           </Text>
+          {isDemoMode && (
+            <Badge colorScheme="whiteAlpha" variant="outline" fontSize="xs" color="white" borderColor="white">
+              Tema: {getCurrentThemeName()}
+            </Badge>
+          )}
         </HStack>
         
         <Button

@@ -6,6 +6,7 @@ const DemoContext = createContext();
 export const DemoProvider = ({ children }) => {
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [demoData, setDemoData] = useState(null);
+  const [currentThemeName, setCurrentThemeName] = useState(null);
 
   useEffect(() => {
     // Check if already in demo mode on mount
@@ -16,17 +17,30 @@ export const DemoProvider = ({ children }) => {
     }
   }, []);
 
-  const enterDemoMode = () => {
+  const enterDemoMode = (themeContext = null) => {
     const data = initializeDemoData();
     setIsDemoMode(true);
     setDemoData(data);
+    
+    // Apply random theme when entering demo mode if theme context is provided
+    if (themeContext) {
+      const appliedTheme = themeContext.applyRandomTheme();
+      setCurrentThemeName(appliedTheme.name);
+    }
+    
     return data;
   };
 
-  const exitDemoMode = () => {
+  const exitDemoMode = (themeContext = null) => {
     clearDemoData();
     setIsDemoMode(false);
     setDemoData(null);
+    setCurrentThemeName(null);
+    
+    // Reset to default theme when exiting demo if theme context is provided
+    if (themeContext) {
+      themeContext.resetTheme();
+    }
   };
 
   const value = {
@@ -34,6 +48,7 @@ export const DemoProvider = ({ children }) => {
     demoData,
     enterDemoMode,
     exitDemoMode,
+    currentThemeName,
   };
 
   return (

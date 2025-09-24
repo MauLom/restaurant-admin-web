@@ -4,6 +4,7 @@ import { Box } from '@chakra-ui/react';
 import PinLogin from './layout/PinLogin';
 import DashboardPage from './layout/DashboardPage';
 import DemoBanner from './components/DemoBanner';
+import DemoThemeController from './components/DemoThemeController';
 
 // Páginas protegidas
 import GeneratePins from './shared/components/GeneratePins';
@@ -30,6 +31,7 @@ import CompleteProfilePage from './features/auth/CompleteProfilePage';
 const App = () => {
   return (
     <>
+      <DemoThemeController />
       <DemoBanner />
       <Box minHeight="100vh" pb={{ base: "70px", md: "0" }}>
         <Routes>
