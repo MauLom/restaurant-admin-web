@@ -9,25 +9,41 @@ import reportWebVitals from './reportWebVitals';
 import { LanguageProvider } from './context/LanguageContext';
 import { AuthProvider } from './context/AuthContext';
 import { DemoProvider } from './context/DemoContext';
-import theme from './theme';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
 
+// Wrapper component to use dynamic theme
+const AppWithTheme = () => {
+  const { currentTheme } = useTheme();
+  
+  if (!currentTheme) {
+    // Show loading or return null while theme is being initialized
+    return null;
+  }
+
+  return (
+    <ChakraProvider theme={currentTheme}>
+      <BrowserRouter>
+        <LanguageProvider>
+          <UserProvider>
+            <AuthProvider>
+              <DemoProvider>
+                <App />
+              </DemoProvider>
+            </AuthProvider>
+          </UserProvider>
+        </LanguageProvider>
+      </BrowserRouter>
+    </ChakraProvider>
+  );
+};
+
 root.render(
-  <ChakraProvider theme={theme}>
-    <BrowserRouter>
-      <LanguageProvider>
-        <UserProvider>
-          <AuthProvider>
-            <DemoProvider>
-              <App />
-            </DemoProvider>
-          </AuthProvider>
-        </UserProvider>
-      </LanguageProvider>
-    </BrowserRouter>
-  </ChakraProvider>
+  <ThemeProvider>
+    <AppWithTheme />
+  </ThemeProvider>
 );
 
 reportWebVitals();
