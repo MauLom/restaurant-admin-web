@@ -1,15 +1,28 @@
 import React from 'react';
 import { Box, Flex, Button, HStack, Img } from '@chakra-ui/react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import ResponsiveSidebar from '../shared/components/ResponsiveSidebar';
 import LanguageSwitcher from '../shared/components/LanguageSwitcher';
+import DemoTutorial from '../components/DemoTutorial';
 import { useLanguage } from '../context/LanguageContext';
+import { useDemoContext } from '../context/DemoContext';
 
 function DashboardPage() {
   const {t} = useLanguage();
+  const { isDemoMode, exitDemoMode } = useDemoContext();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Extract current page from pathname for tutorial
+  const getCurrentPage = () => {
+    const path = location.pathname.split('/').pop();
+    return path || 'dashboard';
+  };
 
   const handleLogout = () => {
+    if (isDemoMode) {
+      exitDemoMode();
+    }
     localStorage.removeItem('token');
     navigate('/login');
   };
@@ -27,8 +40,9 @@ function DashboardPage() {
       </Flex>
       <Flex as="main" flex="1" overflowY="auto" maxHeight="calc(100vh - 64px)">
         <ResponsiveSidebar />
-        <Box flex="1" p={4} bg="#222" overflowY="auto">
+        <Box flex="1" p={4} bg="#222" overflowY="auto" pt={isDemoMode ? 12 : 4}>
           <Outlet />
+          <DemoTutorial currentPage={getCurrentPage()} />
         </Box>
       </Flex>
     </Flex>

@@ -4,6 +4,7 @@ import { Box } from '@chakra-ui/react';
 import PinLogin from './layout/PinLogin';
 import DashboardPage from './layout/DashboardPage';
 import ProtectedRoute from './shared/components/ProtectedRoute';
+import DemoBanner from './components/DemoBanner';
 
 // Páginas protegidas
 import GeneratePins from './shared/components/GeneratePins';
@@ -29,8 +30,10 @@ import CompleteProfilePage from './features/auth/CompleteProfilePage';
 
 const App = () => {
   return (
-    <Box minHeight="100vh" pb={{ base: "70px", md: "0" }}>
-      <Routes>
+    <>
+      <DemoBanner />
+      <Box minHeight="100vh" pb={{ base: "70px", md: "0" }}>
+        <Routes>
 
         {/* Rutas públicas */}
         <Route path="/login" element={<PinLogin />} />
@@ -198,8 +201,9 @@ const App = () => {
           <Route path="notifications" element={<NotificationPage />} />
 
         </Route>
-      </Routes>
-    </Box>
+        </Routes>
+      </Box>
+    </>
   );
 };
 
