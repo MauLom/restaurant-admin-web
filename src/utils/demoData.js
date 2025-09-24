@@ -196,7 +196,7 @@ export const isDemoMode = () => {
   return localStorage.getItem('isDemoMode') === 'true';
 };
 
-export default {
+const demoDataModule = {
   demoCategories,
   demoMenuItems,
   demoInventoryItems,
@@ -209,3 +209,5 @@ export default {
   clearDemoData,
   isDemoMode
 };
+
+export default demoDataModule;
