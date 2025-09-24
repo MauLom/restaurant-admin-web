@@ -105,4 +105,5 @@ export const createDemoResponse = (url, method = 'GET', data = null) => {
   });
 };
 
-export default { demoApiResponses, createDemoResponse };
+const demoApiModule = { demoApiResponses, createDemoResponse };
+export default demoApiModule;

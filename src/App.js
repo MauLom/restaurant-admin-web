@@ -3,7 +3,6 @@ import { Route, Routes } from 'react-router-dom';
 import { Box } from '@chakra-ui/react';
 import PinLogin from './layout/PinLogin';
 import DashboardPage from './layout/DashboardPage';
-import ProtectedRoute from './shared/components/ProtectedRoute';
 import DemoBanner from './components/DemoBanner';
 
 // Páginas protegidas
