@@ -87,6 +87,32 @@ export const demoTables = [
   { _id: '5', number: 5, capacity: 8, status: 'reserved', section: 'Salón Privado', guestName: 'Evento Empresarial', guestCount: 8 }
 ];
 
+export const demoSections = [
+  {
+    _id: 'sec1',
+    name: 'Terraza',
+    tables: [
+      { _id: '1', number: '1', capacity: 4, status: 'available' },
+      { _id: '3', number: '3', capacity: 6, status: 'occupied', tableSessionId: 'session1' }
+    ]
+  },
+  {
+    _id: 'sec2',
+    name: 'Interior',
+    tables: [
+      { _id: '2', number: '2', capacity: 2, status: 'occupied', tableSessionId: 'session2' },
+      { _id: '4', number: '4', capacity: 4, status: 'available' }
+    ]
+  },
+  {
+    _id: 'sec3',
+    name: 'Salón Privado',
+    tables: [
+      { _id: '5', number: '5', capacity: 8, status: 'reserved' }
+    ]
+  }
+];
+
 export const demoOrders = [
   {
     _id: '1',
@@ -168,6 +194,7 @@ export const initializeDemoData = () => {
     menuItems: demoMenuItems,
     inventory: demoInventoryItems,
     tables: demoTables,
+    sections: demoSections,
     orders: demoOrders,
     users: demoUsers,
     analytics: demoAnalytics,
@@ -201,6 +228,7 @@ const demoDataModule = {
   demoMenuItems,
   demoInventoryItems,
   demoTables,
+  demoSections,
   demoOrders,
   demoUsers,
   demoAnalytics,
