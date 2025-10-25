@@ -55,7 +55,6 @@ function UserProfile() {
     }
 
     try {
-      // Update the user's profile on the backend
       await api.put('/users/profile', {
         name: profile.name,
         email: profile.email,

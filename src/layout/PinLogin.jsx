@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Button, VStack, HStack, Text, Center, Flex, Grid, Img, Input, Divider } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -15,6 +15,7 @@ function PinLogin() {
   const { enterDemoMode } = useDemoContext();
   const toast = useCustomToast();
   const navigate = useNavigate();
+  const containerRef = useRef(null);
 
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
@@ -33,6 +34,54 @@ function PinLogin() {
     };
     checkIfUsersExist();
   }, []);
+
+  // Event listener para el teclado físico
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      // Solo procesar si no estamos en el modo de creación de usuario
+      if (noUsers) return;
+
+      const key = event.key;
+      
+      // Números del 0-9
+      if (/^[0-9]$/.test(key)) {
+        event.preventDefault();
+        if (pin.length < 6) {
+          setPin(prevPin => prevPin + key);
+        }
+      }
+      // Tecla Backspace para borrar
+      else if (key === 'Backspace') {
+        event.preventDefault();
+        setPin(prevPin => prevPin.slice(0, -1));
+      }
+      // Enter para confirmar si el PIN tiene 6 dígitos
+      else if (key === 'Enter') {
+        event.preventDefault();
+        if (pin.length === 6) {
+          handleLogin();
+        }
+      }
+      // Escape para limpiar todo el PIN
+      else if (key === 'Escape') {
+        event.preventDefault();
+        setPin('');
+      }
+    };
+
+    // Agregar el event listener
+    document.addEventListener('keydown', handleKeyPress);
+    
+    // Enfocar el contenedor para asegurar que capture las teclas
+    if (containerRef.current) {
+      containerRef.current.focus();
+    }
+
+    // Cleanup: remover el event listener cuando el componente se desmonte
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [pin, noUsers]); // Dependencias: pin para verificar longitud y noUsers para controlar el estado
 
   const handleButtonClick = (digit) => {
     if (pin.length < 6) {
@@ -167,7 +216,16 @@ function PinLogin() {
   }
 
   return (
-    <Flex height="90vh" direction="column" align="center" justify="center">
+    <Flex 
+      ref={containerRef}
+      height="90vh" 
+      direction="column" 
+      align="center" 
+      justify="center"
+      tabIndex={0}
+      outline="none"
+      _focus={{ outline: "none" }}
+    >
       <Center flex="1">
         <Img className="logo" maxW="220px" src="maui-logo.png" />
       </Center>
@@ -190,6 +248,10 @@ function PinLogin() {
                 />
               ))}
             </HStack>
+            
+            {/* Indicador de que se puede usar el teclado físico */}
+       
+            
             <VStack spacing={4}>
               <Grid templateColumns="repeat(3, 1fr)" gap={4}>
                 {Array.from({ length: 9 }, (_, i) => i + 1).map((num) => (

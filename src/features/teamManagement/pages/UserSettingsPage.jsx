@@ -1,11 +1,11 @@
 import React from 'react';
 import { Box } from '@chakra-ui/react';
-import UserSettings from '../components/UserSettings';
+import SystemSettings from '../components/SystemSettings';
 
 function UserSettingsPage() {
   return (
     <Box p={4}>
-      <UserSettings />
+      <SystemSettings />
     </Box>
   );
 }
