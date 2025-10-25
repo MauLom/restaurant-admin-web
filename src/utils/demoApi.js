@@ -19,7 +19,7 @@ export const demoApiResponses = {
   
   '/sections': () => {
     const demoData = getDemoData();
-    return { data: demoData?.tables || [] };
+    return { data: demoData?.sections || [] };
   },
   
   '/orders': () => {

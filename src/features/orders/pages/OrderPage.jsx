@@ -24,8 +24,15 @@ function OrderPage() {
   const fetchSections = useCallback(async () => {
     try {
       const response = await api.get('/sections');
-      setSections(response.data);
+      // Validar que la respuesta contiene datos válidos
+      if (response.data && Array.isArray(response.data)) {
+        setSections(response.data);
+      } else {
+        setSections([]);
+        console.warn('La respuesta de secciones no es un array válido:', response.data);
+      }
     } catch (error) {
+      setSections([]); // Mantener un array vacío en caso de error
       toast({
         title: "Error",
         description: "No se pudieron cargar las secciones.",
