@@ -1,11 +1,12 @@
 import React from 'react';
-import { Box, Text, Button, VStack, HStack } from '@chakra-ui/react';
+import { Box, Text, Button, VStack, HStack, useTheme } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../context/AuthContext';
 
 function UnauthorizedPage() {
   const navigate = useNavigate();
   const { logout, user } = useAuthContext();
+  const theme = useTheme();
 
   const handleGoBack = () => {
     navigate('/dashboard');
@@ -22,8 +23,12 @@ function UnauthorizedPage() {
       display="flex"
       alignItems="center"
       justifyContent="center"
-      bg="#1a202c"
-      color="white"
+      bg={theme.colors.background || "#1a202c"}
+      color={theme.colors.text || "white"}
+      p={6}
+    >
+      bg={theme.colors.background || "#1a202c"}
+      color={theme.colors.text || "white"}
       p={6}
     >
       <VStack spacing={6}>
