@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, VStack, HStack, Button, useBreakpointValue, Tooltip } from '@chakra-ui/react';
+import { Box, VStack, HStack, Button, useBreakpointValue, Tooltip, useTheme } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
 import { FaUtensils, FaHamburger, FaCogs } from 'react-icons/fa';
 import { useAuthContext } from '../../context/AuthContext';
@@ -7,6 +7,7 @@ import { useAuthContext } from '../../context/AuthContext';
 function ResponsiveSidebar() {
   const isMobile = useBreakpointValue({ base: true, md: false });
   const { user } = useAuthContext();
+  const theme = useTheme();
 
   if (!user) {
     console.log("No hay usuario disponible");
@@ -23,7 +24,7 @@ function ResponsiveSidebar() {
     <Box
       as="nav"
       width="full"
-      bg="#444"
+      bg={theme.colors.interface?.sidebar || "#444"}
       p={4}
       zIndex={10000}
       position="fixed"
@@ -50,7 +51,7 @@ function ResponsiveSidebar() {
     <Box
       as="aside"
       width="250px"
-      bg="#444"
+      bg={theme.colors.interface?.sidebar || "#444"}
       p={4}
     >
       <VStack align="start" spacing={4}>

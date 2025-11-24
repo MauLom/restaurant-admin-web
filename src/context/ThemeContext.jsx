@@ -124,6 +124,13 @@ export const ThemeProvider = ({ children }) => {
         orange: {
           500: clientTheme.colors.secondary[500],
         },
+        // Interface colors for layout components
+        interface: {
+          header: clientTheme.colors.header,
+          sidebar: clientTheme.colors.sidebar,
+          content: clientTheme.colors.content,
+          surface: clientTheme.colors.surface,
+        },
         // Override Chakra's gray scale to match theme
         gray: {
           50: clientTheme.colors.text,
@@ -139,6 +146,8 @@ export const ThemeProvider = ({ children }) => {
         },
       },
       fonts: clientTheme.fonts,
+      // Add logo to theme
+      logo: clientTheme.logo,
       config: {
         initialColorMode: 'dark',
         useSystemColorMode: false,
