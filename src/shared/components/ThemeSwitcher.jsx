@@ -11,36 +11,45 @@ function ThemeSwitcher() {
   };
 
   return (
-    <VStack spacing={1} align="center">
+    <VStack spacing={2} align="center">
       <Button 
         onClick={handleThemeChange} 
         variant="outline" 
-        size="sm"
+        size="lg"
+        px={6}
+        py={3}
         bg="black"
         color="white"
         borderColor="gray.500"
-        borderWidth="1px"
+        borderWidth="2px"
+        fontSize="md"
+        fontWeight="medium"
+        borderRadius="md"
+        minW="120px"
         _hover={{
-          transform: 'scale(1.05)',
+          transform: 'translateY(-2px)',
           transition: 'all 0.2s ease-in-out',
-          bg: "black",
-          borderColor: "gray.400"
+          bg: "gray.800",
+          borderColor: "gray.400",
+          boxShadow: "lg"
         }}
         _active={{
-          transform: 'scale(0.95)',
-          bg: "black"
+          transform: 'translateY(0)',
+          bg: "gray.900",
+          boxShadow: "md"
         }}
-        title="🐛 DEBUG: Herramienta para cambiar temas aleatoriamente durante desarrollo"
+        title="DEBUG: Herramienta para cambiar temas aleatoriamente (Solo para testing)"
       >
         🎨 Tema
       </Button>
       <Text 
-        fontSize="xs" 
+        fontSize="sm" 
         color="white"
-        opacity={0.8}
+        opacity={0.9}
         textAlign="center"
-        maxW="80px"
+        maxW="120px"
         isTruncated
+        fontWeight="medium"
       >
         {getCurrentThemeName()}
       </Text>
