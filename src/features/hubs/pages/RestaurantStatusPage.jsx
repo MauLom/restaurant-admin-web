@@ -35,14 +35,30 @@ function RestaurantStatusPage() {
 
   return (
     <Box p={{ base: 4, md: 6 }}>
-      <Heading 
-        size={{ base: 'lg', md: 'xl' }} 
-        mb={20} 
-        color={headingColor}
-        textAlign="center"
+      <Box
+        display="flex"
+        justifyContent="center"
+        mb={20}
       >
-        Estado del restaurante
-      </Heading>
+        <Box
+          px={6}
+          py={3}
+          bg={`${theme.colors.primary[500]}15`}
+          border="2px solid"
+          borderColor={theme.colors.primary[500]}
+          borderRadius="lg"
+          boxShadow="md"
+        >
+          <Heading 
+            size={{ base: 'lg', md: 'xl' }} 
+            mb={0} 
+            color={headingColor}
+            textAlign="center"
+          >
+            Estado del restaurante
+          </Heading>
+        </Box>
+      </Box>
       <SimpleGrid 
         columns={{ base: 1, sm: 2, lg: 2 }} 
         spacing={{ base: 8, md: 10 }}

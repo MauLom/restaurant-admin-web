@@ -41,12 +41,23 @@ function ConfigurationPage() {
         mb={20}
         spacing={3}
       >
-        <Heading 
-          size={{ base: 'lg', md: 'xl' }} 
-          color={headingColor}
+        <Box
+          px={6}
+          py={3}
+          bg={`${theme.colors.primary[500]}15`}
+          border="2px solid"
+          borderColor={theme.colors.primary[500]}
+          borderRadius="lg"
+          boxShadow="md"
         >
-          Configurar sistema
-        </Heading>
+          <Heading 
+            size={{ base: 'lg', md: 'xl' }} 
+            color={headingColor}
+            textAlign="center"
+          >
+            Configurar sistema
+          </Heading>
+        </Box>
       </HStack>
       <SimpleGrid 
         columns={{ base: 1, sm: 2, lg: 2 }} 
