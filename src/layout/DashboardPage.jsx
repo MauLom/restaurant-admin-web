@@ -3,6 +3,7 @@ import { Box, Flex, Button, HStack, Img } from '@chakra-ui/react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import ResponsiveSidebar from '../shared/components/ResponsiveSidebar';
 import LanguageSwitcher from '../shared/components/LanguageSwitcher';
+import ThemeSwitcher from '../shared/components/ThemeSwitcher';
 import DemoTutorial from '../components/DemoTutorial';
 import { useLanguage } from '../context/LanguageContext';
 import { useDemoContext } from '../context/DemoContext';
@@ -32,6 +33,7 @@ function DashboardPage() {
       <Flex as="header" justify="space-between" align="center" p={4} bg="#333">
         <Img className="logo" maxW="4rem" src="maui-logo.png" />
         <HStack spacing={4}>
+          <ThemeSwitcher />
           <LanguageSwitcher />
           <Button onClick={handleLogout} variant="ghost" colorScheme="whiteAlpha">
             {t('logout')}
