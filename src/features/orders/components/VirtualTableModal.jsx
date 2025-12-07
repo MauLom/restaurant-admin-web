@@ -40,12 +40,12 @@ import {
 } from '@chakra-ui/react';
 import { useUserContext } from '../../../context/UserContext';
 import api from '../../../services/api';
-import { useLanguage } from '../../../context/LanguageContext';
+// import { useLanguage } from '../../../context/LanguageContext';
 
 function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = [], isSimpleMode = false }) {
   const { user } = useUserContext();
   const toast = useToast();
-  const {t} = useLanguage();
+  // const {t} = useLanguage();
   
   // Estados del formulario
   const [mode, setMode] = useState(isSimpleMode ? 'standalone' : 'combined');

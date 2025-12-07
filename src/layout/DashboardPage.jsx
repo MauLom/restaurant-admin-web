@@ -1,8 +1,8 @@
-import React from 'react';
-import { Box, Flex, Button, HStack, Img, border } from '@chakra-ui/react';
+// import React from 'react';
+import { Box, Flex, Button, HStack, Img } from '@chakra-ui/react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import ResponsiveSidebar from '../shared/components/ResponsiveSidebar';
-import LanguageSwitcher from '../shared/components/LanguageSwitcher';
+// import LanguageSwitcher from '../shared/components/LanguageSwitcher';
 import ThemeSwitcher from '../shared/components/ThemeSwitcher';
 import DemoTutorial from '../components/DemoTutorial';
 import { useLanguage } from '../context/LanguageContext';

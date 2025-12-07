@@ -1,5 +1,4 @@
-import React from 'react';
-import { Button, VStack, Text, useColorModeValue } from '@chakra-ui/react';
+import { Button, VStack, Text } from '@chakra-ui/react';
 import { useTheme } from '../../context/ThemeContext';
 
 function ThemeSwitcher() {
