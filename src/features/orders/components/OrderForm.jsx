@@ -8,6 +8,7 @@ import { UserContext } from '../../../context/UserContext';
 import { Badge } from '@chakra-ui/react';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import { ItemSearchBar } from './ItemSearchBar'; // Asegúrate de importar el componente de búsqueda
+import OrderMenuItem from './OrderMenuItem';
 function OrderForm({ table, onBack }) {
   const toast = useCustomToast();
   const { user } = useContext(UserContext);
@@ -135,6 +136,10 @@ function OrderForm({ table, onBack }) {
     });
   };
 
+  const handleRemoveItem = (itemId) => {
+    setOrderItems(prevItems => prevItems.filter(i => i._id !== itemId));
+  };
+
   const handleNoteChange = (itemId, note) => {
     setOrderItems(prevItems =>
       prevItems.map(i => i._id === itemId ? { ...i, note } : i)
@@ -223,10 +228,7 @@ function OrderForm({ table, onBack }) {
     return found ? found.quantity : null;
   };
 
-  const isLowStock = (itemName) => {
-    const found = inventory.find(inv => inv.name.toLowerCase() === itemName.toLowerCase());
-    return found ? found.quantity > 0 && found.quantity <= lowStockThreshold : false;
-  };
+
 
   return (
     <VStack align="stretch" spacing={6} bg="#1a202c" color="white" p={4} borderRadius="md">
@@ -267,55 +269,18 @@ function OrderForm({ table, onBack }) {
             const canAddMore = stock === null || selectedQty < stock;
 
             return (
-              <VStack key={item._id} p={2} borderWidth="1px" borderRadius="md" opacity={available ? 1 : 0.5} bg="gray.700">
-                {isLowStock(item.name) && (
-                  <Badge colorScheme="yellow" mb={1}>
-                    Pocas unidades
-                  </Badge>
-                )}
-
-                <Button
-                  colorScheme={available ? "blue" : "gray"}
-                  onClick={() => available && handleAddItem(item, 1)}
-                  isDisabled={!available}
-                >
-                  {item.name} <br /> (${item.price.toFixed(2)})
-                </Button>
-
-                {!available && (
-                  <Text fontSize="xs" color="red.300">
-                    No disponible en inventario
-                  </Text>
-                )}
-
-                <HStack>
-                  <IconButton
-                    size="sm"
-                    colorScheme="red"
-                    icon={<FaMinus />}
-                    onClick={() => handleAddItem(item, -1)}
-                    aria-label="Disminuir cantidad"
-                    isDisabled={selectedQty === 0}
-                  />
-                  <Text>{selectedQty}</Text>
-                  <IconButton
-                    size="sm"
-                    colorScheme="green"
-                    icon={<FaPlus />}
-                    onClick={() => handleAddItem(item, 1)}
-                    aria-label="Aumentar cantidad"
-                    isDisabled={!canAddMore}
-                  />
-                  <IconButton
-                    size="sm"
-                    colorScheme="red"
-                    icon={<FaTrash />}
-                    onClick={() => setOrderItems(prev => prev.filter(i => i._id !== item._id))}
-                    aria-label="Eliminar ítem"
-                    isDisabled={selectedQty === 0}
-                  />
-                </HStack>
-              </VStack>
+              <OrderMenuItem
+                key={item._id}
+                item={item}
+                stock={stock}
+                available={available}
+                selectedQty={selectedQty}
+                canAddMore={canAddMore}
+                inventory={inventory}
+                lowStockThreshold={lowStockThreshold}
+                onAddItem={handleAddItem}
+                onRemoveItem={handleRemoveItem}
+              />
             );
           })}
         </Grid>
