@@ -95,7 +95,7 @@ function OrdersPreparationPage() {
             <TabPanel key={group.area}>
               <VStack spacing={4} align="stretch">
                 {group.orders.map((order) => (
-                  <Box key={order._id} p={4} bg="gray.800" color="white" borderRadius="md">
+                  <Box key={order._id} p={4} bg="#363636" color="white" borderRadius="md">
                     <Text fontSize="lg" mb={2}>Orden #{order._id.substring(order._id.length - 4)}</Text>
 
                     <VStack spacing={3} align="stretch">

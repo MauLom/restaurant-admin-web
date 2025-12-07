@@ -25,7 +25,7 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
-      <ModalContent bg="gray.800" color="white">
+      <ModalContent bg="#363636" color="white">
         <ModalHeader>📋 Abrir Mesa {table?.number}</ModalHeader>
         <ModalBody>
           <FormControl mb={4}>

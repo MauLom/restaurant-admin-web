@@ -322,7 +322,7 @@ function OrderForm({ table, onBack }) {
       </Box>
 
 
-      <Box p={4} borderWidth="1px" borderRadius="md" bg="gray.800">
+      <Box p={4} borderWidth="1px" borderRadius="md" bg="#363636">
         <Text fontSize="lg" fontWeight="bold" mb={2}>Resumen de la Orden</Text>
         {orderItems.length === 0 ? (
           <Text>No se han seleccionado ítems.</Text>

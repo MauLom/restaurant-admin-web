@@ -40,10 +40,12 @@ import {
 } from '@chakra-ui/react';
 import { useUserContext } from '../../../context/UserContext';
 import api from '../../../services/api';
+import { useLanguage } from '../../../context/LanguageContext';
 
 function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = [], isSimpleMode = false }) {
   const { user } = useUserContext();
   const toast = useToast();
+  const {t} = useLanguage();
   
   // Estados del formulario
   const [mode, setMode] = useState(isSimpleMode ? 'standalone' : 'combined');
@@ -258,7 +260,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside" bg="black">
       <ModalOverlay />
-      <ModalContent maxW="600px" bg="gray.800" color="white">
+      <ModalContent maxW="600px" bg="#363636" color="white">
         <ModalHeader>
           🪑 Crear Mesa Virtual
         </ModalHeader>

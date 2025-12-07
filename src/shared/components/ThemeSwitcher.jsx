@@ -29,7 +29,7 @@ function ThemeSwitcher() {
         _hover={{
           transform: 'translateY(-2px)',
           transition: 'all 0.2s ease-in-out',
-          bg: "gray.800",
+          bg: "#363636",
           borderColor: "gray.400",
           boxShadow: "lg"
         }}

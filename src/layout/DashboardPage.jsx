@@ -36,7 +36,7 @@ function DashboardPage() {
         <Img className="logo" maxW="5rem" src={currentTheme.logo || "maui-logo.png"} borderRadius={10}/>
         <HStack spacing={6}>
           <ThemeSwitcher />
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> */}
           <Button 
             onClick={handleLogout} 
             variant="ghost" 
