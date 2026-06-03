@@ -101,6 +101,19 @@ function RecipeManagement() {
     detailDisc.onOpen();
   };
 
+  const ingredientImageMap = React.useMemo(() => {
+    const map = {};
+    recipes.forEach(r => {
+      r.ingredients?.forEach(ing => {
+        const key = ing.name?.trim().toLowerCase();
+        if (key && ing.image?.url && !map[key]) {
+          map[key] = ing.image;
+        }
+      });
+    });
+    return map;
+  }, [recipes]);
+
   const displayed = recipes
     .filter(r => {
       const q = search.toLowerCase();
@@ -191,6 +204,7 @@ function RecipeManagement() {
         onClose={formDisc.onClose}
         onSave={handleSave}
         initialData={editingRecipe}
+        ingredientImageMap={ingredientImageMap}
       />
 
       <AlertDialog isOpen={deleteDisc.isOpen} leastDestructiveRef={cancelRef} onClose={deleteDisc.onClose}>

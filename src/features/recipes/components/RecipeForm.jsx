@@ -42,7 +42,7 @@ const EMPTY_FORM = {
   steps: [emptyStep(1)],
 };
 
-function RecipeForm({ isOpen, onClose, onSave, initialData }) {
+function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap = {} }) {
   const { currentTheme } = useTheme();
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -91,7 +91,15 @@ function RecipeForm({ isOpen, onClose, onSave, initialData }) {
   const updateIngredient = (i, field, value) =>
     setForm(f => {
       const arr = [...f.ingredients];
-      arr[i] = { ...arr[i], [field]: value };
+      const updated = { ...arr[i], [field]: value };
+      if (field === 'name') {
+        const key = value.trim().toLowerCase();
+        const mapped = ingredientImageMap[key];
+        if (mapped && !arr[i].image?.url) {
+          updated.image = mapped;
+        }
+      }
+      arr[i] = updated;
       return { ...f, ingredients: arr };
     });
 
