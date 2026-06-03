@@ -7,7 +7,7 @@ import {
 import { FaPlus, FaTrash, FaChevronUp, FaChevronDown, FaDollarSign } from 'react-icons/fa';
 import { useTheme } from '../../../context/ThemeContext';
 import ImageInput from './ImageInput';
-import { calcIngredientCost, calcTotalCost, formatCost } from '../costUtils';
+import { calcIngredientCost, calcTotalCost, formatCost, calcMargin } from '../costUtils';
 
 export const UNITS = [
   { value: 'ml', label: 'ml' },
@@ -37,7 +37,7 @@ const EMPTY_FORM = {
   name: '', description: '',
   mainImage: { url: '', isUpload: false },
   area: 'kitchen', difficulty: 'medium',
-  servings: 1, prepTime: 0, cookTime: 0,
+  servings: 1, prepTime: 0, cookTime: 0, price: '',
   ingredients: [emptyIngredient()],
   steps: [emptyStep(1)],
 };
@@ -67,6 +67,7 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, inventoryItems = [] 
         mainImage: initialData.mainImage || { url: '', isUpload: false },
         area: initialData.area || 'kitchen',
         difficulty: initialData.difficulty || 'medium',
+        price: initialData.price || '',
         servings: initialData.servings || 1,
         prepTime: initialData.prepTime || 0,
         cookTime: initialData.cookTime || 0,
@@ -133,11 +134,14 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, inventoryItems = [] 
   };
 
   const totalCost = calcTotalCost(form.ingredients, inventoryMap);
+  const salePrice = parseFloat(form.price) || 0;
+  const margin = calcMargin(salePrice, totalCost);
 
   const handleSave = async () => {
     if (!form.name.trim()) return;
     const payload = {
       ...form,
+      price: parseFloat(form.price) || 0,
       servings: Number(form.servings) || 1,
       prepTime: Number(form.prepTime) || 0,
       cookTime: Number(form.cookTime) || 0,
@@ -223,6 +227,12 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, inventoryItems = [] 
                   <FormLabel fontSize="sm">Cocción (min)</FormLabel>
                   <NumberInput min={0} value={form.cookTime} onChange={v => setField('cookTime', v)} size="sm">
                     <NumberInputField />
+                  </NumberInput>
+                </FormControl>
+                <FormControl flex="1" minW="100px">
+                  <FormLabel fontSize="sm">Precio de venta</FormLabel>
+                  <NumberInput min={0} value={form.price} onChange={v => setField('price', v)} size="sm">
+                    <NumberInputField placeholder="$0.00" />
                   </NumberInput>
                 </FormControl>
               </HStack>
@@ -325,6 +335,54 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, inventoryItems = [] 
               </VStack>
             </Box>
 
+            {/* ── Panel de precio / costo / margen ── */}
+            {(totalCost != null || salePrice > 0) && (
+              <Box p={4} borderRadius="xl" border="1px solid" borderColor={`${primary}33`} bg={`${primary}08`}>
+                <Text fontWeight="semibold" color={primary} mb={3} fontSize="sm">Análisis de precio</Text>
+                <HStack spacing={6} flexWrap="wrap">
+                  {totalCost != null && (
+                    <Box>
+                      <Text fontSize="xs" opacity={0.6} mb={0.5}>Costo ingredientes</Text>
+                      <Text fontWeight="bold" color="red.400">{formatCost(totalCost)}</Text>
+                      {form.servings > 1 && (
+                        <Text fontSize="xs" opacity={0.5}>{formatCost(totalCost / form.servings)} / porción</Text>
+                      )}
+                    </Box>
+                  )}
+                  {salePrice > 0 && (
+                    <Box>
+                      <Text fontSize="xs" opacity={0.6} mb={0.5}>Precio de venta</Text>
+                      <Text fontWeight="bold" color="blue.400">{formatCost(salePrice)}</Text>
+                      {form.servings > 1 && (
+                        <Text fontSize="xs" opacity={0.5}>{formatCost(salePrice / form.servings)} / porción</Text>
+                      )}
+                    </Box>
+                  )}
+                  {margin && (
+                    <Box>
+                      <Text fontSize="xs" opacity={0.6} mb={0.5}>Ganancia</Text>
+                      <Text fontWeight="bold" color={margin.profit >= 0 ? 'green.400' : 'red.400'}>
+                        {formatCost(margin.profit)}
+                      </Text>
+                      <Text fontSize="xs" opacity={0.7} color={margin.marginPct >= 0 ? 'green.400' : 'red.400'}>
+                        {margin.marginPct.toFixed(1)}% margen
+                      </Text>
+                    </Box>
+                  )}
+                  {totalCost != null && salePrice <= 0 && (
+                    <Tooltip label="Basado en costo × 3 (regla general de restauración)">
+                      <Button
+                        size="xs" variant="ghost" colorScheme="blue"
+                        onClick={() => setField('price', (totalCost * 3).toFixed(2))}
+                      >
+                        Sugerir precio (3× costo)
+                      </Button>
+                    </Tooltip>
+                  )}
+                </HStack>
+              </Box>
+            )}
+
             <Divider borderColor={`${primary}33`} />
 
             {/* ── Pasos ── */}
@@ -369,11 +427,20 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, inventoryItems = [] 
           </VStack>
         </ModalBody>
 
-        <ModalFooter borderTop="1px solid" borderColor={`${primary}33`} gap={3}>
+        <ModalFooter borderTop="1px solid" borderColor={`${primary}33`} gap={3} flexWrap="wrap">
           {totalCost != null && (
-            <Badge colorScheme="green" fontSize="sm" px={3} py={1} borderRadius="full" mr="auto">
-              Costo estimado: {formatCost(totalCost)}
-              {form.servings > 1 && ` · ${formatCost(totalCost / form.servings)} / porción`}
+            <Badge colorScheme="red" variant="subtle" fontSize="xs" px={2} py={1} borderRadius="full">
+              Costo: {formatCost(totalCost)}{form.servings > 1 ? ` · ${formatCost(totalCost / form.servings)}/porc.` : ''}
+            </Badge>
+          )}
+          {salePrice > 0 && (
+            <Badge colorScheme="blue" variant="subtle" fontSize="xs" px={2} py={1} borderRadius="full">
+              Venta: {formatCost(salePrice)}
+            </Badge>
+          )}
+          {margin && (
+            <Badge colorScheme={margin.marginPct >= 0 ? 'green' : 'red'} fontSize="xs" px={2} py={1} borderRadius="full">
+              {margin.marginPct.toFixed(1)}% margen
             </Badge>
           )}
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>

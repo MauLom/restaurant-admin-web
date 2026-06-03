@@ -6,7 +6,7 @@ import {
 import { FaClock, FaUsers, FaEdit, FaTrash, FaDollarSign } from 'react-icons/fa';
 import { useTheme } from '../../../context/ThemeContext';
 import { resolveImageUrl } from './ImageInput';
-import { calcIngredientCost, calcTotalCost, formatCost } from '../costUtils';
+import { calcIngredientCost, calcTotalCost, formatCost, calcMargin } from '../costUtils';
 
 const difficultyLabel = { easy: 'Fácil', medium: 'Media', hard: 'Difícil' };
 const difficultyColor = { easy: 'green', medium: 'yellow', hard: 'red' };
@@ -21,6 +21,8 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap 
     () => recipe ? calcTotalCost(recipe.ingredients || [], inventoryMap) : null,
     [recipe, inventoryMap]
   );
+  const salePrice = recipe?.price > 0 ? recipe.price : null;
+  const margin = calcMargin(salePrice, totalCost);
 
   if (!recipe) return null;
 
@@ -64,14 +66,24 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap 
                 </Badge>
               )}
               {totalCost != null && (
-                <Badge colorScheme="green" px={3} py={1} borderRadius="full">
+                <Badge colorScheme="red" variant="subtle" px={3} py={1} borderRadius="full">
                   <HStack spacing={1}>
                     <FaDollarSign size="11px" />
-                    <Text>
-                      {formatCost(totalCost)}
-                      {recipe.servings > 1 && ` · ${formatCost(totalCost / recipe.servings)}/porc.`}
-                    </Text>
+                    <Text>Costo: {formatCost(totalCost)}{recipe.servings > 1 && ` · ${formatCost(totalCost / recipe.servings)}/porc.`}</Text>
                   </HStack>
+                </Badge>
+              )}
+              {salePrice != null && (
+                <Badge colorScheme="blue" px={3} py={1} borderRadius="full">
+                  <HStack spacing={1}>
+                    <FaDollarSign size="11px" />
+                    <Text>Precio: {formatCost(salePrice)}</Text>
+                  </HStack>
+                </Badge>
+              )}
+              {margin && (
+                <Badge colorScheme={margin.marginPct >= 0 ? 'green' : 'red'} px={3} py={1} borderRadius="full">
+                  {margin.marginPct.toFixed(1)}% margen
                 </Badge>
               )}
             </HStack>
@@ -117,19 +129,33 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap 
                   })}
                 </Grid>
 
-                {/* Desglose de costo */}
-                {totalCost != null && (
-                  <Box mt={4} p={3} borderRadius="lg" bg="green.900" border="1px solid" borderColor="green.600">
-                    <HStack justify="space-between">
-                      <Text fontSize="sm" color="green.200">Costo total estimado de ingredientes</Text>
-                      <Text fontSize="sm" fontWeight="bold" color="green.300">{formatCost(totalCost)}</Text>
+                {/* Desglose de precio */}
+                {(totalCost != null || salePrice != null) && (
+                  <Box mt={4} p={4} borderRadius="lg" border="1px solid" borderColor={`${primary}33`} bg={`${primary}08`}>
+                    <Text fontSize="xs" fontWeight="semibold" opacity={0.6} mb={3} textTransform="uppercase">Análisis de precio</Text>
+                    <HStack spacing={6} flexWrap="wrap">
+                      {totalCost != null && (
+                        <Box>
+                          <Text fontSize="xs" opacity={0.6}>Costo ingredientes</Text>
+                          <Text fontWeight="bold" color="red.400">{formatCost(totalCost)}</Text>
+                          {recipe.servings > 1 && <Text fontSize="xs" opacity={0.5}>{formatCost(totalCost / recipe.servings)} / porc.</Text>}
+                        </Box>
+                      )}
+                      {salePrice != null && (
+                        <Box>
+                          <Text fontSize="xs" opacity={0.6}>Precio de venta</Text>
+                          <Text fontWeight="bold" color="blue.400">{formatCost(salePrice)}</Text>
+                          {recipe.servings > 1 && <Text fontSize="xs" opacity={0.5}>{formatCost(salePrice / recipe.servings)} / porc.</Text>}
+                        </Box>
+                      )}
+                      {margin && (
+                        <Box>
+                          <Text fontSize="xs" opacity={0.6}>Ganancia estimada</Text>
+                          <Text fontWeight="bold" color={margin.profit >= 0 ? 'green.400' : 'red.400'}>{formatCost(margin.profit)}</Text>
+                          <Text fontSize="xs" color={margin.marginPct >= 0 ? 'green.400' : 'red.400'}>{margin.marginPct.toFixed(1)}% margen</Text>
+                        </Box>
+                      )}
                     </HStack>
-                    {recipe.servings > 1 && (
-                      <HStack justify="space-between" mt={1}>
-                        <Text fontSize="xs" color="green.400">Por porción ({recipe.servings} porciones)</Text>
-                        <Text fontSize="xs" color="green.400">{formatCost(totalCost / recipe.servings)}</Text>
-                      </HStack>
-                    )}
                   </Box>
                 )}
               </Box>

@@ -73,6 +73,14 @@ export const calcIngredientCost = (invItem, recipeQty, recipeUnit) => {
 export const formatCost = (cost) =>
   cost != null ? `$${cost.toFixed(2)}` : null;
 
+/** Returns { profit, marginPct } or null if either value is missing */
+export const calcMargin = (price, cost) => {
+  if (!price || price <= 0 || cost == null) return null;
+  const profit = price - cost;
+  const marginPct = (profit / price) * 100;
+  return { profit, marginPct };
+};
+
 export const calcTotalCost = (ingredients, inventoryMap) => {
   let total = 0;
   let hasAny = false;

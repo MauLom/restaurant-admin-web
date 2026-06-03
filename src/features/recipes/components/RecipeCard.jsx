@@ -3,7 +3,7 @@ import { Box, Image, Text, Heading, HStack, Badge, Flex } from '@chakra-ui/react
 import { FaClock, FaUsers } from 'react-icons/fa';
 import { useTheme } from '../../../context/ThemeContext';
 import { resolveImageUrl } from './ImageInput';
-import { calcTotalCost, formatCost } from '../costUtils';
+import { calcTotalCost, formatCost, calcMargin } from '../costUtils';
 
 const difficultyColor = { easy: 'green', medium: 'yellow', hard: 'red' };
 const difficultyLabel = { easy: 'Fácil', medium: 'Media', hard: 'Difícil' };
@@ -17,6 +17,8 @@ function RecipeCard({ recipe, inventoryMap = {}, onClick }) {
   const imgSrc = resolveImageUrl(recipe.mainImage);
   const totalTime = (recipe.prepTime || 0) + (recipe.cookTime || 0);
   const totalCost = calcTotalCost(recipe.ingredients || [], inventoryMap);
+  const salePrice = recipe.price > 0 ? recipe.price : null;
+  const margin = calcMargin(salePrice, totalCost);
 
   return (
     <Box onClick={onClick} cursor="pointer" borderRadius="xl" overflow="hidden"
@@ -55,8 +57,16 @@ function RecipeCard({ recipe, inventoryMap = {}, onClick }) {
               <Text fontSize="xs" color={textColor} opacity={0.8}>{recipe.servings} porc.</Text>
             </HStack>
           )}
+          {salePrice != null && (
+            <Badge colorScheme="blue" fontSize="10px">{formatCost(salePrice)}</Badge>
+          )}
           {totalCost != null && (
-            <Badge colorScheme="green" fontSize="10px">{formatCost(totalCost)}</Badge>
+            <Badge colorScheme="red" variant="subtle" fontSize="10px">costo {formatCost(totalCost)}</Badge>
+          )}
+          {margin && (
+            <Badge colorScheme={margin.marginPct >= 0 ? 'green' : 'red'} fontSize="10px">
+              {margin.marginPct.toFixed(0)}% margen
+            </Badge>
           )}
         </HStack>
       </Box>
