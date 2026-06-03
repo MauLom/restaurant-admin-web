@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
   Button, Input, Textarea, Select, FormControl, FormLabel, VStack, HStack, Box, Text,
-  IconButton, Divider, NumberInput, NumberInputField,
+  IconButton, Divider, NumberInput, NumberInputField, Collapse,
 } from '@chakra-ui/react';
-import { FaPlus, FaTrash, FaChevronUp, FaChevronDown } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaChevronUp, FaChevronDown, FaCamera } from 'react-icons/fa';
 import { useTheme } from '../../../context/ThemeContext';
 import ImageInput from './ImageInput';
 
@@ -46,6 +46,7 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
   const { currentTheme } = useTheme();
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [openIngImg, setOpenIngImg] = useState({});
 
   const primary = currentTheme.colors.primary[500];
   const surface = currentTheme.colors.interface?.surface || '#333';
@@ -53,6 +54,7 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
 
   useEffect(() => {
     if (!isOpen) return;
+    setOpenIngImg({});
     if (initialData) {
       setForm({
         name: initialData.name || '',
@@ -248,71 +250,107 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
                 </Button>
               </HStack>
 
-              <VStack align="stretch" spacing={4}>
+              <VStack align="stretch" spacing={2}>
                 {form.ingredients.map((ing, i) => (
                   <Box
                     key={i}
-                    p={3}
                     borderRadius="lg"
                     border="1px solid"
-                    borderColor={`${primary}22`}
-                    bg={`${primary}08`}
+                    borderColor={`${primary}44`}
+                    borderLeft="3px solid"
+                    borderLeftColor={primary}
+                    bg={i % 2 === 0 ? `${primary}0A` : 'blackAlpha.200'}
+                    overflow="hidden"
                   >
-                    <HStack align="flex-start" spacing={2} mb={2} flexWrap="wrap">
-                      <FormControl flex="2" minW="120px">
-                        <FormLabel fontSize="xs" mb={1}>Ingrediente</FormLabel>
-                        <Input
-                          value={ing.name}
-                          onChange={e => updateIngredient(i, 'name', e.target.value)}
-                          placeholder="Ej: Arroz arborio"
-                          size="sm"
-                        />
-                      </FormControl>
-                      <FormControl flex="1" minW="80px">
-                        <FormLabel fontSize="xs" mb={1}>Cantidad</FormLabel>
-                        <NumberInput
-                          min={0}
-                          value={ing.quantity}
-                          onChange={v => updateIngredient(i, 'quantity', v)}
-                          size="sm"
-                        >
-                          <NumberInputField placeholder="0" />
-                        </NumberInput>
-                      </FormControl>
-                      <FormControl flex="1" minW="110px">
-                        <FormLabel fontSize="xs" mb={1}>Unidad</FormLabel>
-                        <Select
-                          value={ing.unit}
-                          onChange={e => updateIngredient(i, 'unit', e.target.value)}
-                          size="sm"
-                        >
-                          {UNITS.map(u => (
-                            <option key={u.value} value={u.value}>{u.label}</option>
-                          ))}
-                        </Select>
-                      </FormControl>
-                      <Box pt={6}>
-                        <IconButton
-                          icon={<FaTrash />}
-                          size="sm"
-                          colorScheme="red"
-                          variant="ghost"
-                          onClick={() => removeIngredient(i)}
-                          aria-label="Eliminar ingrediente"
-                          isDisabled={form.ingredients.length === 1}
-                        />
-                      </Box>
+                    {/* ── Fila principal compacta ── */}
+                    <HStack spacing={2} px={3} py={2} flexWrap="wrap">
+                      {/* Número */}
+                      <Text
+                        fontSize="xs"
+                        fontWeight="bold"
+                        color={primary}
+                        opacity={0.8}
+                        minW="18px"
+                        textAlign="center"
+                      >
+                        {i + 1}.
+                      </Text>
+
+                      {/* Nombre */}
+                      <Input
+                        flex="2"
+                        minW="120px"
+                        value={ing.name}
+                        onChange={e => updateIngredient(i, 'name', e.target.value)}
+                        placeholder="Ingrediente"
+                        size="sm"
+                        variant="filled"
+                      />
+
+                      {/* Cantidad */}
+                      <NumberInput
+                        flex="1"
+                        minW="70px"
+                        maxW="90px"
+                        min={0}
+                        value={ing.quantity}
+                        onChange={v => updateIngredient(i, 'quantity', v)}
+                        size="sm"
+                      >
+                        <NumberInputField placeholder="Cant." variant="filled" />
+                      </NumberInput>
+
+                      {/* Unidad */}
+                      <Select
+                        flex="1"
+                        minW="100px"
+                        maxW="130px"
+                        value={ing.unit}
+                        onChange={e => updateIngredient(i, 'unit', e.target.value)}
+                        size="sm"
+                        variant="filled"
+                      >
+                        {UNITS.map(u => (
+                          <option key={u.value} value={u.value}>{u.label}</option>
+                        ))}
+                      </Select>
+
+                      {/* Toggle imagen */}
+                      <IconButton
+                        icon={<FaCamera />}
+                        size="sm"
+                        variant="ghost"
+                        colorScheme={ing.image?.url ? 'green' : 'gray'}
+                        opacity={ing.image?.url ? 1 : 0.4}
+                        onClick={() => setOpenIngImg(prev => ({ ...prev, [i]: !prev[i] }))}
+                        aria-label="Imagen"
+                      />
+
+                      {/* Eliminar */}
+                      <IconButton
+                        icon={<FaTrash />}
+                        size="sm"
+                        colorScheme="red"
+                        variant="ghost"
+                        opacity={0.6}
+                        _hover={{ opacity: 1 }}
+                        onClick={() => removeIngredient(i)}
+                        aria-label="Eliminar"
+                        isDisabled={form.ingredients.length === 1}
+                      />
                     </HStack>
 
-                    <FormControl>
-                      <FormLabel fontSize="xs" mb={1}>Imagen del ingrediente (opcional)</FormLabel>
-                      <ImageInput
-                        value={ing.image}
-                        onChange={v => updateIngredient(i, 'image', v)}
-                        placeholder="URL de imagen..."
-                        previewMaxH="80px"
-                      />
-                    </FormControl>
+                    {/* ── Imagen colapsable ── */}
+                    <Collapse in={!!openIngImg[i]} animateOpacity>
+                      <Box px={3} pb={2} borderTop="1px solid" borderColor={`${primary}22`}>
+                        <ImageInput
+                          value={ing.image}
+                          onChange={v => updateIngredient(i, 'image', v)}
+                          placeholder="URL de imagen del ingrediente..."
+                          previewMaxH="80px"
+                        />
+                      </Box>
+                    </Collapse>
                   </Box>
                 ))}
               </VStack>
