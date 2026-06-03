@@ -19,7 +19,7 @@ const PREDEFINED_TAGS = [
 
 const EMPTY_FORM = {
   name: '', quantity: '', unit: '', equivalentMl: '',
-  equivalentGr: '', cost: '', minStock: '', tags: [],
+  equivalentGr: '', cost: '', minStock: '', supplier: '', tags: [],
 };
 
 function InventoryManagement() {
@@ -113,6 +113,7 @@ function InventoryManagement() {
       equivalentGr: item.equivalentGr,
       cost: item.cost,
       minStock: item.minStock || '',
+      supplier: item.supplier || '',
       tags: Array.isArray(item.tags) ? item.tags : [],
     });
     setShowForm(true);
@@ -242,6 +243,9 @@ function InventoryManagement() {
                   {item.cost > 0 && (
                     <Text fontSize="sm" opacity={0.6}>Costo: ${item.cost.toFixed(2)}</Text>
                   )}
+                  {item.supplier && (
+                    <Text fontSize="sm" opacity={0.6}>Prov: {item.supplier}</Text>
+                  )}
                 </HStack>
               </VStack>
               <HStack>
@@ -312,14 +316,10 @@ function InventoryManagement() {
                 <NumberInputField placeholder="Costo del producto" name="cost" value={newItem.cost} onChange={handleInputChange} />
               </NumberInput>
               <NumberInput min={0} flex="1">
-                <NumberInputField
-                  placeholder="Stock mínimo (alerta)"
-                  name="minStock"
-                  value={newItem.minStock}
-                  onChange={handleInputChange}
-                />
+                <NumberInputField placeholder="Stock mínimo (alerta)" name="minStock" value={newItem.minStock} onChange={handleInputChange} />
               </NumberInput>
             </HStack>
+            <Input placeholder="Proveedor (opcional)" value={newItem.supplier} name="supplier" onChange={handleInputChange} />
 
             <Divider borderColor="whiteAlpha.200" />
 
