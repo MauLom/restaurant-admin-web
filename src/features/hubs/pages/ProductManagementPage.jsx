@@ -15,10 +15,15 @@ function ProductManagementPage() {
       description: 'Agregar o editar platillos, bebidas y más.', 
       link: '/dashboard/manage-items' 
     },
-    { 
-      title: 'Gestionar inventario', 
-      description: 'Administrar existencias de ingredientes y suministros.', 
-      link: '/dashboard/inventory' 
+    {
+      title: 'Gestionar inventario',
+      description: 'Administrar existencias de ingredientes y suministros.',
+      link: '/dashboard/inventory'
+    },
+    {
+      title: 'Recetas',
+      description: 'Crear y consultar recetas de cocina y barra con ingredientes y pasos detallados.',
+      link: '/dashboard/recipes',
     },
   ];
 

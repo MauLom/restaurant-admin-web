@@ -27,6 +27,7 @@ import RestaurantStatusPage from './features/hubs/pages/RestaurantStatusPage';
 import ProductManagementPage from './features/hubs/pages/ProductManagementPage';
 import ConfigurationPage from './features/hubs/pages/ConfigurationPage';
 import CompleteProfilePage from './features/auth/CompleteProfilePage';
+import RecipeListPage from './features/recipes/pages/RecipeListPage';
 
 const App = () => {
   return (
@@ -197,6 +198,8 @@ const App = () => {
             }
           />
 
+
+          <Route path="recipes" element={<RecipeListPage />} />
 
           {/* Esta no tiene protección explícita por ahora */}
           <Route path="notifications" element={<NotificationPage />} />
