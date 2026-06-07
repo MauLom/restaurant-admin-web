@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box, VStack, HStack, Button, Text, Input, NumberInput, NumberInputField,
   Select, IconButton, Wrap, WrapItem, Tag, TagLabel, TagCloseButton,
@@ -30,6 +30,7 @@ function InventoryManagement() {
   const [customTag, setCustomTag] = useState('');
   const toast = useCustomToast();
   const { t } = useLanguage();
+  const formRef = useRef(null);
 
   useEffect(() => {
     api.get('/inventory')
@@ -117,6 +118,7 @@ function InventoryManagement() {
       tags: Array.isArray(item.tags) ? item.tags : [],
     });
     setShowForm(true);
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
   };
 
   const handleDeleteItem = async (id) => {
@@ -265,6 +267,7 @@ function InventoryManagement() {
       </VStack>
 
       {/* ── Formulario ── */}
+      <Box ref={formRef} />
       <Collapse in={showForm} animateOpacity>
         <Box p={5} borderWidth="1px" borderRadius="xl" borderColor="whiteAlpha.300" bg="whiteAlpha.50">
           <Text fontSize="lg" fontWeight="semibold" mb={4}>
