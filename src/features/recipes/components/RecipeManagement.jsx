@@ -46,6 +46,7 @@ function RecipeManagement() {
   // Ingredient image map: if ingredient appears in another recipe, suggest its image
   const ingredientImageMap = useMemo(() => {
     const map = {};
+    if (!Array.isArray(recipes)) return map;
     recipes.forEach(r => {
       r.ingredients?.forEach(ing => {
         const key = ing.name?.trim().toLowerCase();
@@ -62,8 +63,8 @@ function RecipeManagement() {
         api.get('/recipes'),
         api.get('/inventory'),
       ]);
-      setRecipes(recipesRes.data);
-      setInventoryItems(inventoryRes.data);
+      setRecipes(Array.isArray(recipesRes.data) ? recipesRes.data : []);
+      setInventoryItems(Array.isArray(inventoryRes.data) ? inventoryRes.data : []);
     } catch {
       toast({ title: 'Error al cargar datos', status: 'error', duration: 3000 });
     } finally {
