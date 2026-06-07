@@ -279,13 +279,13 @@ function InventoryManagement() {
             <Input placeholder={t('itemNamePlaceholder')} value={newItem.name} name="name" onChange={handleInputChange} />
 
             <HStack spacing={3} flexWrap="wrap">
-              <NumberInput min={0} flex="1">
-                <NumberInputField
-                  placeholder={t('quantityPlaceholder')}
-                  name="quantity"
-                  value={newItem.quantity}
-                  onChange={handleInputChange}
-                />
+              <NumberInput
+                min={0}
+                flex="1"
+                value={newItem.quantity}
+                onChange={val => setNewItem(prev => ({ ...prev, quantity: val }))}
+              >
+                <NumberInputField placeholder={t('quantityPlaceholder')} />
               </NumberInput>
               <Select
                 name="unit"
@@ -306,22 +306,40 @@ function InventoryManagement() {
             </HStack>
 
             {['ml', 'l', 'bottle'].includes(newItem.unit) && (
-              <NumberInput min={0}>
-                <NumberInputField placeholder="Contenido por unidad (ml)" name="equivalentMl" value={newItem.equivalentMl} onChange={handleInputChange} />
+              <NumberInput
+                min={0}
+                value={newItem.equivalentMl}
+                onChange={val => setNewItem(prev => ({ ...prev, equivalentMl: val }))}
+              >
+                <NumberInputField placeholder="Contenido por unidad (ml)" />
               </NumberInput>
             )}
             {['g', 'kg', 'unit'].includes(newItem.unit) && (
-              <NumberInput min={0}>
-                <NumberInputField placeholder="Peso aprox. por unidad (g)" name="equivalentGr" value={newItem.equivalentGr} onChange={handleInputChange} />
+              <NumberInput
+                min={0}
+                value={newItem.equivalentGr}
+                onChange={val => setNewItem(prev => ({ ...prev, equivalentGr: val }))}
+              >
+                <NumberInputField placeholder="Peso aprox. por unidad (g)" />
               </NumberInput>
             )}
 
             <HStack spacing={3}>
-              <NumberInput min={0} flex="1">
-                <NumberInputField placeholder="Costo del producto" name="cost" value={newItem.cost} onChange={handleInputChange} />
+              <NumberInput
+                min={0}
+                flex="1"
+                value={newItem.cost}
+                onChange={val => setNewItem(prev => ({ ...prev, cost: val }))}
+              >
+                <NumberInputField placeholder="Costo del producto" />
               </NumberInput>
-              <NumberInput min={0} flex="1">
-                <NumberInputField placeholder="Stock mínimo (alerta)" name="minStock" value={newItem.minStock} onChange={handleInputChange} />
+              <NumberInput
+                min={0}
+                flex="1"
+                value={newItem.minStock}
+                onChange={val => setNewItem(prev => ({ ...prev, minStock: val }))}
+              >
+                <NumberInputField placeholder="Stock mínimo (alerta)" />
               </NumberInput>
             </HStack>
             <Input placeholder="Proveedor (opcional)" value={newItem.supplier} name="supplier" onChange={handleInputChange} />
