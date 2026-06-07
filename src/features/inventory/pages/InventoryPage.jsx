@@ -6,7 +6,7 @@ import PurchaseOrders from '../components/PurchaseOrders';
 function InventoryPage() {
   return (
     <Box p={4}>
-      <Tabs variant="soft-rounded" colorScheme="blue">
+      <Tabs variant="soft-rounded" colorScheme="blue" isLazy>
         <TabList mb={4}>
           <Tab>Inventario</Tab>
           <Tab>Pedidos a proveedores</Tab>
