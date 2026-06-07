@@ -224,23 +224,25 @@ function InventoryManagement() {
                   ))}
                 </HStack>
                 <HStack spacing={3} mt={1}>
-                  <Text fontSize="sm">
-                    {t('quantity')}:{' '}
-                    <Text
-                      as="span"
-                      fontWeight="bold"
-                      color={isLow(item) ? 'red.300' : 'white'}
-                    >
-                      {item.quantity}
-                    </Text>
-                    {' '}{item.unit}
-                  </Text>
-                  {item.minStock > 0 && (
-                    <Tooltip label="Stock mínimo configurado">
-                      <Text fontSize="sm" opacity={0.6}>
-                        mín: {item.minStock}
+                  {item.minStock > 0 ? (
+                    <Tooltip label={isLow(item) ? 'Por debajo del stock mínimo' : 'Stock disponible / mínimo requerido'}>
+                      <Text fontSize="sm">
+                        <Text
+                          as="span"
+                          fontWeight="bold"
+                          color={isLow(item) ? 'red.300' : 'white'}
+                        >
+                          {item.quantity}
+                        </Text>
+                        <Text as="span" opacity={0.5}> / {item.minStock}</Text>
+                        {' '}{item.unit}
                       </Text>
                     </Tooltip>
+                  ) : (
+                    <Text fontSize="sm">
+                      <Text as="span" fontWeight="bold">{item.quantity}</Text>
+                      {' '}{item.unit}
+                    </Text>
                   )}
                   {item.cost > 0 && (
                     <Text fontSize="sm" opacity={0.6}>Costo: ${item.cost.toFixed(2)}</Text>
