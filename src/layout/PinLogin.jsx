@@ -45,6 +45,10 @@ function PinLogin() {
   // Event listener para el teclado físico
   useEffect(() => {
     const handleKeyPress = (event) => {
+      // No interceptar si hay un input/textarea enfocado (ej: modal de registro)
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
       // Solo procesar si no estamos en el modo de creación de usuario
       if (noUsers) return;
 
