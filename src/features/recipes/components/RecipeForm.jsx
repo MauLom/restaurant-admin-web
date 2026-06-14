@@ -42,7 +42,7 @@ const EMPTY_FORM = {
   steps: [emptyStep(1)],
 };
 
-function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap = {} }) {
+function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap = {}, inventoryItems = [] }) {
   const { currentTheme } = useTheme();
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
