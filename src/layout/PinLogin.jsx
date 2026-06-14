@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, VStack, HStack, Text, Center, Flex, Grid, Img, Input, Divider } from '@chakra-ui/react';
+import {
+  Box, Button, VStack, HStack, Text, Center, Flex, Grid, Img, Input, Divider,
+  Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
+  FormControl, FormLabel, FormHelperText,
+  PinInput, PinInputField,
+  useDisclosure,
+} from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuthContext } from '../context/AuthContext';
@@ -20,6 +26,7 @@ function PinLogin() {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [noUsers, setNoUsers] = useState(false);
+  const { isOpen: isRegisterOpen, onOpen: onRegisterOpen, onClose: onRegisterClose } = useDisclosure();
 
   useEffect(() => {
     const checkIfUsersExist = async () => {
@@ -38,6 +45,10 @@ function PinLogin() {
   // Event listener para el teclado físico
   useEffect(() => {
     const handleKeyPress = (event) => {
+      // No interceptar si hay un input/textarea enfocado (ej: modal de registro)
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
       // Solo procesar si no estamos en el modo de creación de usuario
       if (noUsers) return;
 
@@ -167,6 +178,172 @@ function PinLogin() {
     }
   };
 
+  function RegisterModal() {
+    const [regUsername, setRegUsername] = useState('');
+    const [regEmail, setRegEmail] = useState('');
+    const [regPin, setRegPin] = useState('');
+    const [regConfirmPin, setRegConfirmPin] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleRegister = async () => {
+      if (!regUsername || regPin.length !== 6) {
+        toast({ title: 'Error', description: 'El usuario y un PIN de 6 dígitos son obligatorios.', status: 'error' });
+        return;
+      }
+      if (regPin !== regConfirmPin) {
+        toast({ title: 'Error', description: 'Los PINs no coinciden.', status: 'error' });
+        return;
+      }
+
+      setLoading(true);
+      try {
+        await api.post('/users/register', {
+          username: regUsername,
+          email: regEmail || undefined,
+          pin: regPin,
+        });
+        toast({ title: 'Cuenta creada', description: 'Ya puedes iniciar sesión con tu PIN.', status: 'success' });
+        onRegisterClose();
+      } catch (err) {
+        const msg = err.response?.data?.error || 'No se pudo crear la cuenta.';
+        toast({ title: 'Error', description: msg, status: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const inputStyles = {
+      bg: 'gray.700',
+      border: 'none',
+      color: 'white',
+      _placeholder: { color: 'gray.400' },
+      _focus: { bg: 'gray.600', boxShadow: '0 0 0 2px #319795' },
+    };
+
+    const pinFieldStyles = {
+      bg: '#2a2a2a',
+      border: '1px solid',
+      borderColor: 'gray.600',
+      color: 'white',
+      _focus: { borderColor: 'teal.400', boxShadow: '0 0 0 1px #319795' },
+    };
+
+    return (
+      <Modal isOpen={isRegisterOpen} onClose={onRegisterClose} isCentered size="md">
+        <ModalOverlay bg="blackAlpha.700" backdropFilter="blur(4px)" />
+        <ModalContent
+          bg="#363636"
+          color="white"
+          borderRadius="xl"
+          borderTop="3px solid"
+          borderTopColor="teal.400"
+          boxShadow="0 25px 50px rgba(0,0,0,0.6)"
+        >
+          <ModalHeader pb={1}>
+            <VStack align="start" spacing={0}>
+              <Text fontSize="lg" fontWeight="bold">Crear cuenta</Text>
+              <Text fontSize="xs" color="gray.400" fontWeight="normal">
+                Completa los campos para registrarte
+              </Text>
+            </VStack>
+          </ModalHeader>
+          <ModalCloseButton color="gray.400" _hover={{ color: 'white', bg: 'gray.600' }} />
+
+          <ModalBody pt={4} pb={2}>
+            <VStack spacing={5}>
+              <FormControl isRequired>
+                <FormLabel fontSize="sm" color="gray.300" mb={1}>Usuario</FormLabel>
+                <Input
+                  placeholder="Nombre de usuario"
+                  value={regUsername}
+                  onChange={(e) => setRegUsername(e.target.value)}
+                  {...inputStyles}
+                />
+              </FormControl>
+
+              <FormControl>
+                <FormLabel fontSize="sm" color="gray.300" mb={1}>
+                  Correo electrónico{' '}
+                  <Text as="span" fontSize="xs" color="gray.500">(opcional)</Text>
+                </FormLabel>
+                <Input
+                  type="email"
+                  placeholder="correo@ejemplo.com"
+                  value={regEmail}
+                  onChange={(e) => setRegEmail(e.target.value)}
+                  {...inputStyles}
+                />
+              </FormControl>
+
+              <Box w="full">
+                <Divider borderColor="gray.600" mb={4} />
+                <FormControl isRequired>
+                  <FormLabel fontSize="sm" color="gray.300" mb={2} textAlign="center">
+                    Elige tu PIN de 6 dígitos
+                  </FormLabel>
+                  <HStack justify="center">
+                    <PinInput type="number" value={regPin} onChange={setRegPin} size="lg" mask>
+                      <PinInputField {...pinFieldStyles} />
+                      <PinInputField {...pinFieldStyles} />
+                      <PinInputField {...pinFieldStyles} />
+                      <PinInputField {...pinFieldStyles} />
+                      <PinInputField {...pinFieldStyles} />
+                      <PinInputField {...pinFieldStyles} />
+                    </PinInput>
+                  </HStack>
+                </FormControl>
+
+                <FormControl isRequired mt={4}>
+                  <FormLabel fontSize="sm" color="gray.300" mb={2} textAlign="center">
+                    Confirma tu PIN
+                  </FormLabel>
+                  <HStack justify="center">
+                    <PinInput type="number" value={regConfirmPin} onChange={setRegConfirmPin} size="lg" mask>
+                      <PinInputField {...pinFieldStyles} />
+                      <PinInputField {...pinFieldStyles} />
+                      <PinInputField {...pinFieldStyles} />
+                      <PinInputField {...pinFieldStyles} />
+                      <PinInputField {...pinFieldStyles} />
+                      <PinInputField {...pinFieldStyles} />
+                    </PinInput>
+                  </HStack>
+                  {regConfirmPin.length === 6 && regPin !== regConfirmPin && (
+                    <Text fontSize="xs" color="red.400" textAlign="center" mt={2}>
+                      Los PINs no coinciden
+                    </Text>
+                  )}
+                </FormControl>
+              </Box>
+            </VStack>
+          </ModalBody>
+
+          <ModalFooter pt={4} gap={2}>
+            <Button
+              variant="ghost"
+              color="gray.300"
+              _hover={{ color: 'white', bg: 'gray.600' }}
+              onClick={onRegisterClose}
+            >
+              Cancelar
+            </Button>
+            <Button
+              bg="teal.500"
+              color="white"
+              _hover={{ bg: 'teal.600' }}
+              _active={{ bg: 'teal.700' }}
+              onClick={handleRegister}
+              isLoading={loading}
+              loadingText="Creando..."
+              px={6}
+            >
+              Crear cuenta
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    );
+  }
+
   function FirstAdminCreation() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -229,6 +406,8 @@ function PinLogin() {
       <Center flex="1">
         <Img className="logo" maxW="220px" src="maui-logo.png" />
       </Center>
+
+      <RegisterModal />
 
       {noUsers ? (
         <FirstAdminCreation />
@@ -294,22 +473,34 @@ function PinLogin() {
           <Divider />
 
           <Box textAlign="center" w="full">
-            <Text fontSize="lg" mb={4} color="gray.300">
-              ¿Quieres probar el sistema?
-            </Text>
-            <Button
-              colorScheme="teal"
-              variant="outline"
-              size="lg"
-              onClick={handleDemoLogin}
-              w="full"
-              maxW="300px"
-            >
-              🎭 Acceder al Demo
-            </Button>
-            <Text fontSize="sm" color="gray.500" mt={2}>
-              Explora todas las funciones con datos de ejemplo
-            </Text>
+            <VStack spacing={3}>
+              <Button
+                colorScheme="teal"
+                variant="outline"
+                size="lg"
+                onClick={handleDemoLogin}
+                w="full"
+                maxW="300px"
+              >
+                🎭 Acceder al Demo
+              </Button>
+              <Text fontSize="sm" color="gray.500">
+                Explora todas las funciones con datos de ejemplo
+              </Text>
+
+              <Divider borderColor="gray.600" />
+
+              <Button
+                colorScheme="blue"
+                variant="outline"
+                size="md"
+                onClick={onRegisterOpen}
+                w="full"
+                maxW="300px"
+              >
+                Crear cuenta
+              </Button>
+            </VStack>
           </Box>
         </VStack>
       )}
