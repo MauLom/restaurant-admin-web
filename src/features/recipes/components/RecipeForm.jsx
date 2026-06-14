@@ -98,7 +98,15 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, inventoryItems = [] 
   const updateIngredient = (i, field, value) =>
     setForm(f => {
       const arr = [...f.ingredients];
-      arr[i] = { ...arr[i], [field]: value };
+      const updated = { ...arr[i], [field]: value };
+      if (field === 'name') {
+        const key = value.trim().toLowerCase();
+        const mapped = ingredientImageMap[key];
+        if (mapped && !arr[i].image?.url) {
+          updated.image = mapped;
+        }
+      }
+      arr[i] = updated;
       return { ...f, ingredients: arr };
     });
 

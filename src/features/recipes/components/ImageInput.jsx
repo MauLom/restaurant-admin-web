@@ -50,7 +50,7 @@ function ImageInput({ value, onChange, placeholder = 'URL de imagen...', preview
       });
       onChange(response.data);
     } catch {
-      setUploadError('No se pudo subir la imagen.');
+      setUploadError('No se pudo subir la imagen. Intenta con una URL.');
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
