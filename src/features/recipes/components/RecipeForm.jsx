@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
   Button, Input, Textarea, Select, FormControl, FormLabel, VStack, HStack, Box, Text,
-  IconButton, Divider, NumberInput, NumberInputField, Collapse,
+  IconButton, Divider, NumberInput, NumberInputField, Badge, Tooltip,
 } from '@chakra-ui/react';
-import { FaPlus, FaTrash, FaChevronUp, FaChevronDown, FaCamera } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaChevronUp, FaChevronDown, FaDollarSign } from 'react-icons/fa';
 import { useTheme } from '../../../context/ThemeContext';
 import ImageInput from './ImageInput';
+import { calcIngredientCost, calcTotalCost, formatCost, calcMargin } from '../costUtils';
 
-const UNITS = [
+export const UNITS = [
   { value: 'ml', label: 'ml' },
   { value: 'l', label: 'l' },
   { value: 'taza', label: 'taza(s)' },
@@ -26,35 +27,39 @@ const UNITS = [
   { value: 'al_gusto', label: 'al gusto' },
 ];
 
-const emptyIngredient = () => ({ name: '', quantity: '', unit: 'unidad', image: { url: '', isUpload: false } });
+const emptyIngredient = () => ({
+  name: '', quantity: '', unit: 'unidad',
+  image: { url: '', isUpload: false }, inventoryItemId: '',
+});
 const emptyStep = (order) => ({ order, description: '', image: { url: '', isUpload: false } });
 
 const EMPTY_FORM = {
-  name: '',
-  description: '',
+  name: '', description: '',
   mainImage: { url: '', isUpload: false },
-  area: 'kitchen',
-  difficulty: 'medium',
-  servings: 1,
-  prepTime: 0,
-  cookTime: 0,
+  area: 'kitchen', difficulty: 'medium',
+  servings: 1, prepTime: 0, cookTime: 0, price: '',
   ingredients: [emptyIngredient()],
   steps: [emptyStep(1)],
 };
 
-function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap = {} }) {
+function RecipeForm({ isOpen, onClose, onSave, initialData, inventoryItems = [] }) {
   const { currentTheme } = useTheme();
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-  const [openIngImg, setOpenIngImg] = useState({});
 
   const primary = currentTheme.colors.primary[500];
   const surface = currentTheme.colors.interface?.surface || '#333';
   const textColor = currentTheme.colors.text;
 
+  // Build inventory lookup map for cost calculation
+  const inventoryMap = useMemo(() => {
+    const map = {};
+    inventoryItems.forEach(item => { map[item._id] = item; });
+    return map;
+  }, [inventoryItems]);
+
   useEffect(() => {
     if (!isOpen) return;
-    setOpenIngImg({});
     if (initialData) {
       setForm({
         name: initialData.name || '',
@@ -62,6 +67,7 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
         mainImage: initialData.mainImage || { url: '', isUpload: false },
         area: initialData.area || 'kitchen',
         difficulty: initialData.difficulty || 'medium',
+        price: initialData.price || '',
         servings: initialData.servings || 1,
         prepTime: initialData.prepTime || 0,
         cookTime: initialData.cookTime || 0,
@@ -71,16 +77,15 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
               quantity: i.quantity ?? '',
               unit: i.unit || 'unidad',
               image: i.image || { url: '', isUpload: false },
+              inventoryItemId: i.inventoryItemId || '',
             }))
           : [emptyIngredient()],
         steps: initialData.steps?.length
-          ? [...initialData.steps]
-              .sort((a, b) => a.order - b.order)
-              .map((s, i) => ({
-                order: i + 1,
-                description: s.description || '',
-                image: s.image || { url: '', isUpload: false },
-              }))
+          ? [...initialData.steps].sort((a, b) => a.order - b.order).map((s, i) => ({
+              order: i + 1,
+              description: s.description || '',
+              image: s.image || { url: '', isUpload: false },
+            }))
           : [emptyStep(1)],
       });
     } else {
@@ -136,16 +141,25 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
     });
   };
 
+  const totalCost = calcTotalCost(form.ingredients, inventoryMap);
+  const salePrice = parseFloat(form.price) || 0;
+  const margin = calcMargin(salePrice, totalCost);
+
   const handleSave = async () => {
     if (!form.name.trim()) return;
     const payload = {
       ...form,
+      price: parseFloat(form.price) || 0,
       servings: Number(form.servings) || 1,
       prepTime: Number(form.prepTime) || 0,
       cookTime: Number(form.cookTime) || 0,
       ingredients: form.ingredients
         .filter(i => i.name.trim())
-        .map(i => ({ ...i, quantity: Number(i.quantity) || 0 })),
+        .map(i => ({
+          ...i,
+          quantity: Number(i.quantity) || 0,
+          inventoryItemId: i.inventoryItemId || null,
+        })),
       steps: form.steps.filter(s => s.description.trim()),
     };
     setSaving(true);
@@ -173,33 +187,20 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
             <VStack align="stretch" spacing={4}>
               <FormControl isRequired>
                 <FormLabel fontSize="sm">Nombre</FormLabel>
-                <Input
-                  value={form.name}
-                  onChange={e => setField('name', e.target.value)}
-                  placeholder="Ej: Risotto de champiñones"
-                  size="sm"
-                />
+                <Input value={form.name} onChange={e => setField('name', e.target.value)}
+                  placeholder="Ej: Risotto de champiñones" size="sm" />
               </FormControl>
 
               <FormControl>
                 <FormLabel fontSize="sm">Descripción</FormLabel>
-                <Textarea
-                  value={form.description}
-                  onChange={e => setField('description', e.target.value)}
-                  placeholder="Descripción breve..."
-                  size="sm"
-                  rows={2}
-                />
+                <Textarea value={form.description} onChange={e => setField('description', e.target.value)}
+                  placeholder="Descripción breve..." size="sm" rows={2} />
               </FormControl>
 
               <FormControl>
                 <FormLabel fontSize="sm">Imagen principal</FormLabel>
-                <ImageInput
-                  value={form.mainImage}
-                  onChange={v => setField('mainImage', v)}
-                  placeholder="https://... o sube una imagen"
-                  previewMaxH="160px"
-                />
+                <ImageInput value={form.mainImage} onChange={v => setField('mainImage', v)}
+                  placeholder="https://... o sube una imagen" previewMaxH="160px" />
               </FormControl>
 
               <HStack spacing={3} flexWrap="wrap">
@@ -218,22 +219,28 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
                     <option value="hard">Difícil</option>
                   </Select>
                 </FormControl>
-                <FormControl flex="1" minW="100px">
+                <FormControl flex="1" minW="90px">
                   <FormLabel fontSize="sm">Porciones</FormLabel>
                   <NumberInput min={1} value={form.servings} onChange={v => setField('servings', v)} size="sm">
                     <NumberInputField />
                   </NumberInput>
                 </FormControl>
-                <FormControl flex="1" minW="100px">
+                <FormControl flex="1" minW="90px">
                   <FormLabel fontSize="sm">Prep (min)</FormLabel>
                   <NumberInput min={0} value={form.prepTime} onChange={v => setField('prepTime', v)} size="sm">
                     <NumberInputField />
                   </NumberInput>
                 </FormControl>
-                <FormControl flex="1" minW="100px">
+                <FormControl flex="1" minW="90px">
                   <FormLabel fontSize="sm">Cocción (min)</FormLabel>
                   <NumberInput min={0} value={form.cookTime} onChange={v => setField('cookTime', v)} size="sm">
                     <NumberInputField />
+                  </NumberInput>
+                </FormControl>
+                <FormControl flex="1" minW="100px">
+                  <FormLabel fontSize="sm">Precio de venta</FormLabel>
+                  <NumberInput min={0} value={form.price} onChange={v => setField('price', v)} size="sm">
+                    <NumberInputField placeholder="$0.00" />
                   </NumberInput>
                 </FormControl>
               </HStack>
@@ -244,117 +251,145 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
             {/* ── Ingredientes ── */}
             <Box>
               <HStack justify="space-between" mb={3}>
-                <Text fontWeight="semibold" color={primary}>Ingredientes</Text>
+                <HStack spacing={2}>
+                  <Text fontWeight="semibold" color={primary}>Ingredientes</Text>
+                  {totalCost != null && (
+                    <Badge colorScheme="green" fontSize="11px" px={2} py={0.5} borderRadius="full">
+                      <HStack spacing={1}>
+                        <FaDollarSign size="10px" />
+                        <Text>Costo total: {formatCost(totalCost)}</Text>
+                      </HStack>
+                    </Badge>
+                  )}
+                </HStack>
                 <Button size="xs" leftIcon={<FaPlus />} onClick={addIngredient} colorScheme="blue" variant="ghost">
                   Agregar
                 </Button>
               </HStack>
 
-              <VStack align="stretch" spacing={2}>
-                {form.ingredients.map((ing, i) => (
-                  <Box
-                    key={i}
-                    borderRadius="lg"
-                    border="1px solid"
-                    borderColor={`${primary}44`}
-                    borderLeft="3px solid"
-                    borderLeftColor={primary}
-                    bg={i % 2 === 0 ? `${primary}0A` : 'blackAlpha.200'}
-                    overflow="hidden"
-                  >
-                    {/* ── Fila principal compacta ── */}
-                    <HStack spacing={2} px={3} py={2} flexWrap="wrap">
-                      {/* Número */}
-                      <Text
-                        fontSize="xs"
-                        fontWeight="bold"
-                        color={primary}
-                        opacity={0.8}
-                        minW="18px"
-                        textAlign="center"
-                      >
-                        {i + 1}.
-                      </Text>
+              <VStack align="stretch" spacing={4}>
+                {form.ingredients.map((ing, i) => {
+                  const invItem = inventoryMap[ing.inventoryItemId];
+                  const ingCost = calcIngredientCost(invItem, ing.quantity, ing.unit);
+                  return (
+                    <Box key={i} p={3} borderRadius="lg" border="1px solid" borderColor={`${primary}22`} bg={`${primary}08`}>
+                      <HStack align="flex-start" spacing={2} mb={2} flexWrap="wrap">
+                        <FormControl flex="2" minW="120px">
+                          <FormLabel fontSize="xs" mb={1}>Ingrediente</FormLabel>
+                          <Input value={ing.name} onChange={e => updateIngredient(i, 'name', e.target.value)}
+                            placeholder="Ej: Arroz arborio" size="sm" />
+                        </FormControl>
+                        <FormControl flex="1" minW="80px">
+                          <FormLabel fontSize="xs" mb={1}>Cantidad</FormLabel>
+                          <NumberInput min={0} value={ing.quantity} onChange={v => updateIngredient(i, 'quantity', v)} size="sm">
+                            <NumberInputField placeholder="0" />
+                          </NumberInput>
+                        </FormControl>
+                        <FormControl flex="1" minW="110px">
+                          <FormLabel fontSize="xs" mb={1}>Unidad</FormLabel>
+                          <Select value={ing.unit} onChange={e => updateIngredient(i, 'unit', e.target.value)} size="sm">
+                            {UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+                          </Select>
+                        </FormControl>
+                        <Box pt={6}>
+                          <IconButton icon={<FaTrash />} size="sm" colorScheme="red" variant="ghost"
+                            onClick={() => removeIngredient(i)} aria-label="Eliminar"
+                            isDisabled={form.ingredients.length === 1} />
+                        </Box>
+                      </HStack>
 
-                      {/* Nombre */}
-                      <Input
-                        flex="2"
-                        minW="120px"
-                        value={ing.name}
-                        onChange={e => updateIngredient(i, 'name', e.target.value)}
-                        placeholder="Ingrediente"
-                        size="sm"
-                        variant="filled"
-                      />
+                      {/* Vínculo a inventario */}
+                      <FormControl mb={2}>
+                        <FormLabel fontSize="xs" mb={1}>
+                          Vincular al inventario{' '}
+                          <Text as="span" opacity={0.5}>(para calcular costo)</Text>
+                        </FormLabel>
+                        <HStack>
+                          <Select
+                            value={ing.inventoryItemId}
+                            onChange={e => updateIngredient(i, 'inventoryItemId', e.target.value)}
+                            size="sm"
+                            placeholder="— Sin vincular —"
+                          >
+                            {inventoryItems.map(inv => (
+                              <option key={inv._id} value={inv._id}>
+                                {inv.name} ({inv.unit}{inv.cost ? ` · $${inv.cost}` : ''})
+                              </option>
+                            ))}
+                          </Select>
+                          {ingCost != null && (
+                            <Tooltip label={`Costo estimado para ${ing.quantity} ${ing.unit}`}>
+                              <Badge colorScheme="green" whiteSpace="nowrap" px={2} py={1} borderRadius="md">
+                                ~{formatCost(ingCost)}
+                              </Badge>
+                            </Tooltip>
+                          )}
+                          {ing.inventoryItemId && ingCost == null && (
+                            <Tooltip label="Las unidades no son compatibles para calcular el costo">
+                              <Badge colorScheme="orange" px={2} py={1} borderRadius="md">N/A</Badge>
+                            </Tooltip>
+                          )}
+                        </HStack>
+                      </FormControl>
 
-                      {/* Cantidad */}
-                      <NumberInput
-                        flex="1"
-                        minW="70px"
-                        maxW="90px"
-                        min={0}
-                        value={ing.quantity}
-                        onChange={v => updateIngredient(i, 'quantity', v)}
-                        size="sm"
-                      >
-                        <NumberInputField placeholder="Cant." variant="filled" />
-                      </NumberInput>
-
-                      {/* Unidad */}
-                      <Select
-                        flex="1"
-                        minW="100px"
-                        maxW="130px"
-                        value={ing.unit}
-                        onChange={e => updateIngredient(i, 'unit', e.target.value)}
-                        size="sm"
-                        variant="filled"
-                      >
-                        {UNITS.map(u => (
-                          <option key={u.value} value={u.value}>{u.label}</option>
-                        ))}
-                      </Select>
-
-                      {/* Toggle imagen */}
-                      <IconButton
-                        icon={<FaCamera />}
-                        size="sm"
-                        variant="ghost"
-                        colorScheme={ing.image?.url ? 'green' : 'gray'}
-                        opacity={ing.image?.url ? 1 : 0.4}
-                        onClick={() => setOpenIngImg(prev => ({ ...prev, [i]: !prev[i] }))}
-                        aria-label="Imagen"
-                      />
-
-                      {/* Eliminar */}
-                      <IconButton
-                        icon={<FaTrash />}
-                        size="sm"
-                        colorScheme="red"
-                        variant="ghost"
-                        opacity={0.6}
-                        _hover={{ opacity: 1 }}
-                        onClick={() => removeIngredient(i)}
-                        aria-label="Eliminar"
-                        isDisabled={form.ingredients.length === 1}
-                      />
-                    </HStack>
-
-                    {/* ── Imagen colapsable ── */}
-                    <Collapse in={!!openIngImg[i]} animateOpacity>
-                      <Box px={3} pb={2} borderTop="1px solid" borderColor={`${primary}22`}>
-                        <ImageInput
-                          value={ing.image}
-                          onChange={v => updateIngredient(i, 'image', v)}
-                          placeholder="URL de imagen del ingrediente..."
-                          previewMaxH="80px"
-                        />
-                      </Box>
-                    </Collapse>
-                  </Box>
-                ))}
+                      <FormControl>
+                        <FormLabel fontSize="xs" mb={1}>Imagen del ingrediente (opcional)</FormLabel>
+                        <ImageInput value={ing.image} onChange={v => updateIngredient(i, 'image', v)}
+                          placeholder="URL de imagen..." previewMaxH="80px" />
+                      </FormControl>
+                    </Box>
+                  );
+                })}
               </VStack>
             </Box>
+
+            {/* ── Panel de precio / costo / margen ── */}
+            {(totalCost != null || salePrice > 0) && (
+              <Box p={4} borderRadius="xl" border="1px solid" borderColor={`${primary}33`} bg={`${primary}08`}>
+                <Text fontWeight="semibold" color={primary} mb={3} fontSize="sm">Análisis de precio</Text>
+                <HStack spacing={6} flexWrap="wrap">
+                  {totalCost != null && (
+                    <Box>
+                      <Text fontSize="xs" opacity={0.6} mb={0.5}>Costo ingredientes</Text>
+                      <Text fontWeight="bold" color="red.400">{formatCost(totalCost)}</Text>
+                      {form.servings > 1 && (
+                        <Text fontSize="xs" opacity={0.5}>{formatCost(totalCost / form.servings)} / porción</Text>
+                      )}
+                    </Box>
+                  )}
+                  {salePrice > 0 && (
+                    <Box>
+                      <Text fontSize="xs" opacity={0.6} mb={0.5}>Precio de venta</Text>
+                      <Text fontWeight="bold" color="blue.400">{formatCost(salePrice)}</Text>
+                      {form.servings > 1 && (
+                        <Text fontSize="xs" opacity={0.5}>{formatCost(salePrice / form.servings)} / porción</Text>
+                      )}
+                    </Box>
+                  )}
+                  {margin && (
+                    <Box>
+                      <Text fontSize="xs" opacity={0.6} mb={0.5}>Ganancia</Text>
+                      <Text fontWeight="bold" color={margin.profit >= 0 ? 'green.400' : 'red.400'}>
+                        {formatCost(margin.profit)}
+                      </Text>
+                      <Text fontSize="xs" opacity={0.7} color={margin.marginPct >= 0 ? 'green.400' : 'red.400'}>
+                        {margin.marginPct.toFixed(1)}% margen
+                      </Text>
+                    </Box>
+                  )}
+                  {totalCost != null && salePrice <= 0 && (
+                    <Tooltip label="Basado en costo × 3 (regla general de restauración)">
+                      <Button
+                        size="xs" variant="ghost" colorScheme="blue"
+                        onClick={() => setField('price', (totalCost * 3).toFixed(2))}
+                      >
+                        Sugerir precio (3× costo)
+                      </Button>
+                    </Tooltip>
+                  )}
+                </HStack>
+              </Box>
+            )}
 
             <Divider borderColor={`${primary}33`} />
 
@@ -369,71 +404,28 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
 
               <VStack align="stretch" spacing={4}>
                 {form.steps.map((step, i) => (
-                  <Box
-                    key={i}
-                    p={3}
-                    borderRadius="lg"
-                    border="1px solid"
-                    borderColor={`${primary}22`}
-                    bg={`${primary}08`}
-                  >
+                  <Box key={i} p={3} borderRadius="lg" border="1px solid" borderColor={`${primary}22`} bg={`${primary}08`}>
                     <HStack mb={2} spacing={2}>
-                      <Box
-                        minW="28px"
-                        h="28px"
-                        borderRadius="full"
-                        bg={primary}
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                      >
+                      <Box minW="28px" h="28px" borderRadius="full" bg={primary}
+                        display="flex" alignItems="center" justifyContent="center">
                         <Text fontSize="xs" fontWeight="bold" color="white">{i + 1}</Text>
                       </Box>
-                      <Textarea
-                        flex="1"
-                        value={step.description}
+                      <Textarea flex="1" value={step.description}
                         onChange={e => updateStep(i, 'description', e.target.value)}
-                        placeholder={`Descripción del paso ${i + 1}...`}
-                        size="sm"
-                        rows={2}
-                      />
+                        placeholder={`Descripción del paso ${i + 1}...`} size="sm" rows={2} />
                       <VStack spacing={1}>
-                        <IconButton
-                          icon={<FaChevronUp />}
-                          size="xs"
-                          variant="ghost"
-                          onClick={() => moveStep(i, -1)}
-                          isDisabled={i === 0}
-                          aria-label="Subir paso"
-                        />
-                        <IconButton
-                          icon={<FaChevronDown />}
-                          size="xs"
-                          variant="ghost"
-                          onClick={() => moveStep(i, 1)}
-                          isDisabled={i === form.steps.length - 1}
-                          aria-label="Bajar paso"
-                        />
-                        <IconButton
-                          icon={<FaTrash />}
-                          size="xs"
-                          colorScheme="red"
-                          variant="ghost"
-                          onClick={() => removeStep(i)}
-                          isDisabled={form.steps.length === 1}
-                          aria-label="Eliminar paso"
-                        />
+                        <IconButton icon={<FaChevronUp />} size="xs" variant="ghost"
+                          onClick={() => moveStep(i, -1)} isDisabled={i === 0} aria-label="Subir" />
+                        <IconButton icon={<FaChevronDown />} size="xs" variant="ghost"
+                          onClick={() => moveStep(i, 1)} isDisabled={i === form.steps.length - 1} aria-label="Bajar" />
+                        <IconButton icon={<FaTrash />} size="xs" colorScheme="red" variant="ghost"
+                          onClick={() => removeStep(i)} isDisabled={form.steps.length === 1} aria-label="Eliminar" />
                       </VStack>
                     </HStack>
-
                     <FormControl>
                       <FormLabel fontSize="xs" mb={1}>Imagen del resultado (opcional)</FormLabel>
-                      <ImageInput
-                        value={step.image}
-                        onChange={v => updateStep(i, 'image', v)}
-                        placeholder="URL de imagen del resultado..."
-                        previewMaxH="80px"
-                      />
+                      <ImageInput value={step.image} onChange={v => updateStep(i, 'image', v)}
+                        placeholder="URL de imagen del resultado..." previewMaxH="80px" />
                     </FormControl>
                   </Box>
                 ))}
@@ -443,14 +435,24 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
           </VStack>
         </ModalBody>
 
-        <ModalFooter borderTop="1px solid" borderColor={`${primary}33`} gap={3}>
+        <ModalFooter borderTop="1px solid" borderColor={`${primary}33`} gap={3} flexWrap="wrap">
+          {totalCost != null && (
+            <Badge colorScheme="red" variant="subtle" fontSize="xs" px={2} py={1} borderRadius="full">
+              Costo: {formatCost(totalCost)}{form.servings > 1 ? ` · ${formatCost(totalCost / form.servings)}/porc.` : ''}
+            </Badge>
+          )}
+          {salePrice > 0 && (
+            <Badge colorScheme="blue" variant="subtle" fontSize="xs" px={2} py={1} borderRadius="full">
+              Venta: {formatCost(salePrice)}
+            </Badge>
+          )}
+          {margin && (
+            <Badge colorScheme={margin.marginPct >= 0 ? 'green' : 'red'} fontSize="xs" px={2} py={1} borderRadius="full">
+              {margin.marginPct.toFixed(1)}% margen
+            </Badge>
+          )}
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-          <Button
-            colorScheme="blue"
-            onClick={handleSave}
-            isLoading={saving}
-            isDisabled={!form.name.trim()}
-          >
+          <Button colorScheme="blue" onClick={handleSave} isLoading={saving} isDisabled={!form.name.trim()}>
             {initialData ? 'Guardar cambios' : 'Crear receta'}
           </Button>
         </ModalFooter>

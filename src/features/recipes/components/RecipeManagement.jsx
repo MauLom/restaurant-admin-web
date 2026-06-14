@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   Box, SimpleGrid, Button, ButtonGroup, HStack, Heading, Text, Spinner, Center,
   Input, InputGroup, InputLeftElement,
@@ -21,6 +21,7 @@ function RecipeManagement() {
   const textColor = currentTheme.colors.text;
 
   const [recipes, setRecipes] = useState([]);
+  const [inventoryItems, setInventoryItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [areaFilter, setAreaFilter] = useState('all');
@@ -35,19 +36,43 @@ function RecipeManagement() {
   const formDisc = useDisclosure();
   const deleteDisc = useDisclosure();
 
-  const fetchRecipes = useCallback(async () => {
+  // Build inventory map for cost calculations
+  const inventoryMap = useMemo(() => {
+    const map = {};
+    inventoryItems.forEach(item => { map[item._id] = item; });
+    return map;
+  }, [inventoryItems]);
+
+  // Ingredient image map: if ingredient appears in another recipe, suggest its image
+  const ingredientImageMap = useMemo(() => {
+    const map = {};
+    if (!Array.isArray(recipes)) return map;
+    recipes.forEach(r => {
+      r.ingredients?.forEach(ing => {
+        const key = ing.name?.trim().toLowerCase();
+        if (key && ing.image?.url && !map[key]) map[key] = ing.image;
+      });
+    });
+    return map;
+  }, [recipes]);
+
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get('/recipes');
-      setRecipes(res.data);
+      const [recipesRes, inventoryRes] = await Promise.all([
+        api.get('/recipes'),
+        api.get('/inventory'),
+      ]);
+      setRecipes(Array.isArray(recipesRes.data) ? recipesRes.data : []);
+      setInventoryItems(Array.isArray(inventoryRes.data) ? inventoryRes.data : []);
     } catch {
-      toast({ title: 'Error al cargar recetas', status: 'error', duration: 3000 });
+      toast({ title: 'Error al cargar datos', status: 'error', duration: 3000 });
     } finally {
       setLoading(false);
     }
   }, [toast]);
 
-  useEffect(() => { fetchRecipes(); }, [fetchRecipes]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleSave = async (payload) => {
     try {
@@ -81,51 +106,21 @@ function RecipeManagement() {
     }
   };
 
-  const openCreate = () => {
-    setEditingRecipe(null);
-    formDisc.onOpen();
-  };
-
-  const openEdit = (recipe) => {
-    setEditingRecipe(recipe);
-    formDisc.onOpen();
-  };
-
-  const openDelete = (recipe) => {
-    setDeletingRecipe(recipe);
-    deleteDisc.onOpen();
-  };
-
-  const openDetail = (recipe) => {
-    setSelectedRecipe(recipe);
-    detailDisc.onOpen();
-  };
-
-  const ingredientImageMap = React.useMemo(() => {
-    const map = {};
-    recipes.forEach(r => {
-      r.ingredients?.forEach(ing => {
-        const key = ing.name?.trim().toLowerCase();
-        if (key && ing.image?.url && !map[key]) {
-          map[key] = ing.image;
-        }
-      });
-    });
-    return map;
-  }, [recipes]);
+  const openCreate = () => { setEditingRecipe(null); formDisc.onOpen(); };
+  const openEdit = (recipe) => { setEditingRecipe(recipe); formDisc.onOpen(); };
+  const openDelete = (recipe) => { setDeletingRecipe(recipe); deleteDisc.onOpen(); };
+  const openDetail = (recipe) => { setSelectedRecipe(recipe); detailDisc.onOpen(); };
 
   const displayed = recipes
     .filter(r => {
       const q = search.toLowerCase();
-      const matchSearch = r.name.toLowerCase().includes(q) || r.description?.toLowerCase().includes(q);
-      const matchArea = areaFilter === 'all' || r.area === areaFilter;
-      return matchSearch && matchArea;
+      return (r.name.toLowerCase().includes(q) || r.description?.toLowerCase().includes(q))
+        && (areaFilter === 'all' || r.area === areaFilter);
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <Box>
-      {/* Header */}
       <HStack justify="space-between" mb={5} flexWrap="wrap" gap={3}>
         <Heading size="md" color={primary}>Libro de recetas</Heading>
         <Button leftIcon={<FaPlus />} size="sm" colorScheme="blue" onClick={openCreate}>
@@ -133,48 +128,37 @@ function RecipeManagement() {
         </Button>
       </HStack>
 
-      {/* Búsqueda + filtros */}
       <HStack mb={5} spacing={3} flexWrap="wrap">
         <InputGroup size="sm" maxW="260px">
-          <InputLeftElement pointerEvents="none">
-            <FaSearch color="gray" />
-          </InputLeftElement>
-          <Input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar receta..."
-            borderRadius="lg"
-          />
+          <InputLeftElement pointerEvents="none"><FaSearch color="gray" /></InputLeftElement>
+          <Input value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar receta..." borderRadius="lg" />
         </InputGroup>
-
         <ButtonGroup size="sm" isAttached variant="outline">
           {[
             { value: 'all', label: 'Todas' },
             { value: 'kitchen', label: '🍳 Cocina' },
             { value: 'bar', label: '🍹 Barra' },
           ].map(opt => (
-            <Button
-              key={opt.value}
-              onClick={() => setAreaFilter(opt.value)}
+            <Button key={opt.value} onClick={() => setAreaFilter(opt.value)}
               bg={areaFilter === opt.value ? primary : 'transparent'}
               color={areaFilter === opt.value ? 'white' : textColor}
-              borderColor={`${primary}66`}
-              _hover={{ bg: `${primary}33` }}
-            >
+              borderColor={`${primary}66`} _hover={{ bg: `${primary}33` }}>
               {opt.label}
             </Button>
           ))}
         </ButtonGroup>
       </HStack>
 
-      {/* Lista */}
       {loading ? (
         <Center py={16}><Spinner size="xl" color={primary} /></Center>
       ) : displayed.length === 0 ? (
         <Center py={16} flexDirection="column" gap={4}>
           <Text fontSize="4xl">📖</Text>
           <Text color={textColor} opacity={0.6}>
-            {search || areaFilter !== 'all' ? 'No se encontraron recetas con ese filtro.' : 'Aún no hay recetas. ¡Agrega la primera!'}
+            {search || areaFilter !== 'all'
+              ? 'No se encontraron recetas con ese filtro.'
+              : 'Aún no hay recetas. ¡Agrega la primera!'}
           </Text>
           {!search && areaFilter === 'all' && (
             <Button leftIcon={<FaPlus />} size="sm" colorScheme="blue" onClick={openCreate}>
@@ -185,27 +169,17 @@ function RecipeManagement() {
       ) : (
         <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={5}>
           {displayed.map(r => (
-            <RecipeCard key={r._id} recipe={r} onClick={() => openDetail(r)} />
+            <RecipeCard key={r._id} recipe={r} inventoryMap={inventoryMap} onClick={() => openDetail(r)} />
           ))}
         </SimpleGrid>
       )}
 
-      {/* Modales */}
-      <RecipeDetail
-        recipe={selectedRecipe}
-        isOpen={detailDisc.isOpen}
-        onClose={detailDisc.onClose}
-        onEdit={openEdit}
-        onDelete={openDelete}
-      />
+      <RecipeDetail recipe={selectedRecipe} isOpen={detailDisc.isOpen} onClose={detailDisc.onClose}
+        onEdit={openEdit} onDelete={openDelete} inventoryMap={inventoryMap} />
 
-      <RecipeForm
-        isOpen={formDisc.isOpen}
-        onClose={formDisc.onClose}
-        onSave={handleSave}
-        initialData={editingRecipe}
-        ingredientImageMap={ingredientImageMap}
-      />
+      <RecipeForm isOpen={formDisc.isOpen} onClose={formDisc.onClose} onSave={handleSave}
+        initialData={editingRecipe} inventoryItems={inventoryItems}
+        ingredientImageMap={ingredientImageMap} />
 
       <AlertDialog isOpen={deleteDisc.isOpen} leastDestructiveRef={cancelRef} onClose={deleteDisc.onClose}>
         <AlertDialogOverlay>
@@ -216,9 +190,7 @@ function RecipeManagement() {
             </AlertDialogBody>
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={deleteDisc.onClose}>Cancelar</Button>
-              <Button colorScheme="red" onClick={handleDelete} isLoading={deleting} ml={3}>
-                Eliminar
-              </Button>
+              <Button colorScheme="red" onClick={handleDelete} isLoading={deleting} ml={3}>Eliminar</Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialogOverlay>

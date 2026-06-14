@@ -1,20 +1,28 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
   Button, Box, Image, Text, Heading, HStack, VStack, Badge, Grid, GridItem, Flex, Divider,
 } from '@chakra-ui/react';
-import { FaClock, FaUsers, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaClock, FaUsers, FaEdit, FaTrash, FaDollarSign } from 'react-icons/fa';
 import { useTheme } from '../../../context/ThemeContext';
 import { resolveImageUrl } from './ImageInput';
+import { calcIngredientCost, calcTotalCost, formatCost, calcMargin } from '../costUtils';
 
 const difficultyLabel = { easy: 'Fácil', medium: 'Media', hard: 'Difícil' };
 const difficultyColor = { easy: 'green', medium: 'yellow', hard: 'red' };
 
-function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete }) {
+function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap = {} }) {
   const { currentTheme } = useTheme();
   const primary = currentTheme.colors.primary[500];
   const surface = currentTheme.colors.interface?.surface || '#333';
   const textColor = currentTheme.colors.text;
+
+  const totalCost = useMemo(
+    () => recipe ? calcTotalCost(recipe.ingredients || [], inventoryMap) : null,
+    [recipe, inventoryMap]
+  );
+  const salePrice = recipe?.price > 0 ? recipe.price : null;
+  const margin = calcMargin(salePrice, totalCost);
 
   if (!recipe) return null;
 
@@ -33,14 +41,13 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete }) {
         <ModalBody py={6}>
           <VStack align="stretch" spacing={6}>
 
-            {/* Imagen principal */}
             {mainImgSrc && (
               <Box borderRadius="xl" overflow="hidden" maxH="300px">
                 <Image src={mainImgSrc} alt={recipe.name} w="full" h="300px" objectFit="cover" />
               </Box>
             )}
 
-            {/* Badges de info */}
+            {/* Badges info */}
             <HStack spacing={2} flexWrap="wrap">
               <Badge colorScheme={recipe.area === 'kitchen' ? 'orange' : 'cyan'} px={3} py={1} borderRadius="full">
                 {recipe.area === 'kitchen' ? '🍳 Cocina' : '🍹 Barra'}
@@ -58,19 +65,29 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete }) {
                   <HStack spacing={1}><FaUsers size="11px" /><Text>{recipe.servings} {recipe.servings === 1 ? 'porción' : 'porciones'}</Text></HStack>
                 </Badge>
               )}
-              {recipe.prepTime > 0 && (
-                <Badge variant="subtle" colorScheme="cyan" px={3} py={1} borderRadius="full">
-                  Prep: {recipe.prepTime} min
+              {totalCost != null && (
+                <Badge colorScheme="red" variant="subtle" px={3} py={1} borderRadius="full">
+                  <HStack spacing={1}>
+                    <FaDollarSign size="11px" />
+                    <Text>Costo: {formatCost(totalCost)}{recipe.servings > 1 && ` · ${formatCost(totalCost / recipe.servings)}/porc.`}</Text>
+                  </HStack>
                 </Badge>
               )}
-              {recipe.cookTime > 0 && (
-                <Badge variant="subtle" colorScheme="orange" px={3} py={1} borderRadius="full">
-                  Cocción: {recipe.cookTime} min
+              {salePrice != null && (
+                <Badge colorScheme="blue" px={3} py={1} borderRadius="full">
+                  <HStack spacing={1}>
+                    <FaDollarSign size="11px" />
+                    <Text>Precio: {formatCost(salePrice)}</Text>
+                  </HStack>
+                </Badge>
+              )}
+              {margin && (
+                <Badge colorScheme={margin.marginPct >= 0 ? 'green' : 'red'} px={3} py={1} borderRadius="full">
+                  {margin.marginPct.toFixed(1)}% margen
                 </Badge>
               )}
             </HStack>
 
-            {/* Descripción */}
             {recipe.description && (
               <Text opacity={0.85} fontSize="sm" lineHeight="1.7">{recipe.description}</Text>
             )}
@@ -82,51 +99,28 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete }) {
                 <Grid templateColumns="repeat(auto-fill, minmax(180px, 1fr))" gap={3}>
                   {recipe.ingredients.map((ing, i) => {
                     const imgSrc = resolveImageUrl(ing.image);
+                    const invItem = inventoryMap[ing.inventoryItemId];
+                    const ingCost = calcIngredientCost(invItem, ing.quantity, ing.unit);
                     return (
                       <GridItem key={i}>
-                        <HStack
-                          spacing={3}
-                          p={2}
-                          borderRadius="lg"
-                          bg="blackAlpha.200"
-                          border="1px solid"
-                          borderColor={`${primary}22`}
-                          align="flex-start"
-                        >
+                        <HStack spacing={3} p={2} borderRadius="lg" bg="blackAlpha.200"
+                          border="1px solid" borderColor={`${primary}22`} align="flex-start">
                           {imgSrc ? (
-                            <Image
-                              src={imgSrc}
-                              alt={ing.name}
-                              boxSize="40px"
-                              borderRadius="md"
-                              objectFit="cover"
-                              flexShrink={0}
-                            />
+                            <Image src={imgSrc} alt={ing.name} boxSize="40px" borderRadius="md" objectFit="cover" flexShrink={0} />
                           ) : (
-                            <Flex
-                              boxSize="40px"
-                              borderRadius="md"
-                              bg="blackAlpha.300"
-                              align="center"
-                              justify="center"
-                              flexShrink={0}
-                            >
+                            <Flex boxSize="40px" borderRadius="md" bg="blackAlpha.300" align="center" justify="center" flexShrink={0}>
                               <Text fontSize="lg">🥄</Text>
                             </Flex>
                           )}
                           <VStack align="start" spacing={0} minW={0}>
-                            <Text
-                              fontSize="sm"
-                              fontWeight="semibold"
-                              whiteSpace="normal"
-                              wordBreak="break-word"
-                            >
+                            <Text fontSize="sm" fontWeight="semibold" whiteSpace="normal" wordBreak="break-word">
                               {ing.name}
                             </Text>
                             {(ing.quantity > 0 || ing.unit) && (
-                              <Text fontSize="xs" opacity={0.7}>
-                                {ing.quantity > 0 ? ing.quantity : ''} {ing.unit}
-                              </Text>
+                              <Text fontSize="xs" opacity={0.7}>{ing.quantity > 0 ? ing.quantity : ''} {ing.unit}</Text>
+                            )}
+                            {ingCost != null && (
+                              <Badge colorScheme="green" fontSize="10px" mt={0.5}>~{formatCost(ingCost)}</Badge>
                             )}
                           </VStack>
                         </HStack>
@@ -134,6 +128,36 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete }) {
                     );
                   })}
                 </Grid>
+
+                {/* Desglose de precio */}
+                {(totalCost != null || salePrice != null) && (
+                  <Box mt={4} p={4} borderRadius="lg" border="1px solid" borderColor={`${primary}33`} bg={`${primary}08`}>
+                    <Text fontSize="xs" fontWeight="semibold" opacity={0.6} mb={3} textTransform="uppercase">Análisis de precio</Text>
+                    <HStack spacing={6} flexWrap="wrap">
+                      {totalCost != null && (
+                        <Box>
+                          <Text fontSize="xs" opacity={0.6}>Costo ingredientes</Text>
+                          <Text fontWeight="bold" color="red.400">{formatCost(totalCost)}</Text>
+                          {recipe.servings > 1 && <Text fontSize="xs" opacity={0.5}>{formatCost(totalCost / recipe.servings)} / porc.</Text>}
+                        </Box>
+                      )}
+                      {salePrice != null && (
+                        <Box>
+                          <Text fontSize="xs" opacity={0.6}>Precio de venta</Text>
+                          <Text fontWeight="bold" color="blue.400">{formatCost(salePrice)}</Text>
+                          {recipe.servings > 1 && <Text fontSize="xs" opacity={0.5}>{formatCost(salePrice / recipe.servings)} / porc.</Text>}
+                        </Box>
+                      )}
+                      {margin && (
+                        <Box>
+                          <Text fontSize="xs" opacity={0.6}>Ganancia estimada</Text>
+                          <Text fontWeight="bold" color={margin.profit >= 0 ? 'green.400' : 'red.400'}>{formatCost(margin.profit)}</Text>
+                          <Text fontSize="xs" color={margin.marginPct >= 0 ? 'green.400' : 'red.400'}>{margin.marginPct.toFixed(1)}% margen</Text>
+                        </Box>
+                      )}
+                    </HStack>
+                  </Box>
+                )}
               </Box>
             )}
 
@@ -146,71 +170,38 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete }) {
               <Box>
                 <Heading size="sm" color={primary} mb={4}>Preparación</Heading>
                 <VStack align="stretch" spacing={5}>
-                  {[...recipe.steps]
-                    .sort((a, b) => a.order - b.order)
-                    .map((step, i) => {
-                      const stepImg = resolveImageUrl(step.image);
-                      return (
-                        <Box key={i}>
-                          <HStack align="flex-start" spacing={3}>
-                            <Box
-                              minW="28px"
-                              h="28px"
-                              borderRadius="full"
-                              bg={primary}
-                              display="flex"
-                              alignItems="center"
-                              justifyContent="center"
-                              flexShrink={0}
-                              mt="2px"
-                            >
-                              <Text fontSize="xs" fontWeight="bold" color="white">{i + 1}</Text>
-                            </Box>
-                            <VStack align="start" spacing={2} flex="1">
-                              <Text fontSize="sm" lineHeight="1.6">{step.description}</Text>
-                              {stepImg && (
-                                <Box borderRadius="lg" overflow="hidden" maxH="200px" w="full">
-                                  <Image
-                                    src={stepImg}
-                                    alt={`Paso ${i + 1}`}
-                                    w="full"
-                                    maxH="200px"
-                                    objectFit="cover"
-                                  />
-                                </Box>
-                              )}
-                            </VStack>
-                          </HStack>
+                  {[...recipe.steps].sort((a, b) => a.order - b.order).map((step, i) => {
+                    const stepImg = resolveImageUrl(step.image);
+                    return (
+                      <HStack key={i} align="flex-start" spacing={3}>
+                        <Box minW="28px" h="28px" borderRadius="full" bg={primary}
+                          display="flex" alignItems="center" justifyContent="center" flexShrink={0} mt="2px">
+                          <Text fontSize="xs" fontWeight="bold" color="white">{i + 1}</Text>
                         </Box>
-                      );
-                    })}
+                        <VStack align="start" spacing={2} flex="1">
+                          <Text fontSize="sm" lineHeight="1.6">{step.description}</Text>
+                          {stepImg && (
+                            <Box borderRadius="lg" overflow="hidden" maxH="200px" w="full">
+                              <Image src={stepImg} alt={`Paso ${i + 1}`} w="full" maxH="200px" objectFit="cover" />
+                            </Box>
+                          )}
+                        </VStack>
+                      </HStack>
+                    );
+                  })}
                 </VStack>
               </Box>
             )}
-
           </VStack>
         </ModalBody>
 
         <ModalFooter borderTop="1px solid" borderColor={`${primary}33`} gap={3}>
-          <Button
-            leftIcon={<FaTrash />}
-            colorScheme="red"
-            variant="ghost"
-            size="sm"
-            onClick={() => { onClose(); onDelete(recipe); }}
-          >
-            Eliminar
-          </Button>
+          <Button leftIcon={<FaTrash />} colorScheme="red" variant="ghost" size="sm"
+            onClick={() => { onClose(); onDelete(recipe); }}>Eliminar</Button>
           <Box flex="1" />
           <Button variant="ghost" onClick={onClose}>Cerrar</Button>
-          <Button
-            leftIcon={<FaEdit />}
-            colorScheme="blue"
-            size="sm"
-            onClick={() => { onClose(); onEdit(recipe); }}
-          >
-            Editar
-          </Button>
+          <Button leftIcon={<FaEdit />} colorScheme="blue" size="sm"
+            onClick={() => { onClose(); onEdit(recipe); }}>Editar</Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

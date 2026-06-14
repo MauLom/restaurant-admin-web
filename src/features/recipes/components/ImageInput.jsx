@@ -75,54 +75,26 @@ function ImageInput({ value, onChange, placeholder = 'URL de imagen...', preview
         <TabPanels>
           <TabPanel p={0} pt={2}>
             <HStack>
-              <Input
-                value={urlInput}
-                onChange={handleUrlChange}
-                placeholder={placeholder}
-                size="sm"
-              />
-              {urlInput && (
-                <IconButton icon={<FaTimes />} size="sm" onClick={handleClear} aria-label="Limpiar" />
-              )}
+              <Input value={urlInput} onChange={handleUrlChange} placeholder={placeholder} size="sm" />
+              {urlInput && <IconButton icon={<FaTimes />} size="sm" onClick={handleClear} aria-label="Limpiar" />}
             </HStack>
           </TabPanel>
           <TabPanel p={0} pt={2}>
             <HStack>
-              <Button
-                size="sm"
-                leftIcon={<FaUpload />}
-                onClick={() => fileInputRef.current?.click()}
-                isLoading={uploading}
-                loadingText="Subiendo..."
-              >
+              <Button size="sm" leftIcon={<FaUpload />} onClick={() => fileInputRef.current?.click()} isLoading={uploading} loadingText="Subiendo...">
                 Seleccionar imagen
               </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={handleFileUpload}
-              />
-              {value?.isUpload && value?.url && (
-                <IconButton icon={<FaTimes />} size="sm" onClick={handleClear} aria-label="Limpiar" />
-              )}
+              <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} />
+              {value?.isUpload && value?.url && <IconButton icon={<FaTimes />} size="sm" onClick={handleClear} aria-label="Limpiar" />}
             </HStack>
             {uploadError && <Text fontSize="xs" color="red.400" mt={1}>{uploadError}</Text>}
           </TabPanel>
         </TabPanels>
       </Tabs>
-
       {previewSrc && (
         <Box mt={1}>
-          <Image
-            src={previewSrc}
-            alt="Vista previa"
-            maxH={previewMaxH}
-            objectFit="cover"
-            borderRadius="md"
-            fallback={<Text fontSize="xs" color="gray.400">No se puede cargar la imagen</Text>}
-          />
+          <Image src={previewSrc} alt="Vista previa" maxH={previewMaxH} objectFit="cover" borderRadius="md"
+            fallback={<Text fontSize="xs" color="gray.400">No se puede cargar la imagen</Text>} />
         </Box>
       )}
     </VStack>

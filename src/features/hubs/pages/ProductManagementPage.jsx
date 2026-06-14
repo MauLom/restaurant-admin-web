@@ -22,7 +22,7 @@ function ProductManagementPage() {
     },
     {
       title: 'Recetas',
-      description: 'Crear y consultar recetas de cocina y barra con ingredientes y pasos detallados.',
+      description: 'Crear y consultar recetas con ingredientes, pasos e imágenes. Incluye calculadora de costos.',
       link: '/dashboard/recipes',
     },
   ];
