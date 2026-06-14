@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box, SimpleGrid, Button, ButtonGroup, HStack, Heading, Text, Spinner, Center,
   Input, InputGroup, InputLeftElement,
@@ -114,8 +114,9 @@ function RecipeManagement() {
   const displayed = recipes
     .filter(r => {
       const q = search.toLowerCase();
-      return (r.name.toLowerCase().includes(q) || r.description?.toLowerCase().includes(q))
-        && (areaFilter === 'all' || r.area === areaFilter);
+      const matchSearch = r.name.toLowerCase().includes(q) || r.description?.toLowerCase().includes(q);
+      const matchArea = areaFilter === 'all' || r.area === areaFilter;
+      return matchSearch && matchArea;
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 

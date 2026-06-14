@@ -42,10 +42,11 @@ const EMPTY_FORM = {
   steps: [emptyStep(1)],
 };
 
-function RecipeForm({ isOpen, onClose, onSave, initialData, inventoryItems = [] }) {
+function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap = {} }) {
   const { currentTheme } = useTheme();
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [openIngImg, setOpenIngImg] = useState({});
 
   const primary = currentTheme.colors.primary[500];
   const surface = currentTheme.colors.interface?.surface || '#333';
@@ -98,7 +99,15 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, inventoryItems = [] 
   const updateIngredient = (i, field, value) =>
     setForm(f => {
       const arr = [...f.ingredients];
-      arr[i] = { ...arr[i], [field]: value };
+      const updated = { ...arr[i], [field]: value };
+      if (field === 'name') {
+        const key = value.trim().toLowerCase();
+        const mapped = ingredientImageMap[key];
+        if (mapped && !arr[i].image?.url) {
+          updated.image = mapped;
+        }
+      }
+      arr[i] = updated;
       return { ...f, ingredients: arr };
     });
 
