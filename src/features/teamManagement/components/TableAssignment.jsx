@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, VStack, Text, Button, Input, Select } from '@chakra-ui/react';
+import { Box, VStack, Text, Button, Input, Select, useTheme } from '@chakra-ui/react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 
@@ -16,6 +16,7 @@ function TableAssignment() {
   const [guestName, setGuestName] = useState('');
   const toast = useCustomToast();
   const { t } = useLanguage();
+  const theme = useTheme();
 
   const handleAssignTable = () => {
     if (!selectedTable || !guestName) {
@@ -53,7 +54,7 @@ function TableAssignment() {
           onChange={(e) => setSelectedTable(e.target.value)}
         >
           {tables.filter(table => table.status === 'available').map(table => (
-            <option key={table.id} value={table.number}>
+            <option key={table.id} value={table.number} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>
               {t('table')} {table.number}
             </option>
           ))}

@@ -1,8 +1,9 @@
 import React from 'react';
-import { VStack, HStack, Select, Input, IconButton } from '@chakra-ui/react';
+import { VStack, HStack, Select, Input, IconButton, useTheme } from '@chakra-ui/react';
 import { FaTrash } from 'react-icons/fa';
 
 function PaymentMethodSelector({ paymentMethods, setPaymentMethods, expectedTotal }) {
+    const theme = useTheme();
     const totalEntered = paymentMethods.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0);
     const difference = expectedTotal - totalEntered;
     const isExact = Math.abs(difference) < 0.01;
@@ -30,15 +31,13 @@ function PaymentMethodSelector({ paymentMethods, setPaymentMethods, expectedTota
             {paymentMethods.map((pm, index) => (
                 <HStack key={index}>
                     <Select
-                        bg="gray.700"
-                        _placeholder={{ color: 'gray.400' }}
                         placeholder="Método"
                         value={pm.method}
                         onChange={(e) => handleChange(index, 'method', e.target.value)}
                     >
-                        <option style={{ backgroundColor: '#2D3748' }} value="cash">Efectivo</option>
-                        <option style={{ backgroundColor: '#2D3748' }} value="card">Tarjeta</option>
-                        <option style={{ backgroundColor: '#2D3748' }} value="transfer">Transferencia</option>
+                        <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="cash">Efectivo</option>
+                        <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="card">Tarjeta</option>
+                        <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="transfer">Transferencia</option>
                     </Select>
 
                     <Input

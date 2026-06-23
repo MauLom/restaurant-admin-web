@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, VStack, Input, Button, Text, Select } from '@chakra-ui/react';
+import { Box, VStack, Input, Button, Text, Select, useTheme } from '@chakra-ui/react';
 import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { useCustomToast } from '../../hooks/useCustomToast';
@@ -11,6 +11,7 @@ function GeneratePins() {
   const [username, setUsername] = useState(''); // State for username
   const toast = useCustomToast();
   const { t } = useLanguage();
+  const theme = useTheme();
 
   // Generate new PIN
   const handleGeneratePin = async () => {
@@ -77,23 +78,13 @@ function GeneratePins() {
           placeholder={t('selectRole')}
           value={role}
           onChange={(e) => setRole(e.target.value)}
-          sx={{
-            bg: 'white', // Background color
-            color: 'black', // Font color
-            _hover: {
-              bg: 'gray.200', // Background color on hover
-            },
-            _focus: {
-              borderColor: 'blue.500', // Border color on focus
-            },
-          }}
         >
-          <option value="admin">{t('admin')}</option>
-          <option value="waiter">{t('waiter')}</option>
-          <option value="hostess">{t('hostess')}</option>
-          <option value="cashier">{t('cashier')}</option>
-          <option value="kitchen">{t('kitchen')}</option>
-          <option value="bar">{t('bar')}</option>
+          <option value="admin" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{t('admin')}</option>
+          <option value="waiter" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{t('waiter')}</option>
+          <option value="hostess" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{t('hostess')}</option>
+          <option value="cashier" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{t('cashier')}</option>
+          <option value="kitchen" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{t('kitchen')}</option>
+          <option value="bar" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{t('bar')}</option>
 
         </Select>
 

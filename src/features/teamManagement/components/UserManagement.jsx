@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Heading, Input, Select, Button, VStack, Spinner, Text, SimpleGrid, Divider, HStack, IconButton
+  Box, Heading, Input, Select, Button, VStack, Spinner, Text, SimpleGrid, Divider, HStack, IconButton, useTheme
 } from '@chakra-ui/react';
 import { FaTrash } from 'react-icons/fa';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -10,6 +10,7 @@ import { useCustomToast } from '../../../hooks/useCustomToast';
 function UserManagement() {
   const { t } = useLanguage();
   const toast = useCustomToast();
+  const theme = useTheme();
 
   const [users, setUsers] = useState([]);
   const [username, setUsername] = useState('');
@@ -87,15 +88,13 @@ function UserManagement() {
         <Select
           value={role}
           onChange={(e) => setRole(e.target.value)}
-          bg="gray.700"
-          color="white"
         >
-          <option value="waiter">Mesero</option>
-          <option value="admin">Administrador</option>
-          <option value="hostess">Recepcionista</option>
-          <option value="cashier">Cajero</option>
-          <option value="kitchen">Cocina</option>
-          <option value="bar">Barra</option>
+          <option value="waiter" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>Mesero</option>
+          <option value="admin" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>Administrador</option>
+          <option value="hostess" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>Recepcionista</option>
+          <option value="cashier" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>Cajero</option>
+          <option value="kitchen" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>Cocina</option>
+          <option value="bar" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>Barra</option>
         </Select>
         <Button colorScheme="teal" onClick={handleGenerateUser}>
           Generar PIN
