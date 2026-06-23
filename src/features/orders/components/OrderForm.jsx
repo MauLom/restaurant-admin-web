@@ -36,7 +36,7 @@ function OrderForm({ table, onBack }) {
         setInventory(response.data);
       } catch (error) {
         toast({
-          title: 'Error',
+          title: t('errorTitle'),
           description: t('inventoryLoadError'),
           status: 'error',
           duration: 3000,
@@ -50,7 +50,7 @@ function OrderForm({ table, onBack }) {
         setCategories(response.data);
       } catch (error) {
         toast({
-          title: 'Error',
+          title: t('errorTitle'),
           description: t('categoriesLoadError'),
           status: 'error',
           duration: 3000,
@@ -79,7 +79,7 @@ function OrderForm({ table, onBack }) {
           setMenuItems(response.data);
         } catch (error) {
           toast({
-            title: 'Error',
+            title: t('errorTitle'),
             description: t('itemsLoadError'),
             status: 'error',
             duration: 3000,
@@ -155,7 +155,7 @@ function OrderForm({ table, onBack }) {
   const handleSubmitOrder = async () => {
     if (orderItems.length === 0) {
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: t('orderEmptyError'),
         status: 'error',
         duration: 3000,
@@ -190,7 +190,7 @@ function OrderForm({ table, onBack }) {
       setComment('');
     } catch (error) {
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: t('createOrderError'),
         status: 'error',
         duration: 3000,
@@ -211,7 +211,7 @@ function OrderForm({ table, onBack }) {
       });
     } catch (error) {
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: t('cashierNotificationError'),
         status: 'error',
         duration: 3000,

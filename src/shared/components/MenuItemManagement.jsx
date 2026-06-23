@@ -35,7 +35,7 @@ function MenuItemManagement() {
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
-          title: 'Error',
+          title: t('errorTitle'),
           description: t('errorFetchingDataDescription'),
           status: 'error',
           duration: 3000,
@@ -87,7 +87,7 @@ function MenuItemManagement() {
     } catch (error) {
       console.error('Error adding item:', error);
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: t('errorAddingItemDescription'),
         status: 'error',
         duration: 3000,
@@ -113,7 +113,7 @@ function MenuItemManagement() {
     } catch (error) {
       console.error('Error updating item:', error);
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: t('errorUpdatingItemDescription'),
         status: 'error',
         duration: 3000,
@@ -137,7 +137,7 @@ function MenuItemManagement() {
     } catch (error) {
       console.error('Error deleting item:', error);
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: t('errorDeletingItemDescription'),
         status: 'error',
         duration: 3000,
@@ -163,7 +163,7 @@ function MenuItemManagement() {
     <Box p={4}>
       <Heading as="h2" size="xl" mb={4}>{t('manageMenuItems')}</Heading>
       <Button leftIcon={<FaPlus />} colorScheme="blue" mb={4} onClick={() => { setShowAddForm(!showAddForm); if (showAddForm) resetForm(); }}>
-        {showAddForm ? t('closeForm') : 'Add New Item'}
+        {showAddForm ? t('closeForm') : t('addNewItem')}
       </Button>
 
       <Collapse in={showAddForm} animateOpacity>
@@ -171,7 +171,7 @@ function MenuItemManagement() {
           <VStack spacing={4}>
             <Input placeholder={t('itemNamePlaceholder')} value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} />
             <Input placeholder={t('menuItemDescriptionPlaceholder')} value={newItem.description} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} />
-            <Input placeholder="Price" type="number" value={newItem.price} onChange={(e) => setNewItem({ ...newItem, price: e.target.value })} />
+            <Input placeholder={t('pricePlaceholder')} type="number" value={newItem.price} onChange={(e) => setNewItem({ ...newItem, price: e.target.value })} />
             <Input placeholder={t('imageUrlOptionalPlaceholder')} value={newItem.image} onChange={(e) => setNewItem({ ...newItem, image: e.target.value })} />
             <Select placeholder={t('selectCategoryPlaceholder')} value={newItem.category} onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}>
               {categories.map(category => (
@@ -239,8 +239,8 @@ function MenuItemManagement() {
               <AlertDialogHeader fontSize="lg" fontWeight="bold">{t('deleteItemTitle')}</AlertDialogHeader>
               <AlertDialogBody>{t('confirmDeleteItemDescription').replace('{itemName}', deletingItem.name)}</AlertDialogBody>
               <AlertDialogFooter>
-                <Button ref={cancelRef} onClick={() => setDeletingItem(null)}>Cancel</Button>
-                <Button colorScheme="red" onClick={() => handleDeleteItem(deletingItem._id)} ml={3}>Delete</Button>
+                <Button ref={cancelRef} onClick={() => setDeletingItem(null)}>{t('cancel')}</Button>
+                <Button colorScheme="red" onClick={() => handleDeleteItem(deletingItem._id)} ml={3}>{t('delete')}</Button>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialogOverlay>

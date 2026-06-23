@@ -24,7 +24,7 @@ function UserManagement() {
       setUsers(response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast({ title: 'Error', description: t('errorLoadingUsersDescription'), status: 'error' });
+      toast({ title: t('errorTitle'), description: t('errorLoadingUsersDescription'), status: 'error' });
     } finally {
       setLoading(false);
     }
@@ -36,7 +36,7 @@ function UserManagement() {
 
   const handleGenerateUser = async () => {
     if (!username || !role) {
-      toast({ title: 'Error', description: t('completeUsernameAndRoleDescription'), status: 'error' });
+      toast({ title: t('errorTitle'), description: t('completeUsernameAndRoleDescription'), status: 'error' });
       return;
     }
 
@@ -56,7 +56,7 @@ function UserManagement() {
       fetchUsers();
     } catch (error) {
       console.error('Error generating user:', error);
-      toast({ title: 'Error', description: t('errorGeneratingUserDescription'), status: 'error' });
+      toast({ title: t('errorTitle'), description: t('errorGeneratingUserDescription'), status: 'error' });
     }
   };
 
@@ -67,7 +67,7 @@ function UserManagement() {
       fetchUsers();
     } catch (error) {
       console.error('Error deleting user:', error);
-      toast({ title: 'Error', description: t('errorDeletingUserDescription'), status: 'error' });
+      toast({ title: t('errorTitle'), description: t('errorDeletingUserDescription'), status: 'error' });
     }
   };
 

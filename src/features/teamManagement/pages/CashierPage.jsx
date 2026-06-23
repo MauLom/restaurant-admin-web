@@ -88,7 +88,7 @@ function CashierPage() {
   const handleFinalizePayment = async () => {
     if (!isPaymentValid()) {
       toast({
-        title: "Error",
+        title: t('errorTitle'),
         description: t('totalPaymentLessThanGrandTotal'),
         status: "error",
         duration: 3000,
@@ -119,7 +119,7 @@ function CashierPage() {
     } catch (error) {
       console.error('Error finalizing payment:', error);
       toast({
-        title: "Error",
+        title: t('errorTitle'),
         description: t('errorFinalizingPaymentDescription'),
         status: "error",
         duration: 3000,

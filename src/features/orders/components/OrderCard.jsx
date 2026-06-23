@@ -46,7 +46,7 @@ function OrderCard({ order, onPaid }) {
     } catch (error) {
       console.error('Error al procesar el pago parcial:', error);
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: t('partialPaymentError'),
         status: 'error',
         duration: 3000,

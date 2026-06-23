@@ -171,7 +171,7 @@ function PinLogin() {
       navigate('/dashboard/restaurant-status');
     } catch (error) {
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: 'No se pudo iniciar el modo demo',
         status: 'error'
       });
@@ -187,11 +187,11 @@ function PinLogin() {
 
     const handleRegister = async () => {
       if (!regUsername || regPin.length !== 6) {
-        toast({ title: 'Error', description: 'El usuario y un PIN de 6 dígitos son obligatorios.', status: 'error' });
+        toast({ title: t('errorTitle'), description: 'El usuario y un PIN de 6 dígitos son obligatorios.', status: 'error' });
         return;
       }
       if (regPin !== regConfirmPin) {
-        toast({ title: 'Error', description: 'Los PINs no coinciden.', status: 'error' });
+        toast({ title: t('errorTitle'), description: 'Los PINs no coinciden.', status: 'error' });
         return;
       }
 
@@ -206,7 +206,7 @@ function PinLogin() {
         onRegisterClose();
       } catch (err) {
         const msg = err.response?.data?.error || 'No se pudo crear la cuenta.';
-        toast({ title: 'Error', description: msg, status: 'error' });
+        toast({ title: t('errorTitle'), description: msg, status: 'error' });
       } finally {
         setLoading(false);
       }
@@ -352,7 +352,7 @@ function PinLogin() {
 
     const handleCreateAdmin = async () => {
       if (!username || !password || !adminPin) {
-        toast({ title: 'Error', description: 'Todos los campos son obligatorios.', status: 'error' });
+        toast({ title: t('errorTitle'), description: 'Todos los campos son obligatorios.', status: 'error' });
         return;
       }
 
@@ -372,7 +372,7 @@ function PinLogin() {
         toast({ title: 'Administrador creado', description: 'Ya puedes iniciar sesión.', status: 'success' });
         window.location.reload();
       } catch (error) {
-        toast({ title: 'Error', description: 'No se pudo crear el administrador.', status: 'error' });
+        toast({ title: t('errorTitle'), description: 'No se pudo crear el administrador.', status: 'error' });
         console.error('Error creating admin:', error);
       } finally {
         setLoading(false);

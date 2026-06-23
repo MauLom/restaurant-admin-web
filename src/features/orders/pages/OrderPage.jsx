@@ -36,7 +36,7 @@ function OrderPage() {
     } catch (error) {
       setSections([]); // Mantener un array vacío en caso de error
       toast({
-        title: "Error",
+        title: t('errorTitle'),
         description: t('sectionsLoadError'),
         status: "error",
         duration: 3000,
@@ -52,7 +52,7 @@ function OrderPage() {
       setOrders(res.data);
     } catch (error) {
       toast({
-        title: "Error",
+        title: t('errorTitle'),
         description: t('ordersLoadError'),
         status: "error",
         duration: 3000,
@@ -111,7 +111,7 @@ function OrderPage() {
     } catch (error) {
       console.error("Error al aperturar mesa:", error);
       toast({
-        title: "Error",
+        title: t('errorTitle'),
         description: t('tableOpenError'),
         status: "error",
         duration: 3000,
@@ -179,7 +179,7 @@ function OrderPage() {
       setTipAll(0);
     } catch (error) {
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: t('paymentError'),
         status: 'error',
         duration: 3000,
@@ -201,7 +201,7 @@ function OrderPage() {
       handleBackToTables();
     } catch (error) {
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: t('sessionCloseError'),
         status: 'error',
         duration: 3000,

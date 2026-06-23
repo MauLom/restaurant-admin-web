@@ -19,7 +19,7 @@ function MenuCategoryManagement() {
       } catch (error) {
         console.error('Error fetching categories:', error);
         toast({
-          title: 'Error',
+          title: t('errorTitle'),
           description: t('errorFetchingCategoriesDescription'),
           status: 'error',
           duration: 3000,
@@ -47,7 +47,7 @@ function MenuCategoryManagement() {
     } catch (error) {
       console.error('Error adding category:', error);
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: t('errorAddingCategoryDescription'),
         status: 'error',
         duration: 3000,
@@ -70,7 +70,7 @@ function MenuCategoryManagement() {
     } catch (error) {
       console.error('Error deleting category:', error);
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: t('errorDeletingCategoryDescription'),
         status: 'error',
         duration: 3000,
@@ -87,7 +87,7 @@ function MenuCategoryManagement() {
           <HStack key={category._id} width="100%" justify="space-between">
             <Text>{category.name} ({category.area})</Text>
             <Button colorScheme="red" onClick={() => handleDeleteCategory(category._id)}>
-              Delete
+              {t('delete')}
             </Button>
           </HStack>
         ))}

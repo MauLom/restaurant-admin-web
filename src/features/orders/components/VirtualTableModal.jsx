@@ -99,7 +99,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
     } catch (error) {
       console.error('Error fetching available tables:', error);
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: 'No se pudieron cargar las mesas disponibles',
         status: 'error',
         duration: 3000,
@@ -168,7 +168,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
     } catch (error) {
       console.error('Error creating virtual table:', error);
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: error.response?.data?.message || t('virtualTableCreationError'),
         status: 'error',
         duration: 4000,
@@ -182,7 +182,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
   const handleGenerateMultiple = async () => {
     if (multipleCount < 1 || multipleCount > 50) {
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: t('invalidTableCountError'),
         status: 'error',
         duration: 3000,
@@ -222,7 +222,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
     } catch (error) {
       console.error('Error generating multiple tables:', error);
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: error.response?.data?.message || t('tablesGenerationError'),
         status: 'error',
         duration: 4000,
