@@ -2,7 +2,7 @@
 import { Box, Flex, Button, HStack, Img } from '@chakra-ui/react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import ResponsiveSidebar from '../shared/components/ResponsiveSidebar';
-// import LanguageSwitcher from '../shared/components/LanguageSwitcher';
+import LanguageSwitcher from '../shared/components/LanguageSwitcher';
 import ThemeSwitcher from '../shared/components/ThemeSwitcher';
 import DemoTutorial from '../components/DemoTutorial';
 import { useLanguage } from '../context/LanguageContext';
@@ -36,7 +36,7 @@ function DashboardPage() {
         <Img className="logo" maxW="5rem" src={currentTheme.logo || "maui-logo.png"} borderRadius={10}/>
         <HStack spacing={6}>
           <ThemeSwitcher />
-          {/* <LanguageSwitcher /> */}
+          <LanguageSwitcher />
           <Button 
             onClick={handleLogout} 
             variant="ghost" 

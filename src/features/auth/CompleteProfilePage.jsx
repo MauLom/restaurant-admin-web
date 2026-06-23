@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, VStack, Input, Button, Heading, Text, Select, useToast } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { useLanguage } from '../../context/LanguageContext';
 
 function CompleteProfilePage() {
   const [username, setUsername] = useState('');
@@ -10,12 +11,13 @@ function CompleteProfilePage() {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleCompleteProfile = async () => {
     if (!username || !role) {
       toast({
-        title: 'Faltan campos',
-        description: 'Debes ingresar un nombre de usuario y seleccionar un rol.',
+        title: t('missingFieldsTitle'),
+        description: t('missingFieldsDescription'),
         status: 'warning',
         duration: 3000,
         isClosable: true,
@@ -32,8 +34,8 @@ function CompleteProfilePage() {
       });
 
       toast({
-        title: 'Perfil actualizado',
-        description: 'Tu perfil fue completado correctamente.',
+        title: t('profileUpdatedTitle'),
+        description: t('profileCompletedSuccessfully'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -43,8 +45,8 @@ function CompleteProfilePage() {
     } catch (error) {
       console.error('Error actualizando perfil:', error);
       toast({
-        title: 'Error',
-        description: 'No se pudo actualizar tu perfil.',
+        title: t('profileUpdateErrorTitle'),
+        description: t('profileUpdateError'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -57,11 +59,11 @@ function CompleteProfilePage() {
   return (
     <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center" bg="#1a202c" color="white" p={6}>
       <VStack spacing={6} w="full" maxW="sm">
-        <Heading size="lg" color="teal.300">Completar Perfil</Heading>
-        <Text textAlign="center">Por favor completa tu información para continuar usando la aplicación.</Text>
+        <Heading size="lg" color="teal.300">{t('completeProfileTitle')}</Heading>
+        <Text textAlign="center">{t('completeProfileDescription')}</Text>
 
         <Input
-          placeholder="Nombre de usuario"
+          placeholder={t('usernamePlaceholderProfile')}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           bg="gray.700"
@@ -69,21 +71,21 @@ function CompleteProfilePage() {
         />
 
         <Select
-          placeholder="Selecciona tu rol"
+          placeholder={t('selectRolePlaceholder')}
           value={role}
           onChange={(e) => setRole(e.target.value)}
         >
-          <option style={{ backgroundColor: '#2D3748' }} value="admin">Administrador</option>
-          <option style={{ backgroundColor: '#2D3748' }} value="waiter">Mesero</option>
-          <option style={{ backgroundColor: '#2D3748' }} value="hostess">Hostess</option>
-          <option style={{ backgroundColor: '#2D3748' }} value="cashier">Cajero</option>
-          <option style={{ backgroundColor: '#2D3748' }} value="kitchen">Cocina</option>
-          <option style={{ backgroundColor: '#2D3748' }} value="bar">Barra</option>
+          <option style={{ backgroundColor: '#2D3748' }} value="admin">{t('roleAdmin')}</option>
+          <option style={{ backgroundColor: '#2D3748' }} value="waiter">{t('roleWaiter')}</option>
+          <option style={{ backgroundColor: '#2D3748' }} value="hostess">{t('roleHostess')}</option>
+          <option style={{ backgroundColor: '#2D3748' }} value="cashier">{t('roleCashier')}</option>
+          <option style={{ backgroundColor: '#2D3748' }} value="kitchen">{t('roleKitchen')}</option>
+          <option style={{ backgroundColor: '#2D3748' }} value="bar">{t('roleBar')}</option>
         </Select>
 
         <Input
           type="password"
-          placeholder="Contraseña (opcional)"
+          placeholder={t('passwordPlaceholderProfile')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           bg="gray.700"
@@ -96,7 +98,7 @@ function CompleteProfilePage() {
           isLoading={loading}
           width="full"
         >
-          Guardar Perfil
+          {t('saveProfileButton')}
         </Button>
       </VStack>
     </Box>

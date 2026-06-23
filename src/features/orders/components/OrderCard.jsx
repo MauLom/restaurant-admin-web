@@ -3,9 +3,11 @@ import { Box, Text, VStack, HStack, Tag, Button, Input, Checkbox, Divider } from
 import api from '../../../services/api';
 import PaymentMethodSelector from './PaymentMethodSelector';
 import { useCustomToast } from '../../../hooks/useCustomToast';
+import { useLanguage } from '../../../context/LanguageContext';
 
 function OrderCard({ order, onPaid }) {
   const toast = useCustomToast();
+  const { t } = useLanguage();
   const [tip, setTip] = useState(0);
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -33,8 +35,8 @@ function OrderCard({ order, onPaid }) {
       await api.post(`/orders/partial-payment/${order._id}`, payload);
 
       toast({
-        title: 'Pago parcial realizado',
-        description: `Se pagaron ${selectedItems.length} ítems exitosamente.`,
+        title: t('partialPaymentSuccess'),
+        description: t('partialPaymentSuccessDesc').replace('{count}', selectedItems.length),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -45,7 +47,7 @@ function OrderCard({ order, onPaid }) {
       console.error('Error al procesar el pago parcial:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo completar el pago parcial.',
+        description: t('partialPaymentError'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -65,14 +67,14 @@ function OrderCard({ order, onPaid }) {
   return (
     <Box borderWidth="1px" borderRadius="md" p={4}>
       <HStack justify="space-between">
-        <Text fontWeight="bold">Orden #{order._id.slice(-4)}</Text>
+        <Text fontWeight="bold">{t('orderNumber').replace('{number}', order._id.slice(-4))}</Text>
         <Tag colorScheme={order.status === 'ready' ? 'green' : 'orange'}>
           {order.status === 'ready' ? 'Lista' : 'En preparación'}
         </Tag>
       </HStack>
 
       <Text fontSize="sm" color="gray.400">
-        Total de la orden: ${order.total.toFixed(2)}
+        {t('orderTotal')}: ${order.total.toFixed(2)}
       </Text>
 
       <VStack align="start" mt={2} spacing={2}>
@@ -90,10 +92,10 @@ function OrderCard({ order, onPaid }) {
                 isChecked={selectedItems.includes(item.itemId)}
                 onChange={() => handleItemToggle(item.itemId)}
               >
-                Seleccionar para cobrar
+                {t('selectForPayment')}
               </Checkbox>
             ) : (
-              <Tag size="sm" colorScheme="blue" mt={1}>Pagado</Tag>
+              <Tag size="sm" colorScheme="blue" mt={1}>{t('paid')}</Tag>
             )}
           </Box>
         ))}
@@ -103,13 +105,13 @@ function OrderCard({ order, onPaid }) {
         <>
           <Divider my={3} />
           <Text fontWeight="bold">
-            Subtotal: ${calculateSubtotal().toFixed(2)}
+            {t('subtotal')}: ${calculateSubtotal().toFixed(2)}
           </Text>
 
           <Input
             type="number"
             mt={3}
-            placeholder="Propina opcional"
+            placeholder={t('optionalTip')}
             value={tip}
             onChange={(e) => setTip(e.target.value)}
             size="sm"
@@ -130,7 +132,7 @@ function OrderCard({ order, onPaid }) {
             mt={2}
             isDisabled={paymentMethods.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0) !== (calculateSubtotal() + parseFloat(tip || 0))}
           >
-            💳 Pagar ítems seleccionados
+            💳 {t('paySelectedItems')}
           </Button>
         </>
       )}

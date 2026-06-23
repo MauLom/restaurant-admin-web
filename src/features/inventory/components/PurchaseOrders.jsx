@@ -5,6 +5,7 @@ import {
   Table, Thead, Tbody, Tr, Th, Td, TableContainer,
 } from '@chakra-ui/react';
 import { FaPlus, FaMinus, FaPrint, FaTrash } from 'react-icons/fa';
+import { useLanguage } from '../../../context/LanguageContext';
 import api from '../../../services/api';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 
@@ -67,6 +68,7 @@ function PurchaseOrders() {
   const [loading, setLoading] = useState(true);
   const [orderItems, setOrderItems] = useState({});
   const toast = useCustomToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     api.get('/inventory')
@@ -81,7 +83,7 @@ function PurchaseOrders() {
         });
         setOrderItems(initial);
       })
-      .catch(() => toast({ title: 'Error al cargar inventario', status: 'error', duration: 3000 }))
+      .catch(() => toast({ title: t('inventoryLoadError'), status: 'error', duration: 3000 }))
       .finally(() => setLoading(false));
   }, [toast]);
 
@@ -139,7 +141,7 @@ function PurchaseOrders() {
 
   const handlePrint = () => {
     if (groupedOrders.length === 0) {
-      toast({ title: 'El pedido está vacío', status: 'warning', duration: 2500 });
+      toast({ title: t('emptyOrderWarning'), status: 'warning', duration: 2500 });
       return;
     }
     const date = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -157,9 +159,9 @@ function PurchaseOrders() {
     <Box>
       {/* Header */}
       <HStack justify="space-between" mb={5} flexWrap="wrap" gap={3}>
-        <Heading size="md">Pedido a proveedores</Heading>
+        <Heading size="md">{t('purchaseOrdersHeading')}</Heading>
         <Button leftIcon={<FaPrint />} colorScheme="blue" size="sm" onClick={handlePrint}>
-          Imprimir pedido
+          {t('printOrderButton')}
         </Button>
       </HStack>
 
@@ -167,7 +169,7 @@ function PurchaseOrders() {
       {lowStockItems.length > 0 && (
         <Box mb={6}>
           <Text fontSize="sm" fontWeight="semibold" mb={3} opacity={0.7}>
-            Items con stock bajo — haz clic para agregar o quitar del pedido:
+            {t('lowStockInstruction')}
           </Text>
           <HStack flexWrap="wrap" spacing={2}>
             {lowStockItems.map(item => {
@@ -193,7 +195,7 @@ function PurchaseOrders() {
 
       {lowStockItems.length === 0 && (
         <Box mb={6} p={4} borderRadius="lg" bg="green.900" border="1px solid" borderColor="green.600">
-          <Text color="green.200" fontSize="sm">✓ Todos los items están por encima del stock mínimo.</Text>
+          <Text color="green.200" fontSize="sm">✓ {t('allItemsAboveMinimum')}</Text>
         </Box>
       )}
 
@@ -203,7 +205,7 @@ function PurchaseOrders() {
       {groupedOrders.length === 0 ? (
         <Center py={10} flexDirection="column" gap={3}>
           <Text fontSize="3xl">📋</Text>
-          <Text opacity={0.5}>No hay items en el pedido.</Text>
+          <Text opacity={0.5}>{t('noItemsInOrder')}</Text>
         </Center>
       ) : (
         <VStack align="stretch" spacing={6}>
@@ -217,10 +219,10 @@ function PurchaseOrders() {
                 <Table size="sm" variant="simple">
                   <Thead>
                     <Tr>
-                      <Th>Producto</Th>
-                      <Th isNumeric>Stock actual</Th>
-                      <Th isNumeric>Mínimo</Th>
-                      <Th isNumeric>Cantidad a pedir</Th>
+                      <Th>{t('tableHeaderProduct')}</Th>
+                      <Th isNumeric>{t('tableHeaderStock')}</Th>
+                      <Th isNumeric>{t('tableHeaderMinimum')}</Th>
+                      <Th isNumeric>{t('tableHeaderOrderQty')}</Th>
                       <Th></Th>
                     </Tr>
                   </Thead>
@@ -237,7 +239,7 @@ function PurchaseOrders() {
                             <IconButton
                               icon={<FaMinus />} size="xs" variant="ghost"
                               onClick={() => updateQty(item.id, item.orderQty - 1)}
-                              aria-label="Reducir"
+                              aria-label={t('decreaseQtyButton')}
                             />
                             <NumberInput
                               value={item.orderQty} min={1} size="sm"
@@ -250,7 +252,7 @@ function PurchaseOrders() {
                             <IconButton
                               icon={<FaPlus />} size="xs" variant="ghost"
                               onClick={() => updateQty(item.id, item.orderQty + 1)}
-                              aria-label="Aumentar"
+                              aria-label={t('increaseQtyButton')}
                             />
                           </HStack>
                         </Td>
@@ -258,7 +260,7 @@ function PurchaseOrders() {
                           <IconButton
                             icon={<FaTrash />} size="xs" colorScheme="red" variant="ghost"
                             onClick={() => toggleItem(itemsMap[item.id])}
-                            aria-label="Quitar del pedido"
+                            aria-label={t('removeOrderButton')}
                           />
                         </Td>
                       </Tr>

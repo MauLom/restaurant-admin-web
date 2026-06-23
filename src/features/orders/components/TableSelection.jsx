@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Box, Flex, Button, Text, HStack, VStack, Badge, useDisclosure, useToast, Grid } from '@chakra-ui/react';
 import VirtualTableModal from './VirtualTableModal';
 import api from '../../../services/api';
+import { useLanguage } from '../../../context/LanguageContext';
 
 function TableSelection({ sections, onTableClick, onRefreshSections }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [virtualTables, setVirtualTables] = useState([]);
   const [isLoadingVirtual, setIsLoadingVirtual] = useState(false);
   const toast = useToast();
+  const { t } = useLanguage();
 
   // Detectar si es un restaurante simple (sin secciones configuradas)
   const isSimpleRestaurant = !sections || sections.length === 0 || 
@@ -63,9 +65,9 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
     return (
       <Box>
         <Text fontSize="2xl" fontWeight="bold" mb={4}>
-          Áreas
+          {t('areasLabel')}
         </Text>
-        <Text>No hay secciones disponibles</Text>
+        <Text>{t('noSectionsAvailable')}</Text>
       </Box>
     );
   }
@@ -75,9 +77,9 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
     return (
       <Box>
         <Text fontSize="2xl" fontWeight="bold" mb={4}>
-          Áreas
+          {t('areasLabel')}
         </Text>
-        <Text>No hay secciones configuradas</Text>
+        <Text>{t('noSectionsConfigured')}</Text>
       </Box>
     );
   }
@@ -90,24 +92,24 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
           <HStack justify="space-between">
             <Box>
               <Text fontSize="2xl" fontWeight="bold">
-                🍽️ Mesas del Restaurante
+                🍽️ {t('restaurantTablesHeader')}
               </Text>
               <Text fontSize="sm" color="gray.600">
-                Gestiona tus mesas de forma simple y rápida
+                {t('manageTablesDescription')}
               </Text>
             </Box>
             <VStack spacing={2}>
-              <Button 
-                colorScheme="green" 
+              <Button
+                colorScheme="green"
                 onClick={onOpen}
                 size="md"
                 leftIcon={<Text>🍽️</Text>}
               >
-                Nueva Mesa
+                {t('newTableButton')}
               </Button>
               {virtualTables.length === 0 && (
                 <Text fontSize="xs" color="gray.500" textAlign="center">
-                  ¡Crea tu primera mesa!
+                  {t('createFirstTable')}
                 </Text>
               )}
             </VStack>
@@ -127,18 +129,18 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
               <VStack spacing={4}>
                 <Text fontSize="6xl">🍽️</Text>
                 <Text fontSize="lg" fontWeight="bold" color="gray.600">
-                  ¡Bienvenido a tu restaurante!
+                  {t('welcomeRestaurant')}
                 </Text>
                 <Text color="gray.500" maxW="400px">
-                  Empieza creando tus primeras mesas. Es súper fácil y no necesitas configurar nada más.
+                  {t('createTableIntro')}
                 </Text>
-                <Button 
-                  colorScheme="blue" 
+                <Button
+                  colorScheme="blue"
                   size="lg"
                   onClick={onOpen}
                   leftIcon={<Text>⚡</Text>}
                 >
-                  Configuración Rápida
+                  {t('quickSetup')}
                 </Button>
               </VStack>
             </Box>
@@ -169,11 +171,11 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                       {virtualTable.name}
                     </Text>
                     <HStack spacing={3}>
-                      <Badge 
+                      <Badge
                         colorScheme={virtualTable.status === "occupied" ? "red" : "green"}
                         variant="solid"
                       >
-                        {virtualTable.status === "occupied" ? "Ocupada" : "Disponible"}
+                        {virtualTable.status === "occupied" ? t('occupiedStatus') : "Disponible"}
                       </Badge>
                       <Badge colorScheme="blue" variant="outline">
                         {virtualTable.totalCapacity}p
@@ -195,15 +197,15 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
         <>
           <HStack mb={4} justify="space-between">
             <Text fontSize="2xl" fontWeight="bold">
-              Áreas
+              {t('areasLabel')}
             </Text>
-            <Button 
-              colorScheme="blue" 
+            <Button
+              colorScheme="blue"
               onClick={onOpen}
               size="md"
               leftIcon={<Text>🔗</Text>}
             >
-              Generar mesa virtual
+              {t('generateVirtualTableBtn')}
             </Button>
           </HStack>
 
@@ -211,7 +213,7 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
           {virtualTables.length > 0 && (
             <Box mb={6}>
               <Text fontSize="lg" fontWeight="bold" mb={3} color="blue.600">
-                🔗 Mesas Virtuales
+                🔗 {t('virtualTablesHeader')}
               </Text>
               <HStack wrap="wrap" spacing={4}>
                 {virtualTables.map((virtualTable) => (
@@ -239,7 +241,7 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                         </Badge>
                       </HStack>
                       <Text fontSize="xs" color={virtualTable.status === "occupied" ? "white" : "gray.600"}>
-                        {virtualTable.status === "occupied" ? "Ocupada" : "Disponible"}
+                        {virtualTable.status === "occupied" ? t('occupiedStatus') : "Disponible"}
                       </Text>
                     </VStack>
                   </Button>
@@ -260,7 +262,7 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
               return (
                 <Box key={section._id} border="1px solid black" p={4} borderRadius="md">
                   <Text fontSize="lg" fontWeight="bold" mb={2}>
-                    {section.name || 'Sección sin nombre'} ({tables.length} mesas)
+                    {section.name || t('sectionWithoutName')} ({tables.length} mesas)
                   </Text>
                   <HStack wrap="wrap" spacing={4}>
                     {tables.length > 0 ? (
@@ -293,10 +295,10 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                                 Mesa {table.number || 'S/N'}
                               </Text>
                               <Text fontSize="xs">
-                                {isPartOfVirtual 
-                                  ? "En Mesa Virtual" 
-                                  : table.status === "occupied" 
-                                    ? "Ocupada" 
+                                {isPartOfVirtual
+                                  ? t('inVirtualTableStatus')
+                                  : table.status === "occupied"
+                                    ? t('occupiedStatus')
                                     : "Disponible"
                                 }
                               </Text>
@@ -316,7 +318,7 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                         );
                       })
                     ) : (
-                      <Text color="gray.500">No hay mesas en esta sección</Text>
+                      <Text color="gray.500">{t('noTablesInSection')}</Text>
                     )}
                   </HStack>
                 </Box>

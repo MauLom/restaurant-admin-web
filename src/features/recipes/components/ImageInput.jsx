@@ -4,6 +4,7 @@ import {
   Tabs, TabList, Tab, TabPanels, TabPanel, IconButton,
 } from '@chakra-ui/react';
 import { FaUpload, FaLink, FaTimes } from 'react-icons/fa';
+import { useLanguage } from '../../../context/LanguageContext';
 import api from '../../../services/api';
 
 export const getApiRoot = () => {
@@ -18,6 +19,7 @@ export const resolveImageUrl = (image) => {
 };
 
 function ImageInput({ value, onChange, placeholder = 'URL de imagen...', previewMaxH = '120px' }) {
+  const { t } = useLanguage();
   const [tabIndex, setTabIndex] = useState(value?.isUpload ? 1 : 0);
   const [urlInput, setUrlInput] = useState(!value?.isUpload ? value?.url || '' : '');
   const [uploading, setUploading] = useState(false);
@@ -50,7 +52,7 @@ function ImageInput({ value, onChange, placeholder = 'URL de imagen...', preview
       });
       onChange(response.data);
     } catch {
-      setUploadError('No se pudo subir la imagen. Intenta con una URL.');
+      setUploadError(t('imageUploadError'));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -69,23 +71,23 @@ function ImageInput({ value, onChange, placeholder = 'URL de imagen...', preview
     <VStack align="stretch" spacing={2}>
       <Tabs index={tabIndex} onChange={setTabIndex} size="sm" variant="soft-rounded">
         <TabList>
-          <Tab gap={1}><FaLink />&nbsp;URL</Tab>
-          <Tab gap={1}><FaUpload />&nbsp;Subir</Tab>
+          <Tab gap={1}><FaLink />&nbsp;{t('urlTab')}</Tab>
+          <Tab gap={1}><FaUpload />&nbsp;{t('uploadTab')}</Tab>
         </TabList>
         <TabPanels>
           <TabPanel p={0} pt={2}>
             <HStack>
               <Input value={urlInput} onChange={handleUrlChange} placeholder={placeholder} size="sm" />
-              {urlInput && <IconButton icon={<FaTimes />} size="sm" onClick={handleClear} aria-label="Limpiar" />}
+              {urlInput && <IconButton icon={<FaTimes />} size="sm" onClick={handleClear} aria-label={t('clearButton')} />}
             </HStack>
           </TabPanel>
           <TabPanel p={0} pt={2}>
             <HStack>
-              <Button size="sm" leftIcon={<FaUpload />} onClick={() => fileInputRef.current?.click()} isLoading={uploading} loadingText="Subiendo...">
-                Seleccionar imagen
+              <Button size="sm" leftIcon={<FaUpload />} onClick={() => fileInputRef.current?.click()} isLoading={uploading} loadingText={t('uploadingText')}>
+                {t('selectImageButton')}
               </Button>
               <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} />
-              {value?.isUpload && value?.url && <IconButton icon={<FaTimes />} size="sm" onClick={handleClear} aria-label="Limpiar" />}
+              {value?.isUpload && value?.url && <IconButton icon={<FaTimes />} size="sm" onClick={handleClear} aria-label={t('clearButton')} />}
             </HStack>
             {uploadError && <Text fontSize="xs" color="red.400" mt={1}>{uploadError}</Text>}
           </TabPanel>
@@ -93,8 +95,8 @@ function ImageInput({ value, onChange, placeholder = 'URL de imagen...', preview
       </Tabs>
       {previewSrc && (
         <Box mt={1}>
-          <Image src={previewSrc} alt="Vista previa" maxH={previewMaxH} objectFit="cover" borderRadius="md"
-            fallback={<Text fontSize="xs" color="gray.400">No se puede cargar la imagen</Text>} />
+          <Image src={previewSrc} alt={t('imagePreview')} maxH={previewMaxH} objectFit="cover" borderRadius="md"
+            fallback={<Text fontSize="xs" color="gray.400">{t('cannotLoadImage')}</Text>} />
         </Box>
       )}
     </VStack>

@@ -15,51 +15,53 @@ import {
   useDisclosure
 } from '@chakra-ui/react';
 import { useDemoContext } from '../context/DemoContext';
-
-// Tutorial steps for different pages
-const tutorialSteps = {
-  'dashboard': [
-    {
-      title: '¡Bienvenido al Demo! 🎉',
-      content: 'Este es el panel principal del sistema de administración de restaurante. Desde aquí puedes acceder a todas las funcionalidades.',
-      highlight: 'Este es un entorno de demostración con datos de ejemplo. Puedes explorar todas las funciones sin afectar datos reales.'
-    }
-  ],
-  'orders': [
-    {
-      title: 'Gestión de Órdenes 📋',
-      content: 'Aquí puedes ver y gestionar todas las órdenes del restaurante. Las órdenes se organizan por mesa y estado.',
-      highlight: 'Intenta crear una nueva orden seleccionando una mesa disponible.'
-    }
-  ],
-  'inventory': [
-    {
-      title: 'Control de Inventario 📦',
-      content: 'Supervisa el stock de ingredientes y productos. Los elementos en rojo tienen bajo stock.',
-      highlight: 'El sistema te alertará automáticamente cuando los productos estén por agotarse.'
-    }
-  ],
-  'analytics': [
-    {
-      title: 'Análisis y Reportes 📊',
-      content: 'Visualiza las métricas de ventas, productos más vendidos y rendimiento del personal.',
-      highlight: 'Los datos se actualizan en tiempo real para tomar mejores decisiones.'
-    }
-  ],
-  'manage-items': [
-    {
-      title: 'Administrar Menú 🍽️',
-      content: 'Gestiona los productos del menú: agregar, editar o eliminar platillos y bebidas.',
-      highlight: 'Puedes subir imágenes y configurar ingredientes para cada producto.'
-    }
-  ]
-};
+import { useLanguage } from '../context/LanguageContext';
 
 const DemoTutorial = ({ currentPage = 'dashboard' }) => {
   const { isDemoMode } = useDemoContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [currentStep, setCurrentStep] = useState(0);
-  
+  const { t } = useLanguage();
+
+  // Tutorial steps for different pages
+  const tutorialSteps = {
+    'dashboard': [
+      {
+        title: t('tutorialDashboardTitle'),
+        content: t('tutorialDashboardContent'),
+        highlight: t('tutorialDashboardHighlight')
+      }
+    ],
+    'orders': [
+      {
+        title: t('tutorialOrdersTitle'),
+        content: t('tutorialOrdersContent'),
+        highlight: t('tutorialOrdersHighlight')
+      }
+    ],
+    'inventory': [
+      {
+        title: t('tutorialInventoryTitle'),
+        content: t('tutorialInventoryContent'),
+        highlight: t('tutorialInventoryHighlight')
+      }
+    ],
+    'analytics': [
+      {
+        title: t('tutorialAnalyticsTitle'),
+        content: t('tutorialAnalyticsContent'),
+        highlight: t('tutorialAnalyticsHighlight')
+      }
+    ],
+    'manage-items': [
+      {
+        title: t('tutorialManageItemsTitle'),
+        content: t('tutorialManageItemsContent'),
+        highlight: t('tutorialManageItemsHighlight')
+      }
+    ]
+  };
+
   const steps = tutorialSteps[currentPage] || tutorialSteps['dashboard'];
 
   useEffect(() => {
@@ -108,7 +110,7 @@ const DemoTutorial = ({ currentPage = 'dashboard' }) => {
             <HStack justify="space-between">
               <Text>{steps[currentStep]?.title}</Text>
               <Badge colorScheme="teal">
-                Paso {currentStep + 1} de {steps.length}
+                {t('tutorialStepCounter').replace('{current}', currentStep + 1).replace('{total}', steps.length)}
               </Badge>
             </HStack>
           </ModalHeader>
@@ -130,17 +132,17 @@ const DemoTutorial = ({ currentPage = 'dashboard' }) => {
           <ModalFooter>
             <HStack spacing={3}>
               <Button variant="ghost" onClick={handleSkip} size="sm">
-                Saltar Tutorial
+                {t('skipTutorial')}
               </Button>
-              
+
               {currentStep > 0 && (
                 <Button onClick={handlePrevious} size="sm">
-                  Anterior
+                  {t('tutorialPrevious')}
                 </Button>
               )}
-              
+
               <Button colorScheme="teal" onClick={handleNext}>
-                {currentStep === steps.length - 1 ? 'Finalizar' : 'Siguiente'}
+                {currentStep === steps.length - 1 ? t('tutorialFinish') : t('tutorialNext')}
               </Button>
             </HStack>
           </ModalFooter>

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Input, HStack, Tooltip, IconButton } from '@chakra-ui/react';
 import { FaQuestionCircle } from 'react-icons/fa';
+import { useLanguage } from '../../../context/LanguageContext';
 
 export function ItemSearchBar({ items, onFilter }) {
+  const { t } = useLanguage();
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
@@ -50,7 +52,7 @@ export function ItemSearchBar({ items, onFilter }) {
   return (
     <HStack mb={4}>
       <Input
-        placeholder="Buscar nombre, categoría, >precio, <precio"
+        placeholder={t('searchItemsPlaceholder')}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         bg="gray.700"
@@ -61,14 +63,14 @@ export function ItemSearchBar({ items, onFilter }) {
       <Tooltip
         label={
           <>
-            <div><strong>Ejemplos de búsqueda:</strong></div>
+            <div><strong>{t('searchExamplesTitle')}:</strong></div>
             <div>• `agua` → Nombre contiene agua</div>
             <div>• `bebidas` → Categoría bebidas</div>
             <div>• `{'>'}50` → Precio menor a 50</div>
             <div>• `bebidas, {'>'}50` → Bebidas menores a 50</div>
           </>
         }
-        aria-label="Instrucciones de búsqueda"
+        aria-label={t('searchInstructions')}
         placement="top"
         hasArrow
         shouldWrapChildren
@@ -77,7 +79,7 @@ export function ItemSearchBar({ items, onFilter }) {
           icon={<FaQuestionCircle />}
           variant="ghost"
           size="sm"
-          aria-label="Ayuda búsqueda"
+          aria-label={t('searchHelpButton')}
           color="gray.300"
           _hover={{ color: "white" }}
         />

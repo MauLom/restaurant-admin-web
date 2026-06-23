@@ -2,10 +2,12 @@ import React from 'react';
 import { Box, Text, HStack, Button, Badge } from '@chakra-ui/react';
 import { useDemoContext } from '../context/DemoContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const DemoBanner = () => {
   const { isDemoMode, exitDemoMode } = useDemoContext();
   const { getCurrentThemeName } = useTheme();
+  const { t } = useLanguage();
 
   if (!isDemoMode) return null;
 
@@ -31,14 +33,14 @@ const DemoBanner = () => {
       <HStack justify="space-between" maxW="7xl" mx="auto">
         <HStack spacing={3}>
           <Badge colorScheme="orange" variant="solid" fontSize="xs">
-            DEMO
+            {t('demoBadge')}
           </Badge>
           <Text fontSize="sm" fontWeight="medium">
-            🎭 Estás en modo demostración - Todos los datos son de ejemplo
+            {t('demoModeBannerMessage')}
           </Text>
           {isDemoMode && (
             <Badge colorScheme="whiteAlpha" variant="outline" fontSize="xs" color="white" borderColor="white">
-              Tema: {getCurrentThemeName()}
+              {t('demoThemeBadge').replace('{themeName}', getCurrentThemeName())}
             </Badge>
           )}
         </HStack>
@@ -52,7 +54,7 @@ const DemoBanner = () => {
           _hover={{ bg: 'whiteAlpha.200' }}
           onClick={handleExitDemo}
         >
-          Salir del Demo
+          {t('exitDemo')}
         </Button>
       </HStack>
     </Box>

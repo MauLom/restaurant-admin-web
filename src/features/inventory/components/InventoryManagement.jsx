@@ -90,7 +90,7 @@ function InventoryManagement() {
         const res = await api.put(`/inventory/${editingItemId}`, payload);
         setInventory(prev => prev.map(i => i._id === editingItemId ? res.data : i));
         setEditingItemId(null);
-        toast({ title: 'Producto actualizado', status: 'success', duration: 3000, isClosable: true });
+        toast({ title: t('productUpdatedToast'), status: 'success', duration: 3000, isClosable: true });
       } else {
         const res = await api.post('/inventory', payload);
         setInventory(prev => [...prev, res.data]);
@@ -154,7 +154,7 @@ function InventoryManagement() {
                     colorScheme="red"
                     variant="ghost"
                     size="sm"
-                    aria-label="Stock bajo"
+                    aria-label={t('lowStockAlert')}
                   />
                   <Badge
                     colorScheme="red"
@@ -174,7 +174,7 @@ function InventoryManagement() {
                 <PopoverArrow bg="gray.800" />
                 <PopoverBody p={3}>
                   <Text fontSize="sm" fontWeight="bold" color="red.300" mb={2}>
-                    Stock bajo en {lowStockItems.length} {lowStockItems.length === 1 ? 'item' : 'items'}:
+                    {t('lowStockAlert')} en {lowStockItems.length} {lowStockItems.length === 1 ? 'item' : 'items'}:
                   </Text>
                   <VStack align="stretch" spacing={1}>
                     {lowStockItems.map(item => (
@@ -196,7 +196,7 @@ function InventoryManagement() {
             size="sm"
             onClick={() => { setShowForm(v => !v); if (showForm && !editingItemId) handleCancelEdit(); }}
           >
-            {showForm && !editingItemId ? 'Cancelar' : t('addItem')}
+            {showForm && !editingItemId ? t('cancelButton') : t('addItem')}
           </Button>
         </HStack>
       </HStack>
@@ -204,7 +204,7 @@ function InventoryManagement() {
       {/* ── Lista de items ── */}
       <VStack spacing={3} align="stretch" mb={6}>
         {inventory.length === 0 && (
-          <Text opacity={0.5} textAlign="center" py={8}>No hay items en el inventario.</Text>
+          <Text opacity={0.5} textAlign="center" py={8}>{t('emptyInventory')}</Text>
         )}
         {inventory.map(item => (
           <Box
@@ -225,7 +225,7 @@ function InventoryManagement() {
                 </HStack>
                 <HStack spacing={3} mt={1}>
                   {item.minStock > 0 ? (
-                    <Tooltip label={isLow(item) ? 'Por debajo del stock mínimo' : 'Stock disponible / mínimo requerido'}>
+                    <Tooltip label={isLow(item) ? t('stockBelowMinimum') : t('availableStockRatio')}>
                       <Text fontSize="sm">
                         <Text
                           as="span"
@@ -245,20 +245,20 @@ function InventoryManagement() {
                     </Text>
                   )}
                   {item.cost > 0 && (
-                    <Text fontSize="sm" opacity={0.6}>Costo: ${item.cost.toFixed(2)}</Text>
+                    <Text fontSize="sm" opacity={0.6}>{t('costDisplay').replace('{amount}', item.cost.toFixed(2))}</Text>
                   )}
                   {item.supplier && (
-                    <Text fontSize="sm" opacity={0.6}>Prov: {item.supplier}</Text>
+                    <Text fontSize="sm" opacity={0.6}>{t('supplierDisplay').replace('{name}', item.supplier)}</Text>
                   )}
                 </HStack>
               </VStack>
               <HStack>
                 {isLow(item) && (
-                  <Tooltip label="Stock por debajo del mínimo">
+                  <Tooltip label={t('stockWarning')}>
                     <Box color="red.400"><FaExclamationTriangle /></Box>
                   </Tooltip>
                 )}
-                <IconButton icon={<FaEdit />} onClick={() => handleEditItem(item)} size="sm" colorScheme="yellow" aria-label="Editar" />
+                <IconButton icon={<FaEdit />} onClick={() => handleEditItem(item)} size="sm" colorScheme="yellow" aria-label={t('editProductForm')} />
                 <Button colorScheme="red" size="sm" onClick={() => handleDeleteItem(item._id)}>
                   {t('delete')}
                 </Button>
@@ -273,10 +273,10 @@ function InventoryManagement() {
       <Collapse in={showForm} animateOpacity>
         <Box p={5} borderWidth="1px" borderRadius="xl" borderColor="whiteAlpha.300" bg="whiteAlpha.50">
           <Text fontSize="lg" fontWeight="semibold" mb={4}>
-            {editingItemId ? 'Editar producto' : t('addNewItem')}
+            {editingItemId ? t('editProductForm') : t('addNewItem')}
           </Text>
           <VStack spacing={4} align="stretch">
-            <Input placeholder={t('itemNamePlaceholder')} value={newItem.name} name="name" onChange={handleInputChange} />
+            <Input placeholder={t('itemNameInput')} value={newItem.name} name="name" onChange={handleInputChange} />
 
             <HStack spacing={3} flexWrap="wrap">
               <NumberInput
@@ -291,17 +291,17 @@ function InventoryManagement() {
                 name="unit"
                 value={newItem.unit}
                 onChange={handleInputChange}
-                placeholder="Unidad de medida"
+                placeholder={t('unitOfMeasureSelect')}
                 flex="1"
                 bg="gray.700"
                 color="white"
               >
-                <option style={{ backgroundColor: '#2D3748' }} value="ml">Mililitros (ml)</option>
-                <option style={{ backgroundColor: '#2D3748' }} value="l">Litros (l)</option>
-                <option style={{ backgroundColor: '#2D3748' }} value="g">Gramos (g)</option>
-                <option style={{ backgroundColor: '#2D3748' }} value="kg">Kilogramos (kg)</option>
-                <option style={{ backgroundColor: '#2D3748' }} value="unit">Unidad</option>
-                <option style={{ backgroundColor: '#2D3748' }} value="bottle">Botella</option>
+                <option style={{ backgroundColor: '#2D3748' }} value="ml">{t('unitMilliliters')}</option>
+                <option style={{ backgroundColor: '#2D3748' }} value="l">{t('unitLiters')}</option>
+                <option style={{ backgroundColor: '#2D3748' }} value="g">{t('unitGrams')}</option>
+                <option style={{ backgroundColor: '#2D3748' }} value="kg">{t('unitKilograms')}</option>
+                <option style={{ backgroundColor: '#2D3748' }} value="unit">{t('unitUnit')}</option>
+                <option style={{ backgroundColor: '#2D3748' }} value="bottle">{t('unitBottle')}</option>
               </Select>
             </HStack>
 
@@ -311,7 +311,7 @@ function InventoryManagement() {
                 value={newItem.equivalentMl}
                 onChange={val => setNewItem(prev => ({ ...prev, equivalentMl: val }))}
               >
-                <NumberInputField placeholder="Contenido por unidad (ml)" />
+                <NumberInputField placeholder={t('contentPerUnitInput')} />
               </NumberInput>
             )}
             {['g', 'kg', 'unit'].includes(newItem.unit) && (
@@ -320,7 +320,7 @@ function InventoryManagement() {
                 value={newItem.equivalentGr}
                 onChange={val => setNewItem(prev => ({ ...prev, equivalentGr: val }))}
               >
-                <NumberInputField placeholder="Peso aprox. por unidad (g)" />
+                <NumberInputField placeholder={t('approximateWeightInput')} />
               </NumberInput>
             )}
 
@@ -331,7 +331,7 @@ function InventoryManagement() {
                 value={newItem.cost}
                 onChange={val => setNewItem(prev => ({ ...prev, cost: val }))}
               >
-                <NumberInputField placeholder="Costo del producto" />
+                <NumberInputField placeholder={t('productCostInput')} />
               </NumberInput>
               <NumberInput
                 min={0}
@@ -339,16 +339,16 @@ function InventoryManagement() {
                 value={newItem.minStock}
                 onChange={val => setNewItem(prev => ({ ...prev, minStock: val }))}
               >
-                <NumberInputField placeholder="Stock mínimo (alerta)" />
+                <NumberInputField placeholder={t('minimumStockInput')} />
               </NumberInput>
             </HStack>
-            <Input placeholder="Proveedor (opcional)" value={newItem.supplier} name="supplier" onChange={handleInputChange} />
+            <Input placeholder={t('supplierInput')} value={newItem.supplier} name="supplier" onChange={handleInputChange} />
 
             <Divider borderColor="whiteAlpha.200" />
 
             {/* Tags */}
             <Box>
-              <Text fontSize="sm" mb={2} opacity={0.8}>Categorías / Etiquetas</Text>
+              <Text fontSize="sm" mb={2} opacity={0.8}>{t('tagsLabel')}</Text>
               <Wrap mb={3}>
                 {PREDEFINED_TAGS.map(tag => (
                   <WrapItem key={tag}>
@@ -381,7 +381,7 @@ function InventoryManagement() {
               <HStack>
                 <Input
                   size="sm"
-                  placeholder="Etiqueta personalizada..."
+                  placeholder={t('customTagInput')}
                   value={customTag}
                   onChange={e => setCustomTag(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addCustomTag()}
@@ -393,11 +393,11 @@ function InventoryManagement() {
 
             <HStack>
               <Button colorScheme="green" onClick={handleAddOrUpdateItem} flex="1">
-                {editingItemId ? 'Guardar cambios' : t('addItem')}
+                {editingItemId ? t('saveChangesButton') : t('addItem')}
               </Button>
               {editingItemId && (
                 <Button variant="ghost" onClick={handleCancelEdit}>
-                  Cancelar
+                  {t('cancelButton')}
                 </Button>
               )}
             </HStack>

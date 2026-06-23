@@ -1,8 +1,10 @@
 import { Button, VStack, Text } from '@chakra-ui/react';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 function ThemeSwitcher() {
   const { applyRandomTheme, getCurrentThemeName } = useTheme();
+  const { t } = useLanguage();
 
   const handleThemeChange = () => {
     const newTheme = applyRandomTheme();
@@ -37,9 +39,9 @@ function ThemeSwitcher() {
           bg: "gray.900",
           boxShadow: "md"
         }}
-        title="DEBUG: Herramienta para cambiar temas aleatoriamente (Solo para testing)"
+        title={t('themeSwitcherDebugTooltip')}
       >
-        🎨 Tema
+        {t('themeButtonLabel')}
       </Button>
       <Text 
         fontSize="sm" 

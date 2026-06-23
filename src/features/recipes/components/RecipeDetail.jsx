@@ -5,10 +5,10 @@ import {
 } from '@chakra-ui/react';
 import { FaClock, FaFireAlt, FaUsers, FaEdit, FaTrash, FaDollarSign, FaTag } from 'react-icons/fa';
 import { useTheme } from '../../../context/ThemeContext';
+import { useLanguage } from '../../../context/LanguageContext';
 import { resolveImageUrl } from './ImageInput';
 import { calcIngredientCost, calcTotalCost, formatCost, calcMargin } from '../costUtils';
 
-const difficultyLabel = { easy: 'Fácil', medium: 'Media', hard: 'Difícil' };
 const difficultyColor = { easy: 'green', medium: 'yellow', hard: 'red' };
 
 // ── Subcomponentes de sección ────────────────────────────────────────────────
@@ -43,6 +43,8 @@ function StatBox({ label, value, sub, color = 'white' }) {
 
 function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap = {} }) {
   const { currentTheme } = useTheme();
+  const { t } = useLanguage();
+  const difficultyLabel = { easy: t('difficultyEasy'), medium: t('difficultyMedium'), hard: t('difficultyHard') };
   const primary = currentTheme.colors.primary[500];
   const surface = currentTheme.colors.interface?.surface || '#333';
   const textColor = currentTheme.colors.text;
@@ -101,24 +103,24 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap 
               borderColor={`${primary}22`}
               bg={`${primary}08`}
             >
-              <SectionLabel color={primary}>Ficha técnica</SectionLabel>
+              <SectionLabel color={primary}>{t('technicalSheet')}</SectionLabel>
               <HStack spacing={0} flexWrap="wrap" divider={
                 <Box w="1px" h="32px" bg={`${primary}22`} mx={3} />
               }>
                 {/* Área */}
                 <Box>
-                  <Text fontSize="10px" opacity={0.5} textTransform="uppercase" letterSpacing="wide" mb={0.5}>Área</Text>
+                  <Text fontSize="10px" opacity={0.5} textTransform="uppercase" letterSpacing="wide" mb={0.5}>{t('areaLabel')}</Text>
                   <Badge
                     colorScheme={recipe.area === 'kitchen' ? 'orange' : 'cyan'}
                     variant="subtle" borderRadius="md" px={2}
                   >
-                    {recipe.area === 'kitchen' ? '🍳 Cocina' : '🍹 Barra'}
+                    {recipe.area === 'kitchen' ? `🍳 ${t('areaKitchen')}` : `🍹 ${t('areaBar')}`}
                   </Badge>
                 </Box>
 
                 {/* Dificultad */}
                 <Box>
-                  <Text fontSize="10px" opacity={0.5} textTransform="uppercase" letterSpacing="wide" mb={0.5}>Dificultad</Text>
+                  <Text fontSize="10px" opacity={0.5} textTransform="uppercase" letterSpacing="wide" mb={0.5}>{t('difficultyLabel')}</Text>
                   <Badge
                     colorScheme={difficultyColor[recipe.difficulty] || 'gray'}
                     variant="subtle" borderRadius="md" px={2}
@@ -130,7 +132,7 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap 
                 {/* Tiempos */}
                 {prepTime > 0 && (
                   <Box>
-                    <Text fontSize="10px" opacity={0.5} textTransform="uppercase" letterSpacing="wide" mb={0.5}>Prep.</Text>
+                    <Text fontSize="10px" opacity={0.5} textTransform="uppercase" letterSpacing="wide" mb={0.5}>{t('prepLabel')}</Text>
                     <HStack spacing={1}>
                       <FaClock size="11px" color={primary} />
                       <Text fontSize="sm" fontWeight="semibold">{prepTime} min</Text>
@@ -139,7 +141,7 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap 
                 )}
                 {cookTime > 0 && (
                   <Box>
-                    <Text fontSize="10px" opacity={0.5} textTransform="uppercase" letterSpacing="wide" mb={0.5}>Cocción</Text>
+                    <Text fontSize="10px" opacity={0.5} textTransform="uppercase" letterSpacing="wide" mb={0.5}>{t('cookingLabel')}</Text>
                     <HStack spacing={1}>
                       <FaFireAlt size="11px" color={primary} />
                       <Text fontSize="sm" fontWeight="semibold">{cookTime} min</Text>
@@ -150,7 +152,7 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap 
                 {/* Porciones */}
                 {recipe.servings > 0 && (
                   <Box>
-                    <Text fontSize="10px" opacity={0.5} textTransform="uppercase" letterSpacing="wide" mb={0.5}>Porciones</Text>
+                    <Text fontSize="10px" opacity={0.5} textTransform="uppercase" letterSpacing="wide" mb={0.5}>{t('servingsLabelDetail')}</Text>
                     <HStack spacing={1}>
                       <FaUsers size="11px" color={primary} />
                       <Text fontSize="sm" fontWeight="semibold">{recipe.servings}</Text>
@@ -171,7 +173,7 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap 
             {recipe.ingredients?.length > 0 && (
               <Box>
                 <SectionLabel color={primary}>
-                  Ingredientes · {recipe.ingredients.length} items
+                  {t('ingredientsSection').replace('{count}', recipe.ingredients.length)}
                 </SectionLabel>
                 <VStack align="stretch" spacing={0}>
                   {recipe.ingredients.map((ing, i) => {
@@ -193,7 +195,7 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap 
                         {imgSrc ? (
                           <Image src={imgSrc} alt={ing.name} boxSize="28px" borderRadius="md" objectFit="cover" flexShrink={0} />
                         ) : (
-                          <Text fontSize="md" lineHeight="1" flexShrink={0}>🥄</Text>
+                          <Text fontSize="md" lineHeight="1" flexShrink={0} title={t('ingredientIcon')}>🥄</Text>
                         )}
 
                         {/* Número + nombre */}
@@ -227,29 +229,29 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap 
                     border="1px solid" borderColor={`${primary}33`}
                     bg={`${primary}0A`}
                   >
-                    <SectionLabel color={primary}>Análisis de precio</SectionLabel>
+                    <SectionLabel color={primary}>{t('priceAnalysis')}</SectionLabel>
                     <HStack spacing={0} divider={<Box w="1px" h="28px" bg={`${primary}22`} mx={3} />}>
                       {totalCost != null && (
                         <StatBox
-                          label="Costo total"
+                          label={t('totalCost')}
                           value={formatCost(totalCost)}
-                          sub={recipe.servings > 1 ? `${formatCost(totalCost / recipe.servings)} / porc.` : null}
+                          sub={recipe.servings > 1 ? t('costPerServing').replace('{amount}', formatCost(totalCost / recipe.servings)) : null}
                           color="red.400"
                         />
                       )}
                       {salePrice != null && (
                         <StatBox
-                          label="Precio venta"
+                          label={t('salePriceLabel')}
                           value={formatCost(salePrice)}
-                          sub={recipe.servings > 1 ? `${formatCost(salePrice / recipe.servings)} / porc.` : null}
+                          sub={recipe.servings > 1 ? t('pricePerServing').replace('{amount}', formatCost(salePrice / recipe.servings)) : null}
                           color="blue.300"
                         />
                       )}
                       {margin && (
                         <StatBox
-                          label="Ganancia"
+                          label={t('profitLabel')}
                           value={formatCost(margin.profit)}
-                          sub={`${margin.marginPct.toFixed(1)}% margen`}
+                          sub={t('marginPercentage').replace('{percent}', margin.marginPct.toFixed(1))}
                           color={margin.profit >= 0 ? 'green.400' : 'red.400'}
                         />
                       )}
@@ -263,7 +265,7 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap 
             {recipe.steps?.length > 0 && (
               <Box>
                 <SectionLabel color={primary}>
-                  Preparación · {recipe.steps.length} pasos
+                  {t('preparationSteps').replace('{count}', recipe.steps.length)}
                 </SectionLabel>
                 <VStack align="stretch" spacing={3}>
                   {[...recipe.steps].sort((a, b) => a.order - b.order).map((step, i) => {
@@ -283,7 +285,7 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap 
                           <Text fontSize="sm" lineHeight="1.6">{step.description}</Text>
                           {stepImg && (
                             <Box borderRadius="lg" overflow="hidden" maxH="160px" w="full">
-                              <Image src={stepImg} alt={`Resultado paso ${i + 1}`} w="full" maxH="160px" objectFit="cover" />
+                              <Image src={stepImg} alt={t('stepResultImage').replace('{number}', i + 1)} w="full" maxH="160px" objectFit="cover" />
                             </Box>
                           )}
                         </VStack>
@@ -299,13 +301,13 @@ function RecipeDetail({ recipe, isOpen, onClose, onEdit, onDelete, inventoryMap 
         <ModalFooter borderTop="1px solid" borderColor={`${primary}22`} gap={2} py={3}>
           <Button leftIcon={<FaTrash />} colorScheme="red" variant="ghost" size="sm"
             onClick={() => { onClose(); onDelete(recipe); }}>
-            Eliminar
+            {t('deleteRecipeButton')}
           </Button>
           <Box flex="1" />
-          <Button variant="ghost" size="sm" onClick={onClose}>Cerrar</Button>
+          <Button variant="ghost" size="sm" onClick={onClose}>{t('closeModalButton')}</Button>
           <Button leftIcon={<FaEdit />} colorScheme="blue" size="sm"
             onClick={() => { onClose(); onEdit(recipe); }}>
-            Editar
+            {t('editRecipeButton')}
           </Button>
         </ModalFooter>
       </ModalContent>

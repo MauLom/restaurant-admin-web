@@ -9,8 +9,10 @@ import { Badge } from '@chakra-ui/react';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import { ItemSearchBar } from './ItemSearchBar'; // Asegúrate de importar el componente de búsqueda
 import OrderMenuItem from './OrderMenuItem';
+import { useLanguage } from '../../../context/LanguageContext';
 function OrderForm({ table, onBack }) {
   const toast = useCustomToast();
+  const { t } = useLanguage();
   const { user } = useContext(UserContext);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -35,7 +37,7 @@ function OrderForm({ table, onBack }) {
       } catch (error) {
         toast({
           title: 'Error',
-          description: 'No se pudo cargar el inventario',
+          description: t('inventoryLoadError'),
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -49,7 +51,7 @@ function OrderForm({ table, onBack }) {
       } catch (error) {
         toast({
           title: 'Error',
-          description: 'No se pudieron cargar las categorías del menú',
+          description: t('categoriesLoadError'),
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -67,7 +69,7 @@ function OrderForm({ table, onBack }) {
     fetchThreshold();
     fetchInventory();
     fetchCategories();
-  }, [toast]);
+  }, [toast, t]);
 
   useEffect(() => {
     if (selectedCategory) {
@@ -78,7 +80,7 @@ function OrderForm({ table, onBack }) {
         } catch (error) {
           toast({
             title: 'Error',
-            description: 'No se pudieron cargar los items del menú',
+            description: t('itemsLoadError'),
             status: 'error',
             duration: 3000,
             isClosable: true,
@@ -89,7 +91,7 @@ function OrderForm({ table, onBack }) {
     } else {
       setMenuItems([]);
     }
-  }, [selectedCategory, toast]);
+  }, [selectedCategory, toast, t]);
 
   const handleAddItem = (item, delta) => {
     setOrderItems(prevItems => {
@@ -101,8 +103,8 @@ function OrderForm({ table, onBack }) {
 
         if (stock !== null && updatedQuantity > stock) {
           toast({
-            title: 'Stock insuficiente',
-            description: `Solo hay ${stock} unidad(es) disponibles de "${item.name}".`,
+            title: t('insufficientStock'),
+            description: t('insufficientStockDesc').replace('{stock}', stock).replace('{itemName}', item.name),
             status: 'warning',
             duration: 3000,
             isClosable: true,
@@ -120,8 +122,8 @@ function OrderForm({ table, onBack }) {
       } else {
         if (delta > 0 && stock !== null && delta > stock) {
           toast({
-            title: 'Stock insuficiente',
-            description: `Solo hay ${stock} unidad(es) disponibles de "${item.name}".`,
+            title: t('insufficientStock'),
+            description: t('insufficientStockDesc').replace('{stock}', stock).replace('{itemName}', item.name),
             status: 'warning',
             duration: 3000,
             isClosable: true,
@@ -154,7 +156,7 @@ function OrderForm({ table, onBack }) {
     if (orderItems.length === 0) {
       toast({
         title: 'Error',
-        description: 'La orden está vacía',
+        description: t('orderEmptyError'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -178,8 +180,8 @@ function OrderForm({ table, onBack }) {
       };
       await api.post('/orders', orderPayload);
       toast({
-        title: 'Orden creada',
-        description: `La orden para la mesa ${table.number} se creó correctamente.`,
+        title: t('orderCreated'),
+        description: t('orderCreatedDesc').replace('{tableNumber}', table.number),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -189,7 +191,7 @@ function OrderForm({ table, onBack }) {
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'No se pudo crear la orden',
+        description: t('createOrderError'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -201,8 +203,8 @@ function OrderForm({ table, onBack }) {
     try {
       await api.put(`/tables/${table._id}`, { status: 'ready_for_payment' });
       toast({
-        title: 'Mesa lista para cobro',
-        description: 'El cajero ha sido notificado.',
+        title: t('tableReadyForPayment'),
+        description: t('cashierNotified'),
         status: 'info',
         duration: 3000,
         isClosable: true,
@@ -210,7 +212,7 @@ function OrderForm({ table, onBack }) {
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'No se pudo notificar al cajero',
+        description: t('cashierNotificationError'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -233,14 +235,14 @@ function OrderForm({ table, onBack }) {
   return (
     <VStack align="stretch" spacing={6} bg="#1a202c" color="white" p={4} borderRadius="md">
       <Button mb={4} onClick={onBack} bg="gray.600" _hover={{ bg: 'gray.500' }} color="white">
-        Volver a Mesas
+        {t('backToTables')}
       </Button>
       <Text fontSize="xl" fontWeight="bold" color="teal.200">
-        Orden para la mesa {table.number}
+        {t('orderForTable').replace('{tableNumber}', table.number)}
       </Text>
 
       <Box p={4}>
-        <Text mb={2} fontWeight="semibold">Categorías:</Text>
+        <Text mb={2} fontWeight="semibold">{t('categoriesLabel')}:</Text>
         <Wrap spacing="12px">
           {categories.map(category => (
             <WrapItem key={category._id}>
@@ -258,7 +260,7 @@ function OrderForm({ table, onBack }) {
 
       <Box p={4}>
         <HStack justify="space-between" align="center" mb={2}>
-          <Text fontWeight="semibold">Menú:</Text>
+          <Text fontWeight="semibold">{t('menuLabel')}:</Text>
           <ItemSearchBar items={menuItems} onFilter={setFilteredItems} />
         </HStack>
         <Grid templateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap={4}>
@@ -288,9 +290,9 @@ function OrderForm({ table, onBack }) {
 
 
       <Box p={4} borderWidth="1px" borderRadius="md" bg="#363636">
-        <Text fontSize="lg" fontWeight="bold" mb={2}>Resumen de la Orden</Text>
+        <Text fontSize="lg" fontWeight="bold" mb={2}>{t('orderSummary')}</Text>
         {orderItems.length === 0 ? (
-          <Text>No se han seleccionado ítems.</Text>
+          <Text>{t('noItemsSelected')}</Text>
         ) : (
           <VStack spacing={4} align="stretch">
             {orderItems.map(item => (
@@ -303,7 +305,7 @@ function OrderForm({ table, onBack }) {
                 </HStack>
                 <Textarea
                   mt={2}
-                  placeholder="Agregar nota (ej. sin cacahuates)"
+                  placeholder={t('addNotePlaceholder')}
                   value={item.note}
                   onChange={(e) => handleNoteChange(item._id, e.target.value)}
                   bg="gray.600"
@@ -320,7 +322,7 @@ function OrderForm({ table, onBack }) {
         <Text fontWeight="bold">Total: ${calculateTotal().toFixed(2)}</Text>
       </Box>
       <Textarea
-        placeholder="Comentarios generales para la orden"
+        placeholder={t('generalCommentsPlaceholder')}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         bg="gray.700"
@@ -330,7 +332,7 @@ function OrderForm({ table, onBack }) {
       <Box position={{ base: "fixed", md: "static" }} bottom="0" left="0" right="0" bg="gray.900" p={4} zIndex="10" boxShadow="dark-lg" pb={{ base: "100px", md: "15px" }}>
         <HStack justify="center" spacing={4}>
           <Button bg="teal.500" _hover={{ bg: 'teal.600' }} onClick={handleSubmitOrder} color="white">
-            Confirmar Orden
+            {t('confirmOrder')}
           </Button>
           <Button bg="orange.500" _hover={{ bg: 'orange.600' }} onClick={handleSendToCashier} leftIcon={<FaCashRegister />} color="white">
             Enviar al Cajero

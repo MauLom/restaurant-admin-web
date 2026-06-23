@@ -8,6 +8,7 @@ import {
 } from '@chakra-ui/react';
 import { FaPlus, FaSearch } from 'react-icons/fa';
 import { useTheme } from '../../../context/ThemeContext';
+import { useLanguage } from '../../../context/LanguageContext';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import api from '../../../services/api';
 import RecipeCard from './RecipeCard';
@@ -16,6 +17,7 @@ import RecipeForm from './RecipeForm';
 
 function RecipeManagement() {
   const { currentTheme } = useTheme();
+  const { t } = useLanguage();
   const toast = useCustomToast();
   const primary = currentTheme.colors.primary[500];
   const textColor = currentTheme.colors.text;
@@ -66,7 +68,7 @@ function RecipeManagement() {
       setRecipes(Array.isArray(recipesRes.data) ? recipesRes.data : []);
       setInventoryItems(Array.isArray(inventoryRes.data) ? inventoryRes.data : []);
     } catch {
-      toast({ title: 'Error al cargar datos', status: 'error', duration: 3000 });
+      toast({ title: t('errorLoadingData'), status: 'error', duration: 3000 });
     } finally {
       setLoading(false);
     }
@@ -79,14 +81,14 @@ function RecipeManagement() {
       if (editingRecipe) {
         const res = await api.put(`/recipes/${editingRecipe._id}`, payload);
         setRecipes(prev => prev.map(r => r._id === editingRecipe._id ? res.data : r));
-        toast({ title: 'Receta actualizada', status: 'success', duration: 2500 });
+        toast({ title: t('recipeUpdated'), status: 'success', duration: 2500 });
       } else {
         const res = await api.post('/recipes', payload);
         setRecipes(prev => [...prev, res.data]);
-        toast({ title: 'Receta creada', status: 'success', duration: 2500 });
+        toast({ title: t('recipeCreated'), status: 'success', duration: 2500 });
       }
     } catch {
-      toast({ title: 'Error al guardar la receta', status: 'error', duration: 3000 });
+      toast({ title: t('errorSavingRecipe'), status: 'error', duration: 3000 });
       throw new Error('save failed');
     }
   };
@@ -97,10 +99,10 @@ function RecipeManagement() {
     try {
       await api.delete(`/recipes/${deletingRecipe._id}`);
       setRecipes(prev => prev.filter(r => r._id !== deletingRecipe._id));
-      toast({ title: 'Receta eliminada', status: 'success', duration: 2500 });
+      toast({ title: t('recipeDeleted'), status: 'success', duration: 2500 });
       deleteDisc.onClose();
     } catch {
-      toast({ title: 'Error al eliminar', status: 'error', duration: 3000 });
+      toast({ title: t('errorDeleting'), status: 'error', duration: 3000 });
     } finally {
       setDeleting(false);
     }
@@ -123,9 +125,9 @@ function RecipeManagement() {
   return (
     <Box>
       <HStack justify="space-between" mb={5} flexWrap="wrap" gap={3}>
-        <Heading size="md" color={primary}>Libro de recetas</Heading>
+        <Heading size="md" color={primary}>{t('recipesTitle')}</Heading>
         <Button leftIcon={<FaPlus />} size="sm" colorScheme="blue" onClick={openCreate}>
-          Nueva receta
+          {t('newRecipeButton')}
         </Button>
       </HStack>
 
@@ -133,13 +135,13 @@ function RecipeManagement() {
         <InputGroup size="sm" maxW="260px">
           <InputLeftElement pointerEvents="none"><FaSearch color="gray" /></InputLeftElement>
           <Input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar receta..." borderRadius="lg" />
+            placeholder={t('searchRecipe')} borderRadius="lg" />
         </InputGroup>
         <ButtonGroup size="sm" isAttached variant="outline">
           {[
-            { value: 'all', label: 'Todas' },
-            { value: 'kitchen', label: '🍳 Cocina' },
-            { value: 'bar', label: '🍹 Barra' },
+            { value: 'all', label: t('allRecipes') },
+            { value: 'kitchen', label: `🍳 ${t('kitchenArea')}` },
+            { value: 'bar', label: `🍹 ${t('barArea')}` },
           ].map(opt => (
             <Button key={opt.value} onClick={() => setAreaFilter(opt.value)}
               bg={areaFilter === opt.value ? primary : 'transparent'}
@@ -158,12 +160,12 @@ function RecipeManagement() {
           <Text fontSize="4xl">📖</Text>
           <Text color={textColor} opacity={0.6}>
             {search || areaFilter !== 'all'
-              ? 'No se encontraron recetas con ese filtro.'
-              : 'Aún no hay recetas. ¡Agrega la primera!'}
+              ? t('noRecipesWithFilter')
+              : t('noRecipesYet')}
           </Text>
           {!search && areaFilter === 'all' && (
             <Button leftIcon={<FaPlus />} size="sm" colorScheme="blue" onClick={openCreate}>
-              Agregar primera receta
+              {t('addFirstRecipe')}
             </Button>
           )}
         </Center>
@@ -185,13 +187,13 @@ function RecipeManagement() {
       <AlertDialog isOpen={deleteDisc.isOpen} leastDestructiveRef={cancelRef} onClose={deleteDisc.onClose}>
         <AlertDialogOverlay>
           <AlertDialogContent>
-            <AlertDialogHeader>Eliminar receta</AlertDialogHeader>
+            <AlertDialogHeader>{t('deleteRecipeTitle')}</AlertDialogHeader>
             <AlertDialogBody>
-              ¿Seguro que quieres eliminar "{deletingRecipe?.name}"? Esta acción no se puede deshacer.
+              {t('deleteRecipeConfirm').replace('{name}', deletingRecipe?.name)}
             </AlertDialogBody>
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={deleteDisc.onClose}>Cancelar</Button>
-              <Button colorScheme="red" onClick={handleDelete} isLoading={deleting} ml={3}>Eliminar</Button>
+              <Button ref={cancelRef} onClick={deleteDisc.onClose}>{t('cancelButton')}</Button>
+              <Button colorScheme="red" onClick={handleDelete} isLoading={deleting} ml={3}>{t('deleteButton')}</Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialogOverlay>

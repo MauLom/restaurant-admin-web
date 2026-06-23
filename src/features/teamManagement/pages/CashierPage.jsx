@@ -8,8 +8,10 @@ import {
 } from '@chakra-ui/react';
 import api from '../../../services/api';
 import { useCustomToast } from '../../../hooks/useCustomToast';
+import { useLanguage } from '../../../context/LanguageContext';
 
 function CashierPage() {
+  const { t } = useLanguage();
   const [tables, setTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
   const [orders, setOrders] = useState([]);
@@ -87,7 +89,7 @@ function CashierPage() {
     if (!isPaymentValid()) {
       toast({
         title: "Error",
-        description: "Total payment is less than the grand total.",
+        description: t('totalPaymentLessThanGrandTotal'),
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -102,8 +104,8 @@ function CashierPage() {
       });
 
       toast({
-        title: "Payment Completed",
-        description: "Payment for the table has been finalized.",
+        title: t('paymentCompletedTitle'),
+        description: t('paymentFinalizedDescription'),
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -118,7 +120,7 @@ function CashierPage() {
       console.error('Error finalizing payment:', error);
       toast({
         title: "Error",
-        description: "Error finalizing payment.",
+        description: t('errorFinalizingPaymentDescription'),
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -135,7 +137,7 @@ function CashierPage() {
     <Box p={4}>
       <VStack spacing={4} align="stretch">
         {/* Table Order Summaries */}
-        <Text fontSize="2xl" mb={4}>Select a Table</Text>
+        <Text fontSize="2xl" mb={4}>{t('selectATable')}</Text>
         {tables.length > 0 ? (
           <Stack direction="row" wrap="wrap" spacing={4}>
             {tables.map((table) => (
@@ -149,14 +151,14 @@ function CashierPage() {
                 bg={selectedTable === table._id ? 'blue.50' : 'white'}
                 onClick={() => handleTableSelect(table._id)}
               >
-                <Text color={'black'} fontSize="lg" fontWeight="bold">Table {table.number}</Text>
+                <Text color={'black'} fontSize="lg" fontWeight="bold">{t('tableNumberLabel').replace('{number}', table.number)}</Text>
                 {table.orders && table.orders.length > 0 ? (
                   <>
                     <Text>Total Orders: {table.orders.length}</Text>
                     <Text>Total Amount: ${table.orders.reduce((sum, order) => sum + order.total, 0).toFixed(2)}</Text>
                   </>
                 ) : (
-                  <Text>No pending orders</Text>
+                  <Text>{t('noPendingOrders')}</Text>
                 )}
               </Box>
             ))}
@@ -165,31 +167,31 @@ function CashierPage() {
           <Box textAlign="center" py={10}>
             <Image
               src="/images/empty-state.png"
-              alt="No orders"
+              alt={t('noOrdersImageAlt')}
               boxSize="150px"
               margin="auto"
             />
-            <Text fontSize="lg" mt={4}>No tables with pending orders</Text>
+            <Text fontSize="lg" mt={4}>{t('noTablesWithPendingOrders')}</Text>
           </Box>
         )}
 
         {/* Orders Section */}
         {orders.length > 0 && (
           <VStack spacing={4} align="stretch" mt={6}>
-            <Text fontSize="lg" fontWeight="bold">Orders for Table {selectedTable}</Text>
+            <Text fontSize="lg" fontWeight="bold">{t('ordersForTable').replace('{table}', selectedTable)}</Text>
             {orders.map((order) => (
               <Box key={order._id} p={4} borderWidth="1px" borderRadius="md" width="full">
-                <Text fontSize="lg" fontWeight="bold">Order #{order._id}</Text>
+                <Text fontSize="lg" fontWeight="bold">{t('orderNumberLabel').replace('{id}', order._id)}</Text>
                 {/* Order details, similar to your existing layout */}
               </Box>
             ))}
 
             <HStack justifyContent="space-between">
-              <Text fontSize="lg">Subtotal:</Text>
+              <Text fontSize="lg">{t('subtotalLabel')}</Text>
               <Text fontSize="lg">${total.toFixed(2)}</Text>
             </HStack>
             <HStack justifyContent="space-between">
-              <Text fontSize="lg">Tip:</Text>
+              <Text fontSize="lg">{t('tipLabel')}</Text>
               <Input
                 type="number"
                 value={tip}
@@ -200,14 +202,14 @@ function CashierPage() {
               />
             </HStack>
             <HStack spacing={4}>
-              <Button colorScheme="blue" onClick={() => handleTipShortcut(5)}>Add 5% Tip</Button>
-              <Button colorScheme="blue" onClick={() => handleTipShortcut(10)}>Add 10% Tip</Button>
-              <Button colorScheme="blue" onClick={() => handleTipShortcut(15)}>Add 15% Tip</Button>
+              <Button colorScheme="blue" onClick={() => handleTipShortcut(5)}>{t('add5PercentTip')}</Button>
+              <Button colorScheme="blue" onClick={() => handleTipShortcut(10)}>{t('add10PercentTip')}</Button>
+              <Button colorScheme="blue" onClick={() => handleTipShortcut(15)}>{t('add15PercentTip')}</Button>
             </HStack>
 
             {/* Payment Methods */}
             <VStack spacing={4} align="stretch">
-              <Text fontSize="lg" fontWeight="bold">Payment Methods</Text>
+              <Text fontSize="lg" fontWeight="bold">{t('paymentMethodsHeading')}</Text>
               {paymentMethods.map((method, index) => (
                 <HStack key={index} spacing={4}>
                   <Select
@@ -217,12 +219,12 @@ function CashierPage() {
                     color="black"
                     width="150px"
                   >
-                    <option value="cash">Cash</option>
-                    <option value="card">Card</option>
+                    <option value="cash">{t('paymentMethod_cash')}</option>
+                    <option value="card">{t('paymentMethod_card')}</option>
                   </Select>
                   <Input
                     type="number"
-                    placeholder="Amount"
+                    placeholder={t('amountPlaceholder')}
                     value={method.amount}
                     onChange={(e) =>
                       handlePaymentMethodChange(index, 'amount', parseFloat(e.target.value) || 0)
@@ -232,36 +234,36 @@ function CashierPage() {
                     color="black"
                   />
                   {paymentMethods.length > 1 && (
-                    <Button colorScheme="red" onClick={() => handleRemovePaymentMethod(index)}>Remove</Button>
+                    <Button colorScheme="red" onClick={() => handleRemovePaymentMethod(index)}>{t('remove')}</Button>
                   )}
                 </HStack>
               ))}
-              <Button colorScheme="blue" onClick={handleAddPaymentMethod}>Add Payment Method</Button>
+              <Button colorScheme="blue" onClick={handleAddPaymentMethod}>{t('addPaymentMethodButton')}</Button>
             </VStack>
 
             {change > 0 && (
               <Text color="green.500" fontSize="lg">
-                Change to return: ${change.toFixed(2)}
+                {t('changeToReturnLabel').replace('{amount}', change.toFixed(2))}
               </Text>
             )}
 
             <HStack justifyContent="space-between">
-              <Text fontSize="lg" fontWeight="bold">Grand Total (with tip):</Text>
+              <Text fontSize="lg" fontWeight="bold">{t('grandTotalWithTipLabel')}</Text>
               <Text fontSize="lg" fontWeight="bold">${grandTotal.toFixed(2)}</Text>
             </HStack>
 
             <Button colorScheme="green" onClick={onOpen}>
-              Finalize Payment
+              {t('finalizePaymentButton')}
             </Button>
 
             {/* Confirmation Modal */}
             <Modal isOpen={isOpen} onClose={onClose}>
               <ModalOverlay />
               <ModalContent>
-                <ModalHeader color="black">Confirm Payment</ModalHeader>
+                <ModalHeader color="black">{t('confirmPayment')}</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
-                  <Text color="black">Please confirm the following payments:</Text>
+                  <Text color="black">{t('confirmFollowingPayments')}</Text>
                   {paymentMethods.map((method, index) => (
                     <HStack key={index} justifyContent="space-between" mt={4}>
                       <Text color="black">{method.method.toUpperCase()}</Text>
@@ -271,20 +273,20 @@ function CashierPage() {
                     </HStack>
                   ))}
                   <HStack justifyContent="space-between" mt={4}>
-                    <Text color="black" fontWeight="bold">Total Payment</Text>
+                    <Text color="black" fontWeight="bold">{t('totalPaymentLabel')}</Text>
                     <Text color="black" fontWeight="bold">
                       ${totalPayment.toFixed(2)}
                     </Text>
                   </HStack>
                   <HStack justifyContent="space-between" mt={4}>
-                    <Text color="black" fontWeight="bold">Grand Total</Text>
+                    <Text color="black" fontWeight="bold">{t('grandTotal')}</Text>
                     <Text color="black" fontWeight="bold">
                       ${grandTotal.toFixed(2)}
                     </Text>
                   </HStack>
                   {change > 0 && (
                     <HStack justifyContent="space-between" mt={4}>
-                      <Text color="black" fontWeight="bold">Change to Return</Text>
+                      <Text color="black" fontWeight="bold">{t('changeToReturnHeading')}</Text>
                       <Text color="black" fontWeight="bold">
                         ${change.toFixed(2)}
                       </Text>
@@ -294,7 +296,7 @@ function CashierPage() {
 
                 <ModalFooter>
                   <Button colorScheme="green" onClick={handleFinalizePayment}>
-                    Confirm Payment
+                    {t('confirmPayment')}
                   </Button>
                 </ModalFooter>
               </ModalContent>
