@@ -43,16 +43,16 @@ function WaiterOrderList() {
         {orders.map(order => (
           <Box key={order._id} p={4} borderWidth="1px" borderRadius="lg" width="100%">
             <HStack justify="space-between">
-              <Text>{t('table')} {order.tableId.number} - {order.status}</Text>
+              <Text>{t('table')} {order.tableId.number} - {t(order.status)}</Text>
               <Badge colorScheme={order.status === 'ready' ? 'green' : 'yellow'}>
-                {order.status}
+                {t(order.status)}
               </Badge>
             </HStack>
             <VStack mt={4} align="start">
               {order.items.map((item, index) => (
                 <HStack key={index} justify="space-between" width="100%">
                   <Text>{item.name}</Text>
-                  <Text>{item.status}</Text>
+                  <Text>{t(item.status)}</Text>
                 </HStack>
               ))}
             </VStack>

@@ -4,7 +4,14 @@ import translations from '../i18n';
 const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
-  const [language, setLanguage] = useState('en'); // Default language is English
+  const [language, setLanguageState] = useState(
+    () => localStorage.getItem('language') || 'es'
+  );
+
+  const setLanguage = (lang) => {
+    localStorage.setItem('language', lang);
+    setLanguageState(lang);
+  };
 
   const t = (key) => {
     return translations[language][key] || key;

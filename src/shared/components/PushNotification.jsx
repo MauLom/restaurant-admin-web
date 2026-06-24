@@ -17,8 +17,8 @@ function PushNotification() {
   const showNotification = () => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.ready.then(registration => {
-        registration.showNotification('Test Notification', {
-          body: 'This is a test push notification.',
+        registration.showNotification(t('testNotificationTitle'), {
+          body: t('testNotificationBody'),
           icon: '/icon.png',
         });
       });

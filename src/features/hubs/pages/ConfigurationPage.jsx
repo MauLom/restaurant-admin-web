@@ -2,27 +2,29 @@ import React from 'react';
 import { Box, SimpleGrid, Heading, Text, VStack, useTheme, HStack } from '@chakra-ui/react';
 import { FaCogs } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../../../context/LanguageContext';
 
 function ConfigurationPage() {
+  const { t } = useLanguage();
   const options = [
-    { 
-      title: 'Generar accesos (PINs)', 
-      description: 'Generar códigos PIN para colaboradores.', 
+    {
+      title: t('generatePINsTitle'),
+      description: t('generatePINsDescription'),
       link: '/dashboard/generate-pins'
     },
-    { 
-      title: 'Configurar perfil', 
-      description: 'Actualizar datos personales y credenciales.', 
+    {
+      title: t('configureProfileTitle'),
+      description: t('configureProfileDescription'),
       link: '/dashboard/profile'
     },
-    { 
-      title: 'Configurar sistema', 
-      description: 'Ajustar preferencias y configuraciones generales.', 
+    {
+      title: t('configureSystemTitle'),
+      description: t('configureSystemDescription'),
       link: '/dashboard/settings'
     },
-    { 
-      title: 'Gestionar layout', 
-      description: 'Administrar secciones y mesas del restaurante.', 
+    {
+      title: t('manageLayoutTitle'),
+      description: t('manageLayoutDescription'),
       link: '/dashboard/sections'
     },
   ];
@@ -55,7 +57,7 @@ function ConfigurationPage() {
             color={headingColor}
             textAlign="center"
           >
-            Configurar sistema
+            {t('configureSystemHeading')}
           </Heading>
         </Box>
       </HStack>
@@ -98,7 +100,7 @@ function ConfigurationPage() {
             }}
             textDecoration="none"
             role="button"
-            aria-label={`Ir a ${option.title}`}
+            aria-label={t('navigationAriaLabel').replace('{title}', option.title)}
           >
             <VStack spacing={{ base: 2, md: 3 }} align="start" h="full" justify="center">
               <Heading 

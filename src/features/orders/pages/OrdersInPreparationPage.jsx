@@ -3,11 +3,13 @@ import { Box, VStack, HStack, Text, Button, Tabs, TabList, TabPanels, Tab, TabPa
 import api from '../../../services/api';
 import { useAuthContext } from '../../../context/AuthContext';
 import { io } from 'socket.io-client';
+import { useLanguage } from '../../../context/LanguageContext';
 
 function OrdersPreparationPage() {
   const [orders, setOrders] = useState([]);
   const [preparationAreas, setPreparationAreas] = useState(['kitchen', 'bar']);
   const { user } = useAuthContext();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -79,13 +81,13 @@ function OrdersPreparationPage() {
 
   return (
     <Box p={4}>
-      <Text fontSize="2xl" mb={4}>Órdenes en Preparación</Text>
+      <Text fontSize="2xl" mb={4}>{t('preparationOrdersTitle')}</Text>
 
       <Tabs variant="soft-rounded" colorScheme="teal">
         <TabList>
           {groupedOrders.map((group) => (
             <Tab key={group.area}>
-              {group.area === 'kitchen' ? 'Cocina' : group.area === 'bar' ? 'Barra' : group.area}
+              {group.area === 'kitchen' ? t('kitchenArea') : group.area === 'bar' ? t('barArea') : group.area}
             </Tab>
           ))}
         </TabList>
@@ -96,7 +98,7 @@ function OrdersPreparationPage() {
               <VStack spacing={4} align="stretch">
                 {group.orders.map((order) => (
                   <Box key={order._id} p={4} bg="#363636" color="white" borderRadius="md">
-                    <Text fontSize="lg" mb={2}>Orden #{order._id.substring(order._id.length - 4)}</Text>
+                    <Text fontSize="lg" mb={2}>{t('orderNumberDisplay').replace('{number}', order._id.substring(order._id.length - 4))}</Text>
 
                     <VStack spacing={3} align="stretch">
                       {order.items
@@ -106,14 +108,14 @@ function OrdersPreparationPage() {
                             <HStack justifyContent="space-between" mb={2}>
                               <Text fontWeight="bold">{item.name} (x{item.quantity})</Text>
                               <HStack>
-                                <Text>{item.status === 'ready' ? 'Listo' : 'Preparando'}</Text>
+                                <Text>{item.status === 'ready' ? t('statusReadyText') : t('statusPreparingText')}</Text>
                                 <Button
                                   colorScheme="green"
                                   size="sm"
                                   onClick={() => handleMarkItemAsReady(order._id, item.itemId)}
                                   isDisabled={item.status === 'ready'}
                                 >
-                                  Marcar como Listo
+                                  {t('markAsReadyBtn')}
                                 </Button>
                               </HStack>
                             </HStack>
@@ -126,7 +128,7 @@ function OrdersPreparationPage() {
 
                             {item.ingredients && item.ingredients.length > 0 && (
                               <VStack align="start" spacing={1}>
-                                <Text fontSize="sm" fontWeight="bold">Ingredientes:</Text>
+                                <Text fontSize="sm" fontWeight="bold">{t('ingredientsLabel')}:</Text>
                                 {item.ingredients.map((ing, idx) => (
                                   <Text fontSize="sm" key={idx}>
                                     • {ing.name || ing.inventoryItem?.name} — {ing.quantity} {ing.unit || ''}
@@ -139,7 +141,7 @@ function OrdersPreparationPage() {
                     </VStack>
 
                     {order.status === 'ready' && (
-                      <Text fontSize="sm" color="green.500" mt={2}>¡Orden lista para entregar!</Text>
+                      <Text fontSize="sm" color="green.500" mt={2}>{t('orderReadyForDelivery')}</Text>
                     )}
                   </Box>
                 ))}

@@ -2,27 +2,29 @@ import React from 'react';
 import { Box, SimpleGrid, Heading, Text, VStack, HStack, useTheme } from '@chakra-ui/react';
 import { FaHamburger } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../../../context/LanguageContext';
 
 function ProductManagementPage() {
+  const { t } = useLanguage();
   const options = [
-    { 
-      title: 'Gestionar categorías', 
-      description: 'Crear o editar categorías para organizar productos.', 
-      link: '/dashboard/manage-categories' 
-    },
-    { 
-      title: 'Gestionar productos', 
-      description: 'Agregar o editar platillos, bebidas y más.', 
-      link: '/dashboard/manage-items' 
+    {
+      title: t('manageCategoriesTitle'),
+      description: t('manageCategoriesDescription'),
+      link: '/dashboard/manage-categories'
     },
     {
-      title: 'Gestionar inventario',
-      description: 'Administrar existencias de ingredientes y suministros.',
+      title: t('manageProductsTitle'),
+      description: t('manageProductsDescription'),
+      link: '/dashboard/manage-items'
+    },
+    {
+      title: t('manageInventoryTitle'),
+      description: t('manageInventoryDescription'),
       link: '/dashboard/inventory'
     },
     {
-      title: 'Recetas',
-      description: 'Crear y consultar recetas con ingredientes, pasos e imágenes. Incluye calculadora de costos.',
+      title: t('recipesNavCardTitle'),
+      description: t('recipesDescription'),
       link: '/dashboard/recipes',
     },
   ];
@@ -55,7 +57,7 @@ function ProductManagementPage() {
             color={headingColor}
             textAlign="center"
           >
-            Gestionar productos
+            {t('manageProductsHeading')}
           </Heading>
         </Box>
       </HStack>
@@ -98,7 +100,7 @@ function ProductManagementPage() {
             }}
             textDecoration="none"
             role="button"
-            aria-label={`Ir a ${option.title}`}
+            aria-label={t('navigationAriaLabel').replace('{title}', option.title)}
           >
             <VStack spacing={{ base: 2, md: 3 }} align="start" h="full" justify="center">
               <Heading 

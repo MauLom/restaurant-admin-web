@@ -7,6 +7,7 @@ import {
 import { FaTrash, FaEdit, FaPlus } from 'react-icons/fa';
 import api from '../../services/api';
 import { useCustomToast } from '../../hooks/useCustomToast';
+import { useLanguage } from '../../context/LanguageContext';
 
 function MenuItemManagement() {
   const [categories, setCategories] = useState([]);
@@ -16,6 +17,7 @@ function MenuItemManagement() {
   const [editingItem, setEditingItem] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const toast = useCustomToast();
+  const { t } = useLanguage();
   const theme = useTheme();
 
   const [deletingItem, setDeletingItem] = useState(null);
@@ -35,8 +37,8 @@ function MenuItemManagement() {
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
-          title: 'Error',
-          description: 'Failed to fetch data.',
+          title: t('errorTitle'),
+          description: t('errorFetchingDataDescription'),
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -77,8 +79,8 @@ function MenuItemManagement() {
       setItems([...items, response.data]);
       resetForm();
       toast({
-        title: 'Item added',
-        description: 'New item has been added successfully.',
+        title: t('itemAddedTitle'),
+        description: t('itemAddedDescription'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -87,8 +89,8 @@ function MenuItemManagement() {
     } catch (error) {
       console.error('Error adding item:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to add item.',
+        title: t('errorTitle'),
+        description: t('errorAddingItemDescription'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -103,8 +105,8 @@ function MenuItemManagement() {
       setItems(items.map(item => item._id === updatedItem._id ? updatedItem : item));
       resetForm();
       toast({
-        title: 'Item updated',
-        description: 'Item has been updated successfully.',
+        title: t('itemUpdatedTitle'),
+        description: t('itemUpdatedDescription'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -113,8 +115,8 @@ function MenuItemManagement() {
     } catch (error) {
       console.error('Error updating item:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to update item.',
+        title: t('errorTitle'),
+        description: t('errorUpdatingItemDescription'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -127,8 +129,8 @@ function MenuItemManagement() {
       await api.delete(`/menu/items/${itemId}`);
       setItems(items.filter(item => item._id !== itemId));
       toast({
-        title: 'Item deleted',
-        description: 'Item has been deleted successfully.',
+        title: t('itemDeletedTitle'),
+        description: t('itemDeletedDescription'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -137,8 +139,8 @@ function MenuItemManagement() {
     } catch (error) {
       console.error('Error deleting item:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to delete item.',
+        title: t('errorTitle'),
+        description: t('errorDeletingItemDescription'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -161,30 +163,30 @@ function MenuItemManagement() {
 
   return (
     <Box p={4}>
-      <Heading as="h2" size="xl" mb={4}>Manage Menu Items</Heading>
+      <Heading as="h2" size="xl" mb={4}>{t('manageMenuItems')}</Heading>
       <Button leftIcon={<FaPlus />} colorScheme="blue" mb={4} onClick={() => { setShowAddForm(!showAddForm); if (showAddForm) resetForm(); }}>
-        {showAddForm ? 'Close Form' : 'Add New Item'}
+        {showAddForm ? t('closeForm') : t('addNewItem')}
       </Button>
 
       <Collapse in={showAddForm} animateOpacity>
         <Box p={4} mb={4} borderWidth="1px" borderRadius="lg" shadow="md">
           <VStack spacing={4}>
-            <Input placeholder="Item Name" value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} />
-            <Input placeholder="Description" value={newItem.description} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} />
-            <Input placeholder="Price" type="number" value={newItem.price} onChange={(e) => setNewItem({ ...newItem, price: e.target.value })} />
-            <Input placeholder="Image URL (optional)" value={newItem.image} onChange={(e) => setNewItem({ ...newItem, image: e.target.value })} />
-            <Select placeholder="Select Category" value={newItem.category} onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}>
+            <Input placeholder={t('itemNamePlaceholder')} value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} />
+            <Input placeholder={t('menuItemDescriptionPlaceholder')} value={newItem.description} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} />
+            <Input placeholder={t('pricePlaceholder')} type="number" value={newItem.price} onChange={(e) => setNewItem({ ...newItem, price: e.target.value })} />
+            <Input placeholder={t('imageUrlOptionalPlaceholder')} value={newItem.image} onChange={(e) => setNewItem({ ...newItem, image: e.target.value })} />
+            <Select placeholder={t('selectCategoryPlaceholder')} value={newItem.category} onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}>
               {categories.map(category => (
                 <option key={category._id} value={category._id} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{category.name} ({category.area})</option>
               ))}
             </Select>
 
             <Box width="100%">
-              <Text fontWeight="bold">Ingredientes</Text>
+              <Text fontWeight="bold">{t('ingredients')}</Text>
               <VStack spacing={2} align="stretch">
                 {newItem.ingredients.map((ing, index) => (
                   <HStack key={index} align="start">
-                    <Select placeholder="Selecciona ingrediente" value={ing.inventoryItem} onChange={(e) => handleIngredientChange(index, 'inventoryItem', e.target.value)}>
+                    <Select placeholder={t('selectIngredientPlaceholder')} value={ing.inventoryItem} onChange={(e) => handleIngredientChange(index, 'inventoryItem', e.target.value)}>
                       {inventoryItems.map(inv => (
                         <option key={inv._id} value={inv._id} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{inv.name}</option>
                       ))}
@@ -195,14 +197,14 @@ function MenuItemManagement() {
                       <option value="g" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>g</option>
                       <option value="unit" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>unidad</option>
                     </Select>
-                    <Button size="sm" colorScheme="red" onClick={() => handleRemoveIngredient(index)}>Quitar</Button>
+                    <Button size="sm" colorScheme="red" onClick={() => handleRemoveIngredient(index)}>{t('removeIngredient')}</Button>
                   </HStack>
                 ))}
-                <Button size="sm" onClick={handleAddIngredient}>+ Agregar ingrediente</Button>
+                <Button size="sm" onClick={handleAddIngredient}>{t('addIngredient')}</Button>
               </VStack>
             </Box>
 
-            <Button colorScheme="green" onClick={editingItem ? handleUpdateItem : handleAddItem}>{editingItem ? 'Update Item' : 'Save Item'}</Button>
+            <Button colorScheme="green" onClick={editingItem ? handleUpdateItem : handleAddItem}>{editingItem ? t('updateItem') : t('saveItem')}</Button>
           </VStack>
         </Box>
       </Collapse>
@@ -215,7 +217,7 @@ function MenuItemManagement() {
                 <Image src={item.image} alt={item.name} boxSize="150px" objectFit="cover" mx="auto" borderRadius="md" />
               ) : (
                 <Box boxSize="150px" bg="gray.200" mx="auto" display="flex" alignItems="center" justifyContent="center" borderRadius="md">
-                  <Text>No Image</Text>
+                  <Text>{t('noImage')}</Text>
                 </Box>
               )}
             </Box>
@@ -224,8 +226,8 @@ function MenuItemManagement() {
               <Text fontSize="sm" color="gray.600">{item.category?.name} ({item.category?.area})</Text>
               <Text fontSize="md" color="teal.500">${parseFloat(item.price).toFixed(2)}</Text>
               <HStack justify="space-between">
-                <IconButton icon={<FaEdit />} colorScheme="yellow" onClick={() => handleEditItem(item)} aria-label="Edit Item" />
-                <IconButton icon={<FaTrash />} colorScheme="red" onClick={() => setDeletingItem(item)} aria-label="Delete Item" />
+                <IconButton icon={<FaEdit />} colorScheme="yellow" onClick={() => handleEditItem(item)} aria-label={t('editItemAriaLabel')} />
+                <IconButton icon={<FaTrash />} colorScheme="red" onClick={() => setDeletingItem(item)} aria-label={t('deleteItemAriaLabel')} />
               </HStack>
             </VStack>
           </Box>
@@ -236,11 +238,11 @@ function MenuItemManagement() {
         <AlertDialog isOpen={Boolean(deletingItem)} leastDestructiveRef={cancelRef} onClose={() => setDeletingItem(null)}>
           <AlertDialogOverlay>
             <AlertDialogContent>
-              <AlertDialogHeader fontSize="lg" fontWeight="bold">Delete Item</AlertDialogHeader>
-              <AlertDialogBody>¿Seguro de eliminar el producto "{deletingItem.name}"?</AlertDialogBody>
+              <AlertDialogHeader fontSize="lg" fontWeight="bold">{t('deleteItemTitle')}</AlertDialogHeader>
+              <AlertDialogBody>{t('confirmDeleteItemDescription').replace('{itemName}', deletingItem.name)}</AlertDialogBody>
               <AlertDialogFooter>
-                <Button ref={cancelRef} onClick={() => setDeletingItem(null)}>Cancel</Button>
-                <Button colorScheme="red" onClick={() => handleDeleteItem(deletingItem._id)} ml={3}>Delete</Button>
+                <Button ref={cancelRef} onClick={() => setDeletingItem(null)}>{t('cancel')}</Button>
+                <Button colorScheme="red" onClick={() => handleDeleteItem(deletingItem._id)} ml={3}>{t('delete')}</Button>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialogOverlay>

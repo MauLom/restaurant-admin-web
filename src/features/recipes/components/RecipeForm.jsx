@@ -6,6 +6,7 @@ import {
 } from '@chakra-ui/react';
 import { FaPlus, FaTrash, FaChevronUp, FaChevronDown, FaDollarSign } from 'react-icons/fa';
 import { useTheme } from '../../../context/ThemeContext';
+import { useLanguage } from '../../../context/LanguageContext';
 import ImageInput from './ImageInput';
 import { calcIngredientCost, calcTotalCost, formatCost, calcMargin } from '../costUtils';
 
@@ -44,6 +45,7 @@ const EMPTY_FORM = {
 
 function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap = {}, inventoryItems = [] }) {
   const { currentTheme } = useTheme();
+  const { t } = useLanguage();
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [openIngImg, setOpenIngImg] = useState({});
@@ -177,7 +179,7 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
       <ModalOverlay backdropFilter="blur(4px)" />
       <ModalContent bg={surface} color={textColor} borderRadius="2xl" mx={4}>
         <ModalHeader borderBottom="1px solid" borderColor={`${primary}33`} color={primary}>
-          {initialData ? 'Editar receta' : 'Nueva receta'}
+          {initialData ? t('editRecipeTitle') : t('newRecipeTitle')}
         </ModalHeader>
         <ModalCloseButton />
 
@@ -187,33 +189,33 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
             {/* ── Información básica ── */}
             <VStack align="stretch" spacing={4}>
               <FormControl isRequired>
-                <FormLabel fontSize="sm">Nombre</FormLabel>
+                <FormLabel fontSize="sm">{t('nameLabel')}</FormLabel>
                 <Input value={form.name} onChange={e => setField('name', e.target.value)}
-                  placeholder="Ej: Risotto de champiñones" size="sm" />
+                  placeholder={t('nameExamplePlaceholder')} size="sm" />
               </FormControl>
 
               <FormControl>
-                <FormLabel fontSize="sm">Descripción</FormLabel>
+                <FormLabel fontSize="sm">{t('descriptionLabel')}</FormLabel>
                 <Textarea value={form.description} onChange={e => setField('description', e.target.value)}
-                  placeholder="Descripción breve..." size="sm" rows={2} />
+                  placeholder={t('recipeDescriptionPlaceholder')} size="sm" rows={2} />
               </FormControl>
 
               <FormControl>
-                <FormLabel fontSize="sm">Imagen principal</FormLabel>
+                <FormLabel fontSize="sm">{t('mainImageLabel')}</FormLabel>
                 <ImageInput value={form.mainImage} onChange={v => setField('mainImage', v)}
                   placeholder="https://... o sube una imagen" previewMaxH="160px" />
               </FormControl>
 
               <HStack spacing={3} flexWrap="wrap">
                 <FormControl flex="1" minW="130px">
-                  <FormLabel fontSize="sm">Área</FormLabel>
+                  <FormLabel fontSize="sm">{t('areaLabel')}</FormLabel>
                   <Select value={form.area} onChange={e => setField('area', e.target.value)} size="sm">
                     <option value="kitchen" style={{ backgroundColor: surface, color: textColor }}>🍳 Cocina</option>
                     <option value="bar" style={{ backgroundColor: surface, color: textColor }}>🍹 Barra</option>
                   </Select>
                 </FormControl>
                 <FormControl flex="1" minW="130px">
-                  <FormLabel fontSize="sm">Dificultad</FormLabel>
+                  <FormLabel fontSize="sm">{t('difficultyLabel')}</FormLabel>
                   <Select value={form.difficulty} onChange={e => setField('difficulty', e.target.value)} size="sm">
                     <option value="easy" style={{ backgroundColor: surface, color: textColor }}>Fácil</option>
                     <option value="medium" style={{ backgroundColor: surface, color: textColor }}>Media</option>
@@ -221,25 +223,25 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
                   </Select>
                 </FormControl>
                 <FormControl flex="1" minW="90px">
-                  <FormLabel fontSize="sm">Porciones</FormLabel>
+                  <FormLabel fontSize="sm">{t('servingsCountLabel')}</FormLabel>
                   <NumberInput min={1} value={form.servings} onChange={v => setField('servings', v)} size="sm">
                     <NumberInputField />
                   </NumberInput>
                 </FormControl>
                 <FormControl flex="1" minW="90px">
-                  <FormLabel fontSize="sm">Prep (min)</FormLabel>
+                  <FormLabel fontSize="sm">{t('prepTimeLabel')}</FormLabel>
                   <NumberInput min={0} value={form.prepTime} onChange={v => setField('prepTime', v)} size="sm">
                     <NumberInputField />
                   </NumberInput>
                 </FormControl>
                 <FormControl flex="1" minW="90px">
-                  <FormLabel fontSize="sm">Cocción (min)</FormLabel>
+                  <FormLabel fontSize="sm">{t('cookingTimeLabel')}</FormLabel>
                   <NumberInput min={0} value={form.cookTime} onChange={v => setField('cookTime', v)} size="sm">
                     <NumberInputField />
                   </NumberInput>
                 </FormControl>
                 <FormControl flex="1" minW="100px">
-                  <FormLabel fontSize="sm">Precio de venta</FormLabel>
+                  <FormLabel fontSize="sm">{t('salePriceLabel')}</FormLabel>
                   <NumberInput min={0} value={form.price} onChange={v => setField('price', v)} size="sm">
                     <NumberInputField placeholder="$0.00" />
                   </NumberInput>
@@ -253,18 +255,18 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
             <Box>
               <HStack justify="space-between" mb={3}>
                 <HStack spacing={2}>
-                  <Text fontWeight="semibold" color={primary}>Ingredientes</Text>
+                  <Text fontWeight="semibold" color={primary}>{t('ingredientsLabel')}</Text>
                   {totalCost != null && (
                     <Badge colorScheme="green" fontSize="11px" px={2} py={0.5} borderRadius="full">
                       <HStack spacing={1}>
                         <FaDollarSign size="10px" />
-                        <Text>Costo total: {formatCost(totalCost)}</Text>
+                        <Text>{t('totalCost')}: {formatCost(totalCost)}</Text>
                       </HStack>
                     </Badge>
                   )}
                 </HStack>
                 <Button size="xs" leftIcon={<FaPlus />} onClick={addIngredient} colorScheme="blue" variant="ghost">
-                  Agregar
+                  {t('addIngredientButton')}
                 </Button>
               </HStack>
 
@@ -276,18 +278,18 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
                     <Box key={i} p={3} borderRadius="lg" border="1px solid" borderColor={`${primary}22`} bg={`${primary}08`}>
                       <HStack align="flex-start" spacing={2} mb={2} flexWrap="wrap">
                         <FormControl flex="2" minW="120px">
-                          <FormLabel fontSize="xs" mb={1}>Ingrediente</FormLabel>
+                          <FormLabel fontSize="xs" mb={1}>{t('ingredientName')}</FormLabel>
                           <Input value={ing.name} onChange={e => updateIngredient(i, 'name', e.target.value)}
-                            placeholder="Ej: Arroz arborio" size="sm" />
+                            placeholder={t('ingredientNamePlaceholder')} size="sm" />
                         </FormControl>
                         <FormControl flex="1" minW="80px">
-                          <FormLabel fontSize="xs" mb={1}>Cantidad</FormLabel>
+                          <FormLabel fontSize="xs" mb={1}>{t('quantityLabel')}</FormLabel>
                           <NumberInput min={0} value={ing.quantity} onChange={v => updateIngredient(i, 'quantity', v)} size="sm">
                             <NumberInputField placeholder="0" />
                           </NumberInput>
                         </FormControl>
                         <FormControl flex="1" minW="110px">
-                          <FormLabel fontSize="xs" mb={1}>Unidad</FormLabel>
+                          <FormLabel fontSize="xs" mb={1}>{t('unitLabel')}</FormLabel>
                           <Select value={ing.unit} onChange={e => updateIngredient(i, 'unit', e.target.value)} size="sm">
                             {UNITS.map(u => <option key={u.value} value={u.value} style={{ backgroundColor: surface, color: textColor }}>{u.label}</option>)}
                           </Select>
@@ -302,15 +304,14 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
                       {/* Vínculo a inventario */}
                       <FormControl mb={2}>
                         <FormLabel fontSize="xs" mb={1}>
-                          Vincular al inventario{' '}
-                          <Text as="span" opacity={0.5}>(para calcular costo)</Text>
+                          {t('linkToInventory')}
                         </FormLabel>
                         <HStack>
                           <Select
                             value={ing.inventoryItemId}
                             onChange={e => updateIngredient(i, 'inventoryItemId', e.target.value)}
                             size="sm"
-                            placeholder="— Sin vincular —"
+                            placeholder={t('linkInventoryPlaceholder')}
                           >
                             {inventoryItems.map(inv => (
                               <option key={inv._id} value={inv._id} style={{ backgroundColor: surface, color: textColor }}>
@@ -326,7 +327,7 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
                             </Tooltip>
                           )}
                           {ing.inventoryItemId && ingCost == null && (
-                            <Tooltip label="Las unidades no son compatibles para calcular el costo">
+                            <Tooltip label={t('incompatibleUnitsTooltip')}>
                               <Badge colorScheme="orange" px={2} py={1} borderRadius="md">N/A</Badge>
                             </Tooltip>
                           )}
@@ -334,7 +335,7 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
                       </FormControl>
 
                       <FormControl>
-                        <FormLabel fontSize="xs" mb={1}>Imagen del ingrediente (opcional)</FormLabel>
+                        <FormLabel fontSize="xs" mb={1}>{t('ingredientImageLabel')}</FormLabel>
                         <ImageInput value={ing.image} onChange={v => updateIngredient(i, 'image', v)}
                           placeholder="URL de imagen..." previewMaxH="80px" />
                       </FormControl>
@@ -347,11 +348,11 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
             {/* ── Panel de precio / costo / margen ── */}
             {(totalCost != null || salePrice > 0) && (
               <Box p={4} borderRadius="xl" border="1px solid" borderColor={`${primary}33`} bg={`${primary}08`}>
-                <Text fontWeight="semibold" color={primary} mb={3} fontSize="sm">Análisis de precio</Text>
+                <Text fontWeight="semibold" color={primary} mb={3} fontSize="sm">{t('priceAnalysisLabel')}</Text>
                 <HStack spacing={6} flexWrap="wrap">
                   {totalCost != null && (
                     <Box>
-                      <Text fontSize="xs" opacity={0.6} mb={0.5}>Costo ingredientes</Text>
+                      <Text fontSize="xs" opacity={0.6} mb={0.5}>{t('costIngredientsLabel')}</Text>
                       <Text fontWeight="bold" color="red.400">{formatCost(totalCost)}</Text>
                       {form.servings > 1 && (
                         <Text fontSize="xs" opacity={0.5}>{formatCost(totalCost / form.servings)} / porción</Text>
@@ -360,7 +361,7 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
                   )}
                   {salePrice > 0 && (
                     <Box>
-                      <Text fontSize="xs" opacity={0.6} mb={0.5}>Precio de venta</Text>
+                      <Text fontSize="xs" opacity={0.6} mb={0.5}>{t('salePriceAnalysis')}</Text>
                       <Text fontWeight="bold" color="blue.400">{formatCost(salePrice)}</Text>
                       {form.servings > 1 && (
                         <Text fontSize="xs" opacity={0.5}>{formatCost(salePrice / form.servings)} / porción</Text>
@@ -369,7 +370,7 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
                   )}
                   {margin && (
                     <Box>
-                      <Text fontSize="xs" opacity={0.6} mb={0.5}>Ganancia</Text>
+                      <Text fontSize="xs" opacity={0.6} mb={0.5}>{t('profitLabelForm')}</Text>
                       <Text fontWeight="bold" color={margin.profit >= 0 ? 'green.400' : 'red.400'}>
                         {formatCost(margin.profit)}
                       </Text>
@@ -384,7 +385,7 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
                         size="xs" variant="ghost" colorScheme="blue"
                         onClick={() => setField('price', (totalCost * 3).toFixed(2))}
                       >
-                        Sugerir precio (3× costo)
+                        {t('suggestedPriceButton')}
                       </Button>
                     </Tooltip>
                   )}
@@ -397,9 +398,9 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
             {/* ── Pasos ── */}
             <Box>
               <HStack justify="space-between" mb={3}>
-                <Text fontWeight="semibold" color={primary}>Pasos de preparación</Text>
+                <Text fontWeight="semibold" color={primary}>{t('preparationStepsLabel')}</Text>
                 <Button size="xs" leftIcon={<FaPlus />} onClick={addStep} colorScheme="blue" variant="ghost">
-                  Agregar paso
+                  {t('addStepButton')}
                 </Button>
               </HStack>
 
@@ -424,7 +425,7 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
                       </VStack>
                     </HStack>
                     <FormControl>
-                      <FormLabel fontSize="xs" mb={1}>Imagen del resultado (opcional)</FormLabel>
+                      <FormLabel fontSize="xs" mb={1}>{t('stepResultImageLabel')}</FormLabel>
                       <ImageInput value={step.image} onChange={v => updateStep(i, 'image', v)}
                         placeholder="URL de imagen del resultado..." previewMaxH="80px" />
                     </FormControl>
@@ -452,9 +453,9 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
               {margin.marginPct.toFixed(1)}% margen
             </Badge>
           )}
-          <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button variant="ghost" onClick={onClose}>{t('cancelFormButton')}</Button>
           <Button colorScheme="blue" onClick={handleSave} isLoading={saving} isDisabled={!form.name.trim()}>
-            {initialData ? 'Guardar cambios' : 'Crear receta'}
+            {initialData ? t('saveRecipeChangesButton') : t('createRecipeButton')}
           </Button>
         </ModalFooter>
       </ModalContent>

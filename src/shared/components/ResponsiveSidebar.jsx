@@ -4,11 +4,13 @@ import { Link } from 'react-router-dom';
 import { FaUtensils, FaHamburger, FaCogs } from 'react-icons/fa';
 import { useAuthContext } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 function ResponsiveSidebar() {
   const isMobile = useBreakpointValue({ base: true, md: false });
   const { user } = useAuthContext();
   const { currentTheme } = useTheme();
+  const { t } = useLanguage();
 
   if (!user) {
     console.log("No hay usuario disponible");
@@ -16,9 +18,9 @@ function ResponsiveSidebar() {
   }
 
   const hubItems = [
-    { name: "Estado del restaurante", path: '/dashboard/restaurant-status', icon: FaUtensils },
-    { name: "Gestión de productos", path: '/dashboard/product-management', icon: FaHamburger },
-    { name: "Configuraciones", path: '/dashboard/configuration', icon: FaCogs }
+    { name: t('restaurantStatus'), path: '/dashboard/restaurant-status', icon: FaUtensils },
+    { name: t('productManagement'), path: '/dashboard/product-management', icon: FaHamburger },
+    { name: t('settings'), path: '/dashboard/configuration', icon: FaCogs }
   ];
 
   return isMobile ? (

@@ -2,14 +2,16 @@ import React from 'react';
 import { Box, Image, Text, Heading, HStack, Badge, Flex } from '@chakra-ui/react';
 import { FaClock, FaUsers } from 'react-icons/fa';
 import { useTheme } from '../../../context/ThemeContext';
+import { useLanguage } from '../../../context/LanguageContext';
 import { resolveImageUrl } from './ImageInput';
 import { calcTotalCost, formatCost, calcMargin } from '../costUtils';
 
 const difficultyColor = { easy: 'green', medium: 'yellow', hard: 'red' };
-const difficultyLabel = { easy: 'Fácil', medium: 'Media', hard: 'Difícil' };
 
 function RecipeCard({ recipe, inventoryMap = {}, onClick }) {
   const { currentTheme } = useTheme();
+  const { t } = useLanguage();
+  const difficultyLabel = { easy: t('difficultyEasy'), medium: t('difficultyMedium'), hard: t('difficultyHard') };
   const primary = currentTheme.colors.primary[500];
   const surface = currentTheme.colors.interface?.surface || '#444';
   const textColor = currentTheme.colors.text;
@@ -40,7 +42,7 @@ function RecipeCard({ recipe, inventoryMap = {}, onClick }) {
         )}
         <HStack spacing={2} flexWrap="wrap">
           <Badge colorScheme={recipe.area === 'kitchen' ? 'orange' : 'cyan'} fontSize="10px">
-            {recipe.area === 'kitchen' ? '🍳 Cocina' : '🍹 Barra'}
+            {recipe.area === 'kitchen' ? `🍳 ${t('areaKitchen')}` : `🍹 ${t('areaBar')}`}
           </Badge>
           <Badge colorScheme={difficultyColor[recipe.difficulty] || 'gray'} fontSize="10px">
             {difficultyLabel[recipe.difficulty] || recipe.difficulty}
@@ -54,18 +56,18 @@ function RecipeCard({ recipe, inventoryMap = {}, onClick }) {
           {recipe.servings > 0 && (
             <HStack spacing={1}>
               <FaUsers size="10px" color={primary} />
-              <Text fontSize="xs" color={textColor} opacity={0.8}>{recipe.servings} porc.</Text>
+              <Text fontSize="xs" color={textColor} opacity={0.8}>{recipe.servings} {t('servingsLabel')}</Text>
             </HStack>
           )}
           {salePrice != null && (
             <Badge colorScheme="blue" fontSize="10px">{formatCost(salePrice)}</Badge>
           )}
           {totalCost != null && (
-            <Badge colorScheme="red" variant="subtle" fontSize="10px">costo {formatCost(totalCost)}</Badge>
+            <Badge colorScheme="red" variant="subtle" fontSize="10px">{t('costBadge').replace('{amount}', formatCost(totalCost))}</Badge>
           )}
           {margin && (
             <Badge colorScheme={margin.marginPct >= 0 ? 'green' : 'red'} fontSize="10px">
-              {margin.marginPct.toFixed(0)}% margen
+              {t('marginBadge').replace('{percent}', margin.marginPct.toFixed(0))}
             </Badge>
           )}
         </HStack>

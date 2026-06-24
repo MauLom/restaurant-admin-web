@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Box, VStack, HStack, Button, Input, Select, Text, useTheme } from '@chakra-ui/react';
 import api from '../../services/api';
 import { useCustomToast } from '../../hooks/useCustomToast';
+import { useLanguage } from '../../context/LanguageContext';
 
 function MenuCategoryManagement() {
   const [categories, setCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryArea, setNewCategoryArea] = useState('kitchen'); // Default area
   const toast = useCustomToast();
+  const { t } = useLanguage();
   const theme = useTheme();
 
   useEffect(() => {
@@ -18,8 +20,8 @@ function MenuCategoryManagement() {
       } catch (error) {
         console.error('Error fetching categories:', error);
         toast({
-          title: 'Error',
-          description: 'Failed to fetch categories.',
+          title: t('errorTitle'),
+          description: t('errorFetchingCategoriesDescription'),
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -37,8 +39,8 @@ function MenuCategoryManagement() {
       setNewCategoryName('');
       setNewCategoryArea('kitchen'); // Reset to default area
       toast({
-        title: 'Category added',
-        description: 'New category has been added successfully.',
+        title: t('categoryAddedTitle'),
+        description: t('categoryAddedDescription'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -46,8 +48,8 @@ function MenuCategoryManagement() {
     } catch (error) {
       console.error('Error adding category:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to add category.',
+        title: t('errorTitle'),
+        description: t('errorAddingCategoryDescription'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -60,8 +62,8 @@ function MenuCategoryManagement() {
       await api.delete(`/menu/categories/${categoryId}`);
       setCategories(categories.filter(category => category._id !== categoryId));
       toast({
-        title: 'Category deleted',
-        description: 'Category has been deleted successfully.',
+        title: t('categoryDeletedTitle'),
+        description: t('categoryDeletedDescription'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -69,8 +71,8 @@ function MenuCategoryManagement() {
     } catch (error) {
       console.error('Error deleting category:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to delete category.',
+        title: t('errorTitle'),
+        description: t('errorDeletingCategoryDescription'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -80,19 +82,19 @@ function MenuCategoryManagement() {
 
   return (
     <Box p={4}>
-      <Text fontSize="2xl" mb={4}>Manage Menu Categories</Text>
+      <Text fontSize="2xl" mb={4}>{t('manageMenuCategories')}</Text>
       <VStack spacing={4}>
         {categories.map(category => (
           <HStack key={category._id} width="100%" justify="space-between">
             <Text>{category.name} ({category.area})</Text>
             <Button colorScheme="red" onClick={() => handleDeleteCategory(category._id)}>
-              Delete
+              {t('delete')}
             </Button>
           </HStack>
         ))}
         <HStack width="100%" justify="space-between">
           <Input
-            placeholder="New Category Name"
+            placeholder={t('newCategoryNamePlaceholder')}
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
           />
@@ -104,7 +106,7 @@ function MenuCategoryManagement() {
             <option value="bar" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>Bar</option>
           </Select>
           <Button colorScheme="blue" onClick={handleAddCategory}>
-            Add Category
+            {t('addCategory')}
           </Button>
         </HStack>
       </VStack>

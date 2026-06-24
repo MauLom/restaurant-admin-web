@@ -7,9 +7,11 @@ import {
 import { FaPlus, FaMinus } from 'react-icons/fa';
 
 import { UserContext } from '../../../context/UserContext';
+import { useLanguage } from '../../../context/LanguageContext';
 
 function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
   const { user } = React.useContext(UserContext);
+  const { t } = useLanguage();
   const theme = useTheme();
   const [comment, setComment] = useState('');
   const [numDiners, setNumDiners] = useState(2);
@@ -27,12 +29,12 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
       <ModalContent bg="#363636" color="white">
-        <ModalHeader>📋 Abrir Mesa {table?.number}</ModalHeader>
+        <ModalHeader>📋 {t('openTableModalTitle').replace('{tableNumber}', table?.number)}</ModalHeader>
         <ModalBody>
           <FormControl mb={4}>
-            <FormLabel color="gray.300">Comentarios (ej: mesa preferencial, cliente frecuente)</FormLabel>
+            <FormLabel color="gray.300">{t('commentsLabel')}</FormLabel>
             <Textarea
-              placeholder="Ej: cumpleañera, traer velas, evitar cacahuates"
+              placeholder={t('commentsPlaceholder')}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               bg="gray.700"
@@ -41,7 +43,7 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
           </FormControl>
 
           <FormControl mb={4}>
-            <FormLabel color="gray.300">Camarero asignado</FormLabel>
+            <FormLabel color="gray.300">{t('waiterAssignedLabel')}</FormLabel>
             <Select
               value={selectedWaiter}
               onChange={(e) => setSelectedWaiter(e.target.value)}
@@ -51,7 +53,7 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
           </FormControl>
 
           <FormControl mt={4}>
-            <FormLabel color="gray.300" textAlign="center">Cantidad de comensales</FormLabel>
+            <FormLabel color="gray.300" textAlign="center">{t('numberOfDinersLabel')}</FormLabel>
             <Flex align="center" justify="center">
               <IconButton
                 icon={<FaMinus />}
@@ -84,7 +86,7 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
             Cancelar
           </Button>
           <Button bg="red.500" _hover={{ bg: 'red.600' }} onClick={() => onConfirm(comment, numDiners, selectedWaiter)}>
-            Abrir Mesa
+            {t('openTableButton')}
           </Button>
         </ModalFooter>
       </ModalContent>

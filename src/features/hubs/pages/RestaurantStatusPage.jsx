@@ -1,27 +1,29 @@
 import React from 'react';
 import { Box, SimpleGrid, Heading, Text, VStack, useTheme } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../../../context/LanguageContext';
 
 function RestaurantStatusPage() {
+  const { t } = useLanguage();
   const options = [
-    { 
-      title: 'Gestionar órdenes', 
-      description: 'Visualizar y crear nuevas órdenes.', 
+    {
+      title: t('manageOrdersTitle'),
+      description: t('manageOrdersDescription'),
       link: '/dashboard/orders'
     },
-    { 
-      title: 'Órdenes en preparación', 
-      description: 'Supervisar órdenes en cocina o barra.', 
+    {
+      title: t('ordersPrepTitle'),
+      description: t('ordersPrepDescription'),
       link: '/dashboard/kitchen-orders'
     },
-    { 
-      title: 'Gestionar cobros', 
-      description: 'Administrar pagos y sesiones listas para cobro.', 
+    {
+      title: t('manageBillingTitle'),
+      description: t('manageBillingDescription'),
       link: '/dashboard/cashier'
     },
-    { 
-      title: 'Consultar análisis del día', 
-      description: 'Revisar ventas y actividad diaria.', 
+    {
+      title: t('consultAnalyticsTitle'),
+      description: t('consultAnalyticsDescription'),
       link: '/dashboard/analytics'
     },
   ];
@@ -55,7 +57,7 @@ function RestaurantStatusPage() {
             color={headingColor}
             textAlign="center"
           >
-            Estado del restaurante
+            {t('restaurantStatusHeading')}
           </Heading>
         </Box>
       </Box>
@@ -98,7 +100,7 @@ function RestaurantStatusPage() {
             }}
             textDecoration="none"
             role="button"
-            aria-label={`Ir a ${option.title}`}
+            aria-label={t('navigationAriaLabel').replace('{title}', option.title)}
           >
             <VStack spacing={{ base: 2, md: 3 }} align="start" h="full" justify="center">
               <Heading 

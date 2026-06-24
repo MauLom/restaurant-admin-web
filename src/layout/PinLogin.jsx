@@ -160,19 +160,19 @@ function PinLogin() {
       localStorage.setItem('token', 'demo-token');
       
       toast({
-        title: '¡Bienvenido al Demo!',
-        description: 'Explorando con datos de demostración',
+        title: t('welcomeDemoTitle'),
+        description: t('exploringDemoData'),
         status: 'success',
         duration: 3000,
         isClosable: true,
       });
-      
+
       // Navigate to dashboard
       navigate('/dashboard/restaurant-status');
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'No se pudo iniciar el modo demo',
+        title: t('errorTitle'),
+        description: t('demoLoginError'),
         status: 'error'
       });
     }
@@ -187,11 +187,11 @@ function PinLogin() {
 
     const handleRegister = async () => {
       if (!regUsername || regPin.length !== 6) {
-        toast({ title: 'Error', description: 'El usuario y un PIN de 6 dígitos son obligatorios.', status: 'error' });
+        toast({ title: t('errorTitle'), description: t('usernameAndPinRequired'), status: 'error' });
         return;
       }
       if (regPin !== regConfirmPin) {
-        toast({ title: 'Error', description: 'Los PINs no coinciden.', status: 'error' });
+        toast({ title: t('errorTitle'), description: t('pinsDoNotMatch'), status: 'error' });
         return;
       }
 
@@ -202,11 +202,11 @@ function PinLogin() {
           email: regEmail || undefined,
           pin: regPin,
         });
-        toast({ title: 'Cuenta creada', description: 'Ya puedes iniciar sesión con tu PIN.', status: 'success' });
+        toast({ title: t('accountCreatedTitle'), description: t('accountCreatedDescription'), status: 'success' });
         onRegisterClose();
       } catch (err) {
-        const msg = err.response?.data?.error || 'No se pudo crear la cuenta.';
-        toast({ title: 'Error', description: msg, status: 'error' });
+        const msg = err.response?.data?.error || t('errorCreatingAccount');
+        toast({ title: t('errorTitle'), description: msg, status: 'error' });
       } finally {
         setLoading(false);
       }
@@ -241,9 +241,9 @@ function PinLogin() {
         >
           <ModalHeader pb={1}>
             <VStack align="start" spacing={0}>
-              <Text fontSize="lg" fontWeight="bold">Crear cuenta</Text>
+              <Text fontSize="lg" fontWeight="bold">{t('createAccountTitle')}</Text>
               <Text fontSize="xs" color="gray.400" fontWeight="normal">
-                Completa los campos para registrarte
+                {t('completeFieldsToRegister')}
               </Text>
             </VStack>
           </ModalHeader>
@@ -252,9 +252,9 @@ function PinLogin() {
           <ModalBody pt={4} pb={2}>
             <VStack spacing={5}>
               <FormControl isRequired>
-                <FormLabel fontSize="sm" color="gray.300" mb={1}>Usuario</FormLabel>
+                <FormLabel fontSize="sm" color="gray.300" mb={1}>{t('usernameLabel')}</FormLabel>
                 <Input
-                  placeholder="Nombre de usuario"
+                  placeholder={t('usernamePlaceholder')}
                   value={regUsername}
                   onChange={(e) => setRegUsername(e.target.value)}
                   {...inputStyles}
@@ -263,12 +263,12 @@ function PinLogin() {
 
               <FormControl>
                 <FormLabel fontSize="sm" color="gray.300" mb={1}>
-                  Correo electrónico{' '}
-                  <Text as="span" fontSize="xs" color="gray.500">(opcional)</Text>
+                  {t('emailPlaceholder')}{' '}
+                  <Text as="span" fontSize="xs" color="gray.500">({t('optionalLabel')})</Text>
                 </FormLabel>
                 <Input
                   type="email"
-                  placeholder="correo@ejemplo.com"
+                  placeholder={t('emailExamplePlaceholder')}
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
                   {...inputStyles}
@@ -279,7 +279,7 @@ function PinLogin() {
                 <Divider borderColor="gray.600" mb={4} />
                 <FormControl isRequired>
                   <FormLabel fontSize="sm" color="gray.300" mb={2} textAlign="center">
-                    Elige tu PIN de 6 dígitos
+                    {t('choosePinLabel')}
                   </FormLabel>
                   <HStack justify="center">
                     <PinInput type="number" value={regPin} onChange={setRegPin} size="lg" mask>
@@ -295,7 +295,7 @@ function PinLogin() {
 
                 <FormControl isRequired mt={4}>
                   <FormLabel fontSize="sm" color="gray.300" mb={2} textAlign="center">
-                    Confirma tu PIN
+                    {t('confirmPinLabel')}
                   </FormLabel>
                   <HStack justify="center">
                     <PinInput type="number" value={regConfirmPin} onChange={setRegConfirmPin} size="lg" mask>
@@ -309,7 +309,7 @@ function PinLogin() {
                   </HStack>
                   {regConfirmPin.length === 6 && regPin !== regConfirmPin && (
                     <Text fontSize="xs" color="red.400" textAlign="center" mt={2}>
-                      Los PINs no coinciden
+                      {t('pinsDoNotMatch')}
                     </Text>
                   )}
                 </FormControl>
@@ -324,7 +324,7 @@ function PinLogin() {
               _hover={{ color: 'white', bg: 'gray.600' }}
               onClick={onRegisterClose}
             >
-              Cancelar
+              {t('cancel')}
             </Button>
             <Button
               bg="teal.500"
@@ -333,10 +333,10 @@ function PinLogin() {
               _active={{ bg: 'teal.700' }}
               onClick={handleRegister}
               isLoading={loading}
-              loadingText="Creando..."
+              loadingText={t('creatingEllipsis')}
               px={6}
             >
-              Crear cuenta
+              {t('createAccountTitle')}
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -352,7 +352,7 @@ function PinLogin() {
 
     const handleCreateAdmin = async () => {
       if (!username || !password || !adminPin) {
-        toast({ title: 'Error', description: 'Todos los campos son obligatorios.', status: 'error' });
+        toast({ title: t('errorTitle'), description: t('allFieldsRequired'), status: 'error' });
         return;
       }
 
@@ -369,10 +369,10 @@ function PinLogin() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        toast({ title: 'Administrador creado', description: 'Ya puedes iniciar sesión.', status: 'success' });
+        toast({ title: t('adminCreatedTitle'), description: t('adminCreatedDescription'), status: 'success' });
         window.location.reload();
       } catch (error) {
-        toast({ title: 'Error', description: 'No se pudo crear el administrador.', status: 'error' });
+        toast({ title: t('errorTitle'), description: t('errorCreatingAdmin'), status: 'error' });
         console.error('Error creating admin:', error);
       } finally {
         setLoading(false);
@@ -381,12 +381,12 @@ function PinLogin() {
 
     return (
       <VStack spacing={4} w="full" maxW="sm">
-        <Text fontSize="lg" fontWeight="bold" color="teal.300">Configuración Inicial</Text>
-        <Input placeholder="Nombre de usuario" value={username} onChange={(e) => setUsername(e.target.value)} />
-        <Input type="password" placeholder="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <Input placeholder="PIN (6 dígitos)" value={adminPin} onChange={(e) => setAdminPin(e.target.value)} maxLength={6} />
+        <Text fontSize="lg" fontWeight="bold" color="teal.300">{t('initialSetupTitle')}</Text>
+        <Input placeholder={t('usernamePlaceholder')} value={username} onChange={(e) => setUsername(e.target.value)} />
+        <Input type="password" placeholder={t('passwordPlaceholder')} value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Input placeholder={t('pinSixDigitsPlaceholder')} value={adminPin} onChange={(e) => setAdminPin(e.target.value)} maxLength={6} />
         <Button colorScheme="teal" onClick={handleCreateAdmin} isLoading={loading}>
-          Crear Administrador
+          {t('createAdminButton')}
         </Button>
       </VStack>
     );
@@ -482,10 +482,10 @@ function PinLogin() {
                 w="full"
                 maxW="300px"
               >
-                🎭 Acceder al Demo
+                🎭 {t('demoAccessButton')}
               </Button>
               <Text fontSize="sm" color="gray.500">
-                Explora todas las funciones con datos de ejemplo
+                {t('exploreDemoFeatures')}
               </Text>
 
               <Divider borderColor="gray.600" />
@@ -498,7 +498,7 @@ function PinLogin() {
                 w="full"
                 maxW="300px"
               >
-                Crear cuenta
+                {t('createAccountTitle')}
               </Button>
             </VStack>
           </Box>

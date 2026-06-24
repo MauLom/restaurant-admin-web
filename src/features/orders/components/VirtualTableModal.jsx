@@ -40,12 +40,12 @@ import {
 } from '@chakra-ui/react';
 import { useUserContext } from '../../../context/UserContext';
 import api from '../../../services/api';
-// import { useLanguage } from '../../../context/LanguageContext';
+import { useLanguage } from '../../../context/LanguageContext';
 
 function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = [], isSimpleMode = false }) {
   const { user } = useUserContext();
   const toast = useToast();
-  // const {t} = useLanguage();
+  const { t } = useLanguage();
   
   // Estados del formulario
   const [mode, setMode] = useState(isSimpleMode ? 'standalone' : 'combined');
@@ -99,7 +99,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
     } catch (error) {
       console.error('Error fetching available tables:', error);
       toast({
-        title: 'Error',
+        title: t('errorTitle'),
         description: 'No se pudieron cargar las mesas disponibles',
         status: 'error',
         duration: 3000,
@@ -114,15 +114,15 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
     const newErrors = {};
 
     if (!virtualTableName.trim()) {
-      newErrors.name = 'El nombre es requerido';
+      newErrors.name = t('nameRequiredError');
     }
 
     if (mode === 'combined' && selectedTables.length < 2) {
-      newErrors.tables = 'Selecciona al menos 2 mesas para combinar';
+      newErrors.tables = t('selectAtLeast2Tables');
     }
 
     if (mode === 'standalone' && (capacity < 1 || capacity > 50)) {
-      newErrors.capacity = 'La capacidad debe estar entre 1 y 50 personas';
+      newErrors.capacity = t('capacityRangeError');
     }
 
     setErrors(newErrors);
@@ -156,8 +156,8 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
       const response = await api.post('/virtual-tables', virtualTableData);
       
       toast({
-        title: 'Mesa Virtual Creada',
-        description: `"${virtualTableName}" ha sido creada exitosamente`,
+        title: t('virtualTableCreated'),
+        description: t('virtualTableCreatedDesc').replace('{tableName}', virtualTableName),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -168,8 +168,8 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
     } catch (error) {
       console.error('Error creating virtual table:', error);
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Error al crear la mesa virtual',
+        title: t('errorTitle'),
+        description: error.response?.data?.message || t('virtualTableCreationError'),
         status: 'error',
         duration: 4000,
         isClosable: true,
@@ -182,8 +182,8 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
   const handleGenerateMultiple = async () => {
     if (multipleCount < 1 || multipleCount > 50) {
       toast({
-        title: 'Error',
-        description: 'El número de mesas debe estar entre 1 y 50',
+        title: t('errorTitle'),
+        description: t('invalidTableCountError'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -210,8 +210,8 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
       const response = await api.post('/virtual-tables/generate-multiple', bulkData);
       
       toast({
-        title: 'Mesas Generadas',
-        description: `${multipleCount} mesas virtuales han sido creadas exitosamente`,
+        title: t('tablesGenerated'),
+        description: t('tablesGeneratedDesc').replace('{count}', multipleCount),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -222,8 +222,8 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
     } catch (error) {
       console.error('Error generating multiple tables:', error);
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Error al generar las mesas virtuales',
+        title: t('errorTitle'),
+        description: error.response?.data?.message || t('tablesGenerationError'),
         status: 'error',
         duration: 4000,
         isClosable: true,
@@ -247,11 +247,11 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
   const getTabTitle = (tabMode) => {
     switch (tabMode) {
       case 'standalone':
-        return isSimpleMode ? '📋 Nueva Mesa' : '📋 Mesa Simple';
+        return isSimpleMode ? `📋 ${t('simpleTableTab')}` : '📋 Mesa Simple';
       case 'combined':
-        return '🔗 Combinar Mesas';
+        return `🔗 ${t('combineTablesTab')}`;
       case 'multiple':
-        return '⚡ Generación Rápida';
+        return `⚡ ${t('quickGenerationTab')}`;
       default:
         return 'Mesa Virtual';
     }
@@ -262,7 +262,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
       <ModalOverlay />
       <ModalContent maxW="600px" bg="#363636" color="white">
         <ModalHeader>
-          🪑 Crear Mesa Virtual
+          🪑 {t('createVirtualTableHeader')}
         </ModalHeader>
         <ModalCloseButton />
         
@@ -300,9 +300,9 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                   <Alert status="info" borderRadius="md">
                     <AlertIcon />
                     <Text fontSize="sm">
-                      {isSimpleMode 
-                        ? 'Crea una mesa independiente para gestionar pedidos dinámicamente.'
-                        : 'Crea una mesa virtual independiente, sin vincular mesas físicas.'
+                      {isSimpleMode
+                        ? t('standaloneTableDesc')
+                        : t('simpleTableDesc')
                       }
                     </Text>
                   </Alert>
@@ -310,15 +310,15 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                   {/* Información básica */}
                   <Box>
                     <Text fontSize="lg" fontWeight="semibold" mb={3}>
-                      📝 Información Básica
+                      📝 {t('basicInfoSection')}
                     </Text>
                     <VStack spacing={4} align="stretch">
                       <FormControl isRequired isInvalid={errors.name}>
-                        <FormLabel>Nombre de la Mesa Virtual</FormLabel>
+                        <FormLabel>{t('virtualTableNameLabel')}</FormLabel>
                         <Input
                           value={virtualTableName}
                           onChange={(e) => setVirtualTableName(e.target.value)}
-                          placeholder="ej: Mesa Grande Terraza, Evento Empresarial..."
+                          placeholder={t('virtualTableNamePlaceholder')}
                           maxLength={50}
                           bg="gray.700"
                           _placeholder={{ color: 'gray.400' }}
@@ -327,11 +327,11 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                       </FormControl>
 
                       <FormControl>
-                        <FormLabel>Descripción (opcional)</FormLabel>
+                        <FormLabel>{t('descriptionOptional')}</FormLabel>
                         <Textarea
                           value={description}
                           onChange={(e) => setDescription(e.target.value)}
-                          placeholder="Describe el propósito o características especiales..."
+                          placeholder={t('descriptionPlaceholder')}
                           maxLength={200}
                           rows={3}
                           bg="gray.700"
@@ -346,10 +346,10 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                   {/* Capacidad */}
                   <Box>
                     <Text fontSize="lg" fontWeight="semibold" mb={3}>
-                      👥 Capacidad
+                      👥 {t('capacitySection')}
                     </Text>
                     <FormControl isRequired isInvalid={errors.capacity}>
-                      <FormLabel>Número de personas</FormLabel>
+                      <FormLabel>{t('numberOfPeopleLabel')}</FormLabel>
                       <NumberInput
                         value={capacity}
                         onChange={(value) => setCapacity(parseInt(value) || 1)}
@@ -371,12 +371,12 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                   {/* Configuración avanzada */}
                   <Box>
                     <Text fontSize="lg" fontWeight="semibold" mb={3}>
-                      ⚙️ Configuración Avanzada
+                      ⚙️ {t('advancedConfigSection')}
                     </Text>
                     <VStack spacing={4} align="stretch">
                       <FormControl display="flex" alignItems="center">
                         <FormLabel htmlFor="separate-orders" mb="0" color="gray.300">
-                          Permitir pedidos separados
+                          {t('allowSeparateOrders')}
                         </FormLabel>
                         <Switch
                           id="separate-orders"
@@ -387,7 +387,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
 
                       <FormControl display="flex" alignItems="center">
                         <FormLabel htmlFor="combine-billing" mb="0" color="gray.300">
-                          Facturación combinada
+                          {t('combinedBilling')}
                         </FormLabel>
                         <Switch
                           id="combine-billing"
@@ -397,11 +397,11 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                       </FormControl>
 
                       <FormControl>
-                        <FormLabel>Notas de configuración</FormLabel>
+                        <FormLabel>{t('configurationNotes')}</FormLabel>
                         <Textarea
                           value={configNotes}
                           onChange={(e) => setConfigNotes(e.target.value)}
-                          placeholder="Instrucciones especiales para el servicio..."
+                          placeholder={t('configNotesPlaceholder')}
                           maxLength={150}
                           rows={2}
                           bg="gray.700"
@@ -420,22 +420,22 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                     <Alert status="info" borderRadius="md">
                       <AlertIcon />
                       <Text fontSize="sm">
-                        Combina mesas físicas existentes para formar una mesa virtual más grande.
+                        {t('combineTablesDesc')}
                       </Text>
                     </Alert>
 
                     {/* Información básica */}
                     <Box>
                       <Text fontSize="lg" fontWeight="semibold" mb={3}>
-                        📝 Información Básica
+                        📝 {t('basicInfoSection')}
                       </Text>
                       <VStack spacing={4} align="stretch">
                         <FormControl isRequired isInvalid={errors.name}>
-                          <FormLabel>Nombre de la Mesa Virtual</FormLabel>
+                          <FormLabel>{t('virtualTableNameLabel')}</FormLabel>
                           <Input
                             value={virtualTableName}
                             onChange={(e) => setVirtualTableName(e.target.value)}
-                            placeholder="ej: Mesa Grande Terraza, Evento Empresarial..."
+                            placeholder={t('virtualTableNamePlaceholder')}
                             maxLength={50}
                             bg="gray.700"
                             _placeholder={{ color: 'gray.400' }}
@@ -444,11 +444,11 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                         </FormControl>
 
                         <FormControl>
-                          <FormLabel>Descripción (opcional)</FormLabel>
+                          <FormLabel>{t('descriptionOptional')}</FormLabel>
                           <Textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Describe el propósito o características especiales..."
+                            placeholder={t('descriptionPlaceholder')}
                             maxLength={200}
                             rows={3}
                             bg="gray.700"
@@ -464,7 +464,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                     <Box>
                       <HStack justify="space-between" mb={3}>
                         <Text fontSize="lg" fontWeight="semibold">
-                          🪑 Seleccionar Mesas
+                          🪑 {t('selectTablesLabel')}
                         </Text>
                         {selectedTables.length > 0 && (
                           <Badge colorScheme="teal" variant="subtle">
@@ -475,11 +475,11 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
 
                       <FormControl isInvalid={errors.tables}>
                         {isLoading ? (
-                          <Text>Cargando mesas disponibles...</Text>
+                          <Text>{t('loadingTables')}</Text>
                         ) : availableTables.length === 0 ? (
                           <Alert status="warning">
                             <AlertIcon />
-                            No hay mesas físicas disponibles para combinar
+                            {t('noTablesAvailable')}
                           </Alert>
                         ) : (
                           <CheckboxGroup
@@ -520,12 +520,12 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                     {/* Configuración avanzada */}
                     <Box>
                       <Text fontSize="lg" fontWeight="semibold" mb={3}>
-                        ⚙️ Configuración Avanzada
+                        ⚙️ {t('advancedConfigSection')}
                       </Text>
                       <VStack spacing={4} align="stretch">
                         <FormControl display="flex" alignItems="center">
                           <FormLabel htmlFor="separate-orders-combined" mb="0" color="gray.300">
-                            Permitir pedidos separados
+                            {t('allowSeparateOrders')}
                           </FormLabel>
                           <Switch
                             id="separate-orders-combined"
@@ -536,7 +536,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
 
                         <FormControl display="flex" alignItems="center">
                           <FormLabel htmlFor="combine-billing-combined" mb="0" color="gray.300">
-                            Facturación combinada
+                            {t('combinedBilling')}
                           </FormLabel>
                           <Switch
                             id="combine-billing-combined"
@@ -546,11 +546,11 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                         </FormControl>
 
                         <FormControl>
-                          <FormLabel>Notas de configuración</FormLabel>
+                          <FormLabel>{t('configurationNotes')}</FormLabel>
                           <Textarea
                             value={configNotes}
                             onChange={(e) => setConfigNotes(e.target.value)}
-                            placeholder="Instrucciones especiales para el servicio..."
+                            placeholder={t('configNotesPlaceholder')}
                             maxLength={150}
                             rows={2}
                             bg="gray.700"
@@ -570,18 +570,18 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                     <Alert status="success" borderRadius="md">
                       <AlertIcon />
                       <Text fontSize="sm">
-                        Genera múltiples mesas virtuales de una vez para acelerar la configuración inicial.
+                        {t('multipleGenerationDesc')}
                       </Text>
                     </Alert>
 
                     {/* Configuración de generación */}
                     <Box>
                       <Text fontSize="lg" fontWeight="semibold" mb={3}>
-                        ⚡ Configuración de Generación
+                        ⚡ {t('generationConfigSection')}
                       </Text>
                       <VStack spacing={4} align="stretch">
                         <FormControl isRequired>
-                          <FormLabel>Número de mesas a generar</FormLabel>
+                          <FormLabel>{t('numberToGenerate')}</FormLabel>
                           <NumberInput
                             value={multipleCount}
                             onChange={(value) => setMultipleCount(parseInt(value) || 1)}
@@ -597,22 +597,22 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                         </FormControl>
 
                         <FormControl isRequired>
-                          <FormLabel>Prefijo del nombre</FormLabel>
+                          <FormLabel>{t('namePrefixLabel')}</FormLabel>
                           <Input
                             value={multiplePrefix}
                             onChange={(e) => setMultiplePrefix(e.target.value)}
-                            placeholder="Mesa"
+                            placeholder={t('namePrefixPlaceholder')}
                             maxLength={20}
                             bg="gray.700"
                             _placeholder={{ color: 'gray.400' }}
                           />
                           <Text fontSize="xs" color="gray.400" mt={1}>
-                            Las mesas se numerarán como: "{multiplePrefix} 1", "{multiplePrefix} 2", etc.
+                            {t('namingPatternHelper').replace('{prefix}', multiplePrefix).replace('{prefix}', multiplePrefix)}
                           </Text>
                         </FormControl>
 
                         <FormControl isRequired>
-                          <FormLabel>Capacidad por mesa</FormLabel>
+                          <FormLabel>{t('capacityPerTable')}</FormLabel>
                           <NumberInput
                             value={multipleCapacity}
                             onChange={(value) => setMultipleCapacity(parseInt(value) || 1)}
@@ -634,11 +634,11 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                     {/* Preview */}
                     <Box>
                       <Text fontSize="lg" fontWeight="semibold" mb={3}>
-                        👀 Vista Previa
+                        👀 {t('previewSection')}
                       </Text>
                       <Box p={4} bg="gray.700" borderRadius="md" border="1px" borderColor="gray.600">
                         <Text fontSize="sm" mb={2} fontWeight="medium">
-                          Se generarán {multipleCount} mesa{multipleCount !== 1 ? 's' : ''}:
+                          {t('willGenerateText').replace('{count}', multipleCount)}
                         </Text>
                         <VStack align="start" spacing={1}>
                           {Array.from({ length: Math.min(multipleCount, 5) }, (_, i) => (
@@ -694,7 +694,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                 (mode === 'standalone' && (capacity < 1 || capacity > 50))
               }
             >
-              Crear Mesa Virtual
+              {t('createVirtualTableHeader')}
             </Button>
           )}
         </ModalFooter>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Badge, Button, HStack, IconButton, VStack, Text } from "@chakra-ui/react";
 import { FaMinus, FaPlus, FaTrash } from "react-icons/fa";
+import { useLanguage } from '../../../context/LanguageContext';
 
 function OrderMenuItem({
   item,
@@ -13,6 +14,7 @@ function OrderMenuItem({
   onAddItem,
   onRemoveItem,
 }) {
+  const { t } = useLanguage();
   const isLowStock = () => {
     const found = inventory.find(inv => inv.name.toLowerCase() === item.name.toLowerCase());
     return found ? found.quantity > 0 && found.quantity <= lowStockThreshold : false;
@@ -34,7 +36,7 @@ function OrderMenuItem({
     >
       {isLowStock() && (
         <Badge colorScheme="yellow" mb={1}>
-          Pocas unidades
+          {t('lowStock')}
         </Badge>
       )}
 
@@ -49,7 +51,7 @@ function OrderMenuItem({
 
       {!available && (
         <Text fontSize="xs" color="red.300">
-          No disponible en inventario
+          {t('notAvailable')}
         </Text>
       )}
 
@@ -59,7 +61,7 @@ function OrderMenuItem({
           colorScheme="red"
           icon={<FaMinus />}
           onClick={() => onAddItem(item, -1)}
-          aria-label="Disminuir cantidad"
+          aria-label={t('decreaseQuantity')}
           isDisabled={selectedQty === 0}
         />
         <Text minW="30px" textAlign="center">
@@ -70,7 +72,7 @@ function OrderMenuItem({
           colorScheme="green"
           icon={<FaPlus />}
           onClick={() => onAddItem(item, 1)}
-          aria-label="Aumentar cantidad"
+          aria-label={t('increaseQuantity')}
           isDisabled={!canAddMore}
         />
         <IconButton

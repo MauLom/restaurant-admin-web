@@ -25,7 +25,7 @@ function UserManagement() {
       setUsers(response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast({ title: 'Error', description: 'No se pudieron cargar los usuarios.', status: 'error' });
+      toast({ title: t('errorTitle'), description: t('errorLoadingUsersDescription'), status: 'error' });
     } finally {
       setLoading(false);
     }
@@ -37,7 +37,7 @@ function UserManagement() {
 
   const handleGenerateUser = async () => {
     if (!username || !role) {
-      toast({ title: 'Error', description: 'Completa el nombre de usuario y el rol.', status: 'error' });
+      toast({ title: t('errorTitle'), description: t('completeUsernameAndRoleDescription'), status: 'error' });
       return;
     }
 
@@ -51,34 +51,34 @@ function UserManagement() {
         pin: generatedPin
       });
 
-      toast({ title: 'Usuario creado', description: 'Usuario y PIN generados correctamente.', status: 'success' });
+      toast({ title: t('userCreatedTitle'), description: t('userCreatedDescription'), status: 'success' });
       setUsername('');
       setRole('waiter');
       fetchUsers();
     } catch (error) {
       console.error('Error generating user:', error);
-      toast({ title: 'Error', description: 'No se pudo generar el usuario.', status: 'error' });
+      toast({ title: t('errorTitle'), description: t('errorGeneratingUserDescription'), status: 'error' });
     }
   };
 
   const handleDeleteUser = async (userId) => {
     try {
       await api.delete(`/users/${userId}`);
-      toast({ title: 'Usuario eliminado', description: 'El usuario fue eliminado exitosamente.', status: 'success' });
+      toast({ title: t('userDeletedTitle'), description: t('userDeletedDescription'), status: 'success' });
       fetchUsers();
     } catch (error) {
       console.error('Error deleting user:', error);
-      toast({ title: 'Error', description: 'No se pudo eliminar el usuario.', status: 'error' });
+      toast({ title: t('errorTitle'), description: t('errorDeletingUserDescription'), status: 'error' });
     }
   };
 
   return (
     <Box p={6}>
-      <Heading size="lg" mb={4} color="teal.300">👥 Gestión de Usuarios</Heading>
+      <Heading size="lg" mb={4} color="teal.300">{t('userManagementHeading')}</Heading>
 
       <VStack spacing={4} align="stretch" mb={6}>
         <Input
-          placeholder="Nombre de usuario"
+          placeholder={t('usernamePlaceholderEs')}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           bg="gray.700"
@@ -97,18 +97,18 @@ function UserManagement() {
           <option value="bar" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>Barra</option>
         </Select>
         <Button colorScheme="teal" onClick={handleGenerateUser}>
-          Generar PIN
+          {t('generatePinButton')}
         </Button>
         {pin && (
           <Text color="green.300" fontWeight="bold">
-            PIN Generado: {pin}
+            {t('generatedPinLabel').replace('{pin}', pin)}
           </Text>
         )}
       </VStack>
 
       <Divider my={6} />
 
-      <Heading size="md" mb={4} color="teal.300">Usuarios Existentes</Heading>
+      <Heading size="md" mb={4} color="teal.300">{t('existingUsersHeading')}</Heading>
       {loading ? (
         <Spinner size="lg" />
       ) : (
@@ -118,14 +118,14 @@ function UserManagement() {
               <HStack justify="space-between">
                 <VStack align="start" spacing={1}>
                   <Text fontWeight="bold">{user.username}</Text>
-                  <Text fontSize="sm">Rol: {user.role}</Text>
-                  <Text fontSize="sm">PIN: {user.pin}</Text>
+                  <Text fontSize="sm">{t('roleLabel').replace('{role}', user.role)}</Text>
+                  <Text fontSize="sm">{t('pinLabel').replace('{pin}', user.pin)}</Text>
                 </VStack>
                 <IconButton
                   icon={<FaTrash />}
                   colorScheme="red"
                   size="sm"
-                  aria-label="Eliminar usuario"
+                  aria-label={t('deleteUserAriaLabel')}
                   onClick={() => handleDeleteUser(user._id)}
                 />
               </HStack>

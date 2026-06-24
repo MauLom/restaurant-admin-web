@@ -9,9 +9,11 @@ import OrderForm from '../components/OrderForm';
 import OrderCard from '../components/OrderCard';
 import PaymentMethodSelector from '../components/PaymentMethodSelector';
 import { useCustomToast } from '../../../hooks/useCustomToast';
+import { useLanguage } from '../../../context/LanguageContext';
 
 function OrderPage() {
   const toast = useCustomToast();
+  const { t } = useLanguage();
 
   const [sections, setSections] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
@@ -34,15 +36,15 @@ function OrderPage() {
     } catch (error) {
       setSections([]); // Mantener un array vacío en caso de error
       toast({
-        title: "Error",
-        description: "No se pudieron cargar las secciones.",
+        title: t('errorTitle'),
+        description: t('sectionsLoadError'),
         status: "error",
         duration: 3000,
         isClosable: true,
         position: "top-right",
       });
     }
-  }, [toast]);
+  }, [toast, t]);
 
   const fetchOrdersByTableSessionId = useCallback(async (tableId, tableSessionId) => {
     try {
@@ -50,15 +52,15 @@ function OrderPage() {
       setOrders(res.data);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "No se pudieron cargar las órdenes.",
+        title: t('errorTitle'),
+        description: t('ordersLoadError'),
         status: "error",
         duration: 3000,
         isClosable: true,
         position: "top-right",
       });
     }
-  }, [toast]);
+  }, [toast, t]);
 
   useEffect(() => {
     fetchSections();
@@ -91,8 +93,8 @@ function OrderPage() {
       tableSessionData = res.data;
 
       toast({
-        title: "Mesa aperturada",
-        description: `La mesa ${selectedTable.number} se aperturó correctamente.`,
+        title: t('tableOpened'),
+        description: t('tableOpenedDesc').replace('{tableNumber}', selectedTable.number),
         status: "success",
         duration: 2000,
         isClosable: true,
@@ -109,8 +111,8 @@ function OrderPage() {
     } catch (error) {
       console.error("Error al aperturar mesa:", error);
       toast({
-        title: "Error",
-        description: "No se pudo aperturar la mesa.",
+        title: t('errorTitle'),
+        description: t('tableOpenError'),
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -125,8 +127,8 @@ function OrderPage() {
 
     if (paymentMethodsAll.length === 0) {
       toast({
-        title: 'Métodos de pago faltantes',
-        description: 'Agrega al menos un método de pago para continuar.',
+        title: t('noPaymentMethods'),
+        description: t('noPaymentMethodsDesc'),
         status: 'warning',
         duration: 3000,
         isClosable: true,
@@ -137,8 +139,8 @@ function OrderPage() {
     const invalidMethod = paymentMethodsAll.some(pm => !pm.method || !pm.amount || parseFloat(pm.amount) <= 0);
     if (invalidMethod) {
       toast({
-        title: 'Métodos de pago inválidos',
-        description: 'Verifica que todos los métodos tengan un tipo y un monto válidos.',
+        title: t('invalidPaymentMethods'),
+        description: t('invalidPaymentMethodsDesc'),
         status: 'warning',
         duration: 3000,
         isClosable: true,
@@ -148,8 +150,8 @@ function OrderPage() {
 
     if (Math.abs(totalEntered - expectedTotal) > 0.01) {
       toast({
-        title: 'Montos no coinciden',
-        description: `El total ingresado (${totalEntered.toFixed(2)}) no coincide con el total esperado (${expectedTotal.toFixed(2)}).`,
+        title: t('amountsMismatch'),
+        description: `${t('amountsMismatchDesc')} (${totalEntered.toFixed(2)} / ${expectedTotal.toFixed(2)}).`,
         status: 'warning',
         duration: 3000,
         isClosable: true,
@@ -164,8 +166,8 @@ function OrderPage() {
       });
 
       toast({
-        title: 'Pago realizado',
-        description: `Se pagaron todas las órdenes de la mesa ${selectedTable.number}.`,
+        title: t('paymentCompleted'),
+        description: t('paymentCompletedDesc').replace('{tableNumber}', selectedTable.number),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -177,8 +179,8 @@ function OrderPage() {
       setTipAll(0);
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'No se pudieron pagar todas las órdenes.',
+        title: t('errorTitle'),
+        description: t('paymentError'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -190,8 +192,8 @@ function OrderPage() {
     try {
       await api.put(`/tableSession/close-by-table/${selectedTable._id}`);
       toast({
-        title: 'Sesión cerrada',
-        description: 'La sesión de la mesa se cerró correctamente.',
+        title: t('sessionClosed'),
+        description: t('sessionClosedDesc'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -199,8 +201,8 @@ function OrderPage() {
       handleBackToTables();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'No se pudo cerrar la sesión. Asegúrate de que todas las órdenes estén pagadas.',
+        title: t('errorTitle'),
+        description: t('sessionCloseError'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -232,7 +234,7 @@ function OrderPage() {
         <OrderForm table={selectedTable} onBack={handleBackToTables} onSubmitSuccess={handleOrderCreated} />
       ) : (
         <VStack align="stretch" spacing={4}>
-          <Heading size="lg" color="teal.200">Mesa {selectedTable.number}</Heading>
+          <Heading size="lg" color="teal.200">{t('tableHeading').replace('{tableNumber}', selectedTable.number)}</Heading>
           {orders.map((order) => (
             <OrderCard
               key={order._id}
@@ -243,7 +245,7 @@ function OrderPage() {
           <Box>
             <Input
               type="number"
-              placeholder="Propina para todas las órdenes"
+              placeholder={t('tipAllOrders')}
               value={tipAll}
               onChange={(e) => setTipAll(e.target.value)}
               size="sm"
@@ -263,7 +265,7 @@ function OrderPage() {
             onClick={handlePayAllOrders}
             isDisabled={!orders.some(o => o.status === 'ready' && !o.paid)}
           >
-            💳 Pagar todas las órdenes
+            💳 {t('payAllOrders')}
           </Button>
           <Button
             bg="purple.500"
@@ -271,14 +273,14 @@ function OrderPage() {
             onClick={handleCloseSession}
             isDisabled={orders.some(order => !order.paid)}
           >
-            🛑 Cerrar sesión de la mesa
+            🛑 {t('closeTableSession')}
           </Button>
           <Divider borderColor="gray.600" />
           <Button bg="teal.500" _hover={{ bg: 'teal.600' }} onClick={handleCreateNewOrder}>
-            ➕ Agregar nueva orden
+            ➕ {t('addNewOrder')}
           </Button>
           <Button variant="ghost" onClick={handleBackToTables} color="gray.300" _hover={{ color: 'white' }}>
-            🔙 Volver a mesas
+            🔙 {t('backToTables')}
           </Button>
         </VStack>
       )}
