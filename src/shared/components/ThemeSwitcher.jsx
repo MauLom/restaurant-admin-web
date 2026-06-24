@@ -1,21 +1,41 @@
 import { Button, VStack, Text } from '@chakra-ui/react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useDemoContext } from '../../context/DemoContext';
 
 function ThemeSwitcher() {
-  const { applyRandomTheme, getCurrentThemeName } = useTheme();
+  const { applyRandomTheme, toggleColorMode, getCurrentThemeName, colorMode } = useTheme();
+  const { isDemoMode, applyRandomFranchise, currentFranchise } = useDemoContext();
   const { t } = useLanguage();
 
   const handleThemeChange = () => {
-    const newTheme = applyRandomTheme();
-    console.log(`Tema cambiado a: ${newTheme.name}`);
+    if (isDemoMode) {
+      const newTheme = applyRandomTheme();
+      const newFranchise = applyRandomFranchise();
+      console.log(`Tema cambiado a: ${newTheme.name} (${newFranchise.name})`);
+    } else {
+      const newMode = toggleColorMode();
+      console.log(`Modo de color cambiado a: ${newMode}`);
+    }
   };
+
+  const buttonLabel = isDemoMode
+    ? t('themeButtonLabel')
+    : colorMode === 'dark'
+      ? t('darkModeButtonLabel')
+      : t('lightModeButtonLabel');
+
+  const subLabel = isDemoMode
+    ? (currentFranchise ? currentFranchise.name : getCurrentThemeName())
+    : colorMode === 'dark'
+      ? t('darkModeLabel')
+      : t('lightModeLabel');
 
   return (
     <VStack spacing={2} align="center">
-      <Button 
-        onClick={handleThemeChange} 
-        variant="outline" 
+      <Button
+        onClick={handleThemeChange}
+        variant="outline"
         size="lg"
         px={6}
         py={3}
@@ -39,12 +59,12 @@ function ThemeSwitcher() {
           bg: "gray.900",
           boxShadow: "md"
         }}
-        title={t('themeSwitcherDebugTooltip')}
+        title={isDemoMode ? t('themeSwitcherDebugTooltip') : t('colorModeSwitcherTooltip')}
       >
-        {t('themeButtonLabel')}
+        {buttonLabel}
       </Button>
-      <Text 
-        fontSize="sm" 
+      <Text
+        fontSize="sm"
         color="white"
         opacity={0.9}
         textAlign="center"
@@ -52,7 +72,7 @@ function ThemeSwitcher() {
         isTruncated
         fontWeight="medium"
       >
-        {getCurrentThemeName()}
+        {subLabel}
       </Text>
     </VStack>
   );

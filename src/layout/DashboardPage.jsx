@@ -1,5 +1,5 @@
 // import React from 'react';
-import { Box, Flex, Button, HStack, Img } from '@chakra-ui/react';
+import { Box, Flex, Button, HStack, Img, Text } from '@chakra-ui/react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import ResponsiveSidebar from '../shared/components/ResponsiveSidebar';
 import LanguageSwitcher from '../shared/components/LanguageSwitcher';
@@ -11,7 +11,7 @@ import { useTheme } from '../context/ThemeContext';
 
 function DashboardPage() {
   const {t} = useLanguage();
-  const { isDemoMode, exitDemoMode } = useDemoContext();
+  const { isDemoMode, exitDemoMode, currentFranchise } = useDemoContext();
   const navigate = useNavigate();
   const location = useLocation();
   const { currentTheme } = useTheme();
@@ -33,7 +33,24 @@ function DashboardPage() {
   return (
     <Flex direction="column" height="100vh">
       <Flex as="header" justify="space-between" align="center" p={6} bg={currentTheme.colors.interface?.header || "#333"} minH="80px">
-        <Img className="logo" maxW="5rem" src={currentTheme.logo || "maui-logo.png"} borderRadius={10}/>
+        {isDemoMode && currentFranchise ? (
+          <Flex
+            align="center"
+            justify="center"
+            gap={2}
+            minW="5rem"
+            h="3rem"
+            px={3}
+            borderRadius={10}
+            bg={currentFranchise.bg}
+            color={currentFranchise.color}
+          >
+            <Text as="span" fontSize="xl" lineHeight="1">{currentFranchise.emoji}</Text>
+            <Text as="span" fontSize="sm" fontWeight="bold" whiteSpace="nowrap">{currentFranchise.name}</Text>
+          </Flex>
+        ) : (
+          <Img className="logo" maxW="5rem" src={currentTheme.logo || "maui-logo.png"} borderRadius={10}/>
+        )}
         <HStack spacing={6}>
           <ThemeSwitcher />
           <LanguageSwitcher />

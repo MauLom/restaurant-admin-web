@@ -195,6 +195,31 @@ export const clientThemes = {
   },
 };
 
+// Simple light mode for normal (non-demo) usage — single fixed accent color
+export const lightTheme = {
+  name: 'Light Mode',
+  logo: '/public/../logo.png',
+  colors: {
+    background: "#f7f7f7",
+    text: "#1a1a1a",
+    primary: {
+      500: "#319795", // teal, matches classic accent
+    },
+    secondary: {
+      500: "#ED8936", // orange
+    },
+    // Interface colors
+    header: "#ffffff",
+    sidebar: "#f0f0f0",
+    content: "#fafafa",
+    surface: "#ffffff",
+  },
+  fonts: {
+    body: "'Arial', sans-serif",
+    heading: "'Arial', sans-serif",
+  },
+};
+
 // Function to get a random theme for demo purposes
 export const getRandomTheme = () => {
   const themeKeys = Object.keys(clientThemes);
