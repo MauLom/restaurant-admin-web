@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, VStack, Input, Button, Select, Text } from '@chakra-ui/react';
+import { Box, VStack, Input, Button, Select, Text, useTheme } from '@chakra-ui/react';
 import { useLanguage } from '../../../context/LanguageContext';
 import api from '../../../services/api';
 import { useCustomToast } from '../../../hooks/useCustomToast';
@@ -10,6 +10,7 @@ function ReservationForm() {
   const [customerName, setCustomerName] = useState('');
   const toast = useCustomToast();
   const { t } = useLanguage();
+  const theme = useTheme();
 
   useEffect(() => {
     const fetchTables = async () => {
@@ -87,7 +88,7 @@ function ReservationForm() {
           onChange={(e) => setSelectedTable(e.target.value)}
         >
           {tables.map(table => (
-            <option key={table._id} value={table.number}>
+            <option key={table._id} value={table.number} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>
               {t('table')} {table.number}
             </option>
           ))}

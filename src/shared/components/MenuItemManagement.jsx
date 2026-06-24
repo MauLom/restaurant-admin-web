@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Box, VStack, HStack, Button, Input, Text, Select, Grid, Image, IconButton, Collapse, Heading,
-  AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter
+  AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter,
+  useTheme
 } from '@chakra-ui/react';
 import { FaTrash, FaEdit, FaPlus } from 'react-icons/fa';
 import api from '../../services/api';
@@ -17,6 +18,7 @@ function MenuItemManagement() {
   const [showAddForm, setShowAddForm] = useState(false);
   const toast = useCustomToast();
   const { t } = useLanguage();
+  const theme = useTheme();
 
   const [deletingItem, setDeletingItem] = useState(null);
   const cancelRef = useRef();
@@ -175,7 +177,7 @@ function MenuItemManagement() {
             <Input placeholder={t('imageUrlOptionalPlaceholder')} value={newItem.image} onChange={(e) => setNewItem({ ...newItem, image: e.target.value })} />
             <Select placeholder={t('selectCategoryPlaceholder')} value={newItem.category} onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}>
               {categories.map(category => (
-                <option key={category._id} value={category._id}>{category.name} ({category.area})</option>
+                <option key={category._id} value={category._id} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{category.name} ({category.area})</option>
               ))}
             </Select>
 
@@ -186,14 +188,14 @@ function MenuItemManagement() {
                   <HStack key={index} align="start">
                     <Select placeholder={t('selectIngredientPlaceholder')} value={ing.inventoryItem} onChange={(e) => handleIngredientChange(index, 'inventoryItem', e.target.value)}>
                       {inventoryItems.map(inv => (
-                        <option key={inv._id} value={inv._id}>{inv.name}</option>
+                        <option key={inv._id} value={inv._id} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{inv.name}</option>
                       ))}
                     </Select>
-                    <Input placeholder={t('quantityFieldPlaceholder')} type="number" value={ing.quantity} onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)} />
-                    <Select placeholder={t('unitPlaceholder')} value={ing.unit} onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}>
-                      <option value="ml">ml</option>
-                      <option value="g">g</option>
-                      <option value="unit">{t('unitOption')}</option>
+                    <Input placeholder="Cantidad" type="number" value={ing.quantity} onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)} />
+                    <Select placeholder="Unidad" value={ing.unit} onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}>
+                      <option value="ml" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>ml</option>
+                      <option value="g" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>g</option>
+                      <option value="unit" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>unidad</option>
                     </Select>
                     <Button size="sm" colorScheme="red" onClick={() => handleRemoveIngredient(index)}>{t('removeIngredient')}</Button>
                   </HStack>

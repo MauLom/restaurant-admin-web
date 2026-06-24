@@ -210,16 +210,16 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
                 <FormControl flex="1" minW="130px">
                   <FormLabel fontSize="sm">{t('areaLabel')}</FormLabel>
                   <Select value={form.area} onChange={e => setField('area', e.target.value)} size="sm">
-                    <option value="kitchen">🍳 {t('areaKitchen')}</option>
-                    <option value="bar">🍹 {t('areaBar')}</option>
+                    <option value="kitchen" style={{ backgroundColor: surface, color: textColor }}>🍳 Cocina</option>
+                    <option value="bar" style={{ backgroundColor: surface, color: textColor }}>🍹 Barra</option>
                   </Select>
                 </FormControl>
                 <FormControl flex="1" minW="130px">
                   <FormLabel fontSize="sm">{t('difficultyLabel')}</FormLabel>
                   <Select value={form.difficulty} onChange={e => setField('difficulty', e.target.value)} size="sm">
-                    <option value="easy">{t('difficultyEasy')}</option>
-                    <option value="medium">{t('difficultyMedium')}</option>
-                    <option value="hard">{t('difficultyHard')}</option>
+                    <option value="easy" style={{ backgroundColor: surface, color: textColor }}>Fácil</option>
+                    <option value="medium" style={{ backgroundColor: surface, color: textColor }}>Media</option>
+                    <option value="hard" style={{ backgroundColor: surface, color: textColor }}>Difícil</option>
                   </Select>
                 </FormControl>
                 <FormControl flex="1" minW="90px">
@@ -291,7 +291,7 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
                         <FormControl flex="1" minW="110px">
                           <FormLabel fontSize="xs" mb={1}>{t('unitLabel')}</FormLabel>
                           <Select value={ing.unit} onChange={e => updateIngredient(i, 'unit', e.target.value)} size="sm">
-                            {UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+                            {UNITS.map(u => <option key={u.value} value={u.value} style={{ backgroundColor: surface, color: textColor }}>{u.label}</option>)}
                           </Select>
                         </FormControl>
                         <Box pt={6}>
@@ -314,7 +314,7 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
                             placeholder={t('linkInventoryPlaceholder')}
                           >
                             {inventoryItems.map(inv => (
-                              <option key={inv._id} value={inv._id}>
+                              <option key={inv._id} value={inv._id} style={{ backgroundColor: surface, color: textColor }}>
                                 {inv.name} ({inv.unit}{inv.cost ? ` · $${inv.cost}` : ''})
                               </option>
                             ))}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Flex, Button, Input,
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  Textarea, Select, IconButton, FormControl, FormLabel
+  Textarea, Select, IconButton, FormControl, FormLabel, useTheme
 } from '@chakra-ui/react';
 import { FaPlus, FaMinus } from 'react-icons/fa';
 
@@ -12,6 +12,7 @@ import { useLanguage } from '../../../context/LanguageContext';
 function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
   const { user } = React.useContext(UserContext);
   const { t } = useLanguage();
+  const theme = useTheme();
   const [comment, setComment] = useState('');
   const [numDiners, setNumDiners] = useState(2);
   const [selectedWaiter, setSelectedWaiter] = useState(user?._id || '');
@@ -46,10 +47,8 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
             <Select
               value={selectedWaiter}
               onChange={(e) => setSelectedWaiter(e.target.value)}
-              bg="gray.700"
-              _placeholder={{ color: 'gray.400' }}
             >
-              <option style={{ backgroundColor: '#2D3748' }} value={user?._id}>{user?.name}</option>
+              <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value={user?._id}>{user?.name}</option>
             </Select>
           </FormControl>
 
