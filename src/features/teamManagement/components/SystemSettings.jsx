@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, VStack, HStack, Text, Checkbox, Select } from '@chakra-ui/react';
+import { Box, Button, VStack, HStack, Text, Checkbox, Select, useTheme } from '@chakra-ui/react';
 import api from '../../../services/api';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useCustomToast } from '../../../hooks/useCustomToast';
@@ -7,6 +7,7 @@ import { useCustomToast } from '../../../hooks/useCustomToast';
 function SystemSettings() {
   const { t } = useLanguage();
   const toast = useCustomToast();
+  const theme = useTheme();
 
   const [roles, setRoles] = useState([]);
   const [permissions, setPermissions] = useState([]);
@@ -87,7 +88,7 @@ function SystemSettings() {
       <VStack spacing={6} align="start">
         <Select placeholder={t('selectRole')} value={selectedRoleId} onChange={(e) => setSelectedRoleId(e.target.value)}>
           {roles.map((role) => (
-            <option key={role.id} value={role.id}>{role.name}</option>
+            <option key={role.id} value={role.id} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{role.name}</option>
           ))}
         </Select>
 

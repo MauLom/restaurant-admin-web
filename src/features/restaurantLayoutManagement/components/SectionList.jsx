@@ -20,6 +20,7 @@ import {
   Flex,
   IconButton,
   useBreakpointValue,
+  useTheme,
 } from '@chakra-ui/react';
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import AddSectionForm from './AddSectionForm';
@@ -30,6 +31,7 @@ import { useCustomToast } from '../../../hooks/useCustomToast';
 
 function SectionList() {
   const { t } = useLanguage();
+  const theme = useTheme();
   const { user } = useAuthContext();
   const [sections, setSections] = useState([]);
   const [selectedSection, setSelectedSection] = useState(null);
@@ -325,9 +327,9 @@ function SectionList() {
                       value={newTable.status}
                       onChange={(e) => setNewTable({ ...newTable, status: e.target.value })}
                     >
-                      <option value="available">{t('available')}</option>
-                      <option value="occupied">{t('occupied')}</option>
-                      <option value="reserved">{t('reserved')}</option>
+                      <option value="available" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{t('available')}</option>
+                      <option value="occupied" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{t('occupied')}</option>
+                      <option value="reserved" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{t('reserved')}</option>
                     </Select>
                     <Button
                       leftIcon={<AddIcon />}

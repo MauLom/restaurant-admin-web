@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, VStack, HStack, Text, Button, Input, useDisclosure, Stack, Image,
-  Select,
+  Select, useTheme,
 } from '@chakra-ui/react';
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton,
@@ -17,6 +17,7 @@ function CashierPage() {
   const [tip, setTip] = useState(0);
   const [paymentMethods, setPaymentMethods] = useState([{ method: 'cash', amount: 0 }]);
   const toast = useCustomToast();
+  const theme = useTheme();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   useEffect(() => {
@@ -213,12 +214,10 @@ function CashierPage() {
                   <Select
                     value={method.method}
                     onChange={(e) => handlePaymentMethodChange(index, 'method', e.target.value)}
-                    bg="white"
-                    color="black"
                     width="150px"
                   >
-                    <option value="cash">Cash</option>
-                    <option value="card">Card</option>
+                    <option value="cash" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>Cash</option>
+                    <option value="card" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>Card</option>
                   </Select>
                   <Input
                     type="number"

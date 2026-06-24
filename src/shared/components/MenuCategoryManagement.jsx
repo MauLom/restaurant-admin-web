@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, VStack, HStack, Button, Input, Select, Text } from '@chakra-ui/react';
+import { Box, VStack, HStack, Button, Input, Select, Text, useTheme } from '@chakra-ui/react';
 import api from '../../services/api';
 import { useCustomToast } from '../../hooks/useCustomToast';
 
@@ -8,6 +8,7 @@ function MenuCategoryManagement() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryArea, setNewCategoryArea] = useState('kitchen'); // Default area
   const toast = useCustomToast();
+  const theme = useTheme();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -99,8 +100,8 @@ function MenuCategoryManagement() {
             value={newCategoryArea}
             onChange={(e) => setNewCategoryArea(e.target.value)}
           >
-            <option value="kitchen">Kitchen</option>
-            <option value="bar">Bar</option>
+            <option value="kitchen" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>Kitchen</option>
+            <option value="bar" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>Bar</option>
           </Select>
           <Button colorScheme="blue" onClick={handleAddCategory}>
             Add Category

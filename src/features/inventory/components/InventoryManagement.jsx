@@ -3,7 +3,7 @@ import {
   Box, VStack, HStack, Button, Text, Input, NumberInput, NumberInputField,
   Select, IconButton, Wrap, WrapItem, Tag, TagLabel, TagCloseButton,
   Popover, PopoverTrigger, PopoverContent, PopoverBody, PopoverArrow,
-  Badge, Divider, Tooltip, Collapse,
+  Badge, Divider, Tooltip, Collapse, useTheme,
 } from '@chakra-ui/react';
 import { FaEdit, FaExclamationTriangle, FaPlus, FaTimes } from 'react-icons/fa';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -30,6 +30,7 @@ function InventoryManagement() {
   const [customTag, setCustomTag] = useState('');
   const toast = useCustomToast();
   const { t } = useLanguage();
+  const theme = useTheme();
   const formRef = useRef(null);
 
   useEffect(() => {
@@ -293,15 +294,13 @@ function InventoryManagement() {
                 onChange={handleInputChange}
                 placeholder="Unidad de medida"
                 flex="1"
-                bg="gray.700"
-                color="white"
               >
-                <option style={{ backgroundColor: '#2D3748' }} value="ml">Mililitros (ml)</option>
-                <option style={{ backgroundColor: '#2D3748' }} value="l">Litros (l)</option>
-                <option style={{ backgroundColor: '#2D3748' }} value="g">Gramos (g)</option>
-                <option style={{ backgroundColor: '#2D3748' }} value="kg">Kilogramos (kg)</option>
-                <option style={{ backgroundColor: '#2D3748' }} value="unit">Unidad</option>
-                <option style={{ backgroundColor: '#2D3748' }} value="bottle">Botella</option>
+                <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="ml">Mililitros (ml)</option>
+                <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="l">Litros (l)</option>
+                <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="g">Gramos (g)</option>
+                <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="kg">Kilogramos (kg)</option>
+                <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="unit">Unidad</option>
+                <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="bottle">Botella</option>
               </Select>
             </HStack>
 
