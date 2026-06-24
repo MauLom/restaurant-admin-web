@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, VStack, Input, Button, Heading, Text, Select, useToast } from '@chakra-ui/react';
+import { Box, VStack, Input, Button, Heading, Text, Select, useToast, useTheme } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
@@ -10,6 +10,7 @@ function CompleteProfilePage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+  const theme = useTheme();
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -75,12 +76,12 @@ function CompleteProfilePage() {
           value={role}
           onChange={(e) => setRole(e.target.value)}
         >
-          <option style={{ backgroundColor: '#2D3748' }} value="admin">{t('roleAdmin')}</option>
-          <option style={{ backgroundColor: '#2D3748' }} value="waiter">{t('roleWaiter')}</option>
-          <option style={{ backgroundColor: '#2D3748' }} value="hostess">{t('roleHostess')}</option>
-          <option style={{ backgroundColor: '#2D3748' }} value="cashier">{t('roleCashier')}</option>
-          <option style={{ backgroundColor: '#2D3748' }} value="kitchen">{t('roleKitchen')}</option>
-          <option style={{ backgroundColor: '#2D3748' }} value="bar">{t('roleBar')}</option>
+          <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="admin">Administrador</option>
+          <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="waiter">Mesero</option>
+          <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="hostess">Hostess</option>
+          <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="cashier">Cajero</option>
+          <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="kitchen">Cocina</option>
+          <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value="bar">Barra</option>
         </Select>
 
         <Input
