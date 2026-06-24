@@ -20,7 +20,7 @@ function ResponsiveSidebar() {
   const hubItems = [
     { name: t('restaurantStatus'), path: '/dashboard/restaurant-status', icon: FaUtensils },
     { name: t('productManagement'), path: '/dashboard/product-management', icon: FaHamburger },
-    { name: "Configuraciones", path: '/dashboard/configuration', icon: FaCogs }
+    { name: t('settings'), path: '/dashboard/configuration', icon: FaCogs }
   ];
 
   return isMobile ? (

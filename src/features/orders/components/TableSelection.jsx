@@ -39,8 +39,8 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
       onRefreshSections();
     }
     toast({
-      title: 'Mesa virtual creada',
-      description: `"${newVirtualTable.name}" está lista para usar`,
+      title: t('virtualTableCreated'),
+      description: t('virtualTableCreatedDesc').replace('{tableName}', newVirtualTable.name),
       status: 'success',
       duration: 3000,
       isClosable: true,
@@ -175,7 +175,7 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                         colorScheme={virtualTable.status === "occupied" ? "red" : "green"}
                         variant="solid"
                       >
-                        {virtualTable.status === "occupied" ? t('occupiedStatus') : "Disponible"}
+                        {virtualTable.status === "occupied" ? t('occupiedStatus') : t('available')}
                       </Badge>
                       <Badge colorScheme="blue" variant="outline">
                         {virtualTable.totalCapacity}p
@@ -233,7 +233,7 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                       <HStack spacing={2}>
                         {virtualTable.mode === 'combined' && (
                           <Badge size="sm" colorScheme="gray">
-                            {virtualTable.physicalTables.length} mesas
+                            {virtualTable.physicalTables.length} {t('tablesLabel').toLowerCase()}
                           </Badge>
                         )}
                         <Badge size="sm" colorScheme="green">
@@ -241,7 +241,7 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                         </Badge>
                       </HStack>
                       <Text fontSize="xs" color={virtualTable.status === "occupied" ? "white" : "gray.600"}>
-                        {virtualTable.status === "occupied" ? t('occupiedStatus') : "Disponible"}
+                        {virtualTable.status === "occupied" ? t('occupiedStatus') : t('available')}
                       </Text>
                     </VStack>
                   </Button>
@@ -262,7 +262,7 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
               return (
                 <Box key={section._id} border="1px solid black" p={4} borderRadius="md">
                   <Text fontSize="lg" fontWeight="bold" mb={2}>
-                    {section.name || t('sectionWithoutName')} ({tables.length} mesas)
+                    {section.name || t('sectionWithoutName')} ({tables.length} {t('tablesLabel').toLowerCase()})
                   </Text>
                   <HStack wrap="wrap" spacing={4}>
                     {tables.length > 0 ? (
@@ -292,14 +292,14 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                           >
                             <VStack spacing={1}>
                               <Text fontSize="sm" fontWeight="bold">
-                                Mesa {table.number || 'S/N'}
+                                {t('table')} {table.number || t('notAssignedAbbr')}
                               </Text>
                               <Text fontSize="xs">
                                 {isPartOfVirtual
                                   ? t('inVirtualTableStatus')
                                   : table.status === "occupied"
                                     ? t('occupiedStatus')
-                                    : "Disponible"
+                                    : t('available')
                                 }
                               </Text>
                             </VStack>
