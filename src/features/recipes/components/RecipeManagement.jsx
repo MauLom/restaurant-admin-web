@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   Box, SimpleGrid, Button, ButtonGroup, HStack, Heading, Text, Spinner, Center,
-  Input, InputGroup, InputLeftElement,
+  Input, InputGroup, InputLeftElement, IconButton,
   useDisclosure,
   AlertDialog, AlertDialogOverlay, AlertDialogContent,
   AlertDialogHeader, AlertDialogBody, AlertDialogFooter,
 } from '@chakra-ui/react';
-import { FaPlus, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useCustomToast } from '../../../hooks/useCustomToast';
@@ -27,6 +27,8 @@ function RecipeManagement() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [areaFilter, setAreaFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const RECIPES_PER_PAGE = 15;
 
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [editingRecipe, setEditingRecipe] = useState(null);
@@ -122,6 +124,20 @@ function RecipeManagement() {
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 
+  const totalPages = Math.max(1, Math.ceil(displayed.length / RECIPES_PER_PAGE));
+  const paginatedRecipes = displayed.slice(
+    (currentPage - 1) * RECIPES_PER_PAGE,
+    currentPage * RECIPES_PER_PAGE
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, areaFilter]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
   return (
     <Box>
       <HStack justify="space-between" mb={5} flexWrap="wrap" gap={3}>
@@ -170,11 +186,37 @@ function RecipeManagement() {
           )}
         </Center>
       ) : (
-        <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={5}>
-          {displayed.map(r => (
-            <RecipeCard key={r._id} recipe={r} inventoryMap={inventoryMap} onClick={() => openDetail(r)} />
-          ))}
-        </SimpleGrid>
+        <>
+          <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={5}>
+            {paginatedRecipes.map(r => (
+              <RecipeCard key={r._id} recipe={r} inventoryMap={inventoryMap} onClick={() => openDetail(r)} />
+            ))}
+          </SimpleGrid>
+
+          {totalPages > 1 && (
+            <HStack justify="center" mt={6} spacing={4}>
+              <IconButton
+                icon={<FaChevronLeft />}
+                size="sm"
+                variant="outline"
+                aria-label={t('previousPage')}
+                isDisabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              />
+              <Text color={textColor} fontSize="sm">
+                {t('pageOfTotal').replace('{current}', currentPage).replace('{total}', totalPages)}
+              </Text>
+              <IconButton
+                icon={<FaChevronRight />}
+                size="sm"
+                variant="outline"
+                aria-label={t('nextPage')}
+                isDisabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              />
+            </HStack>
+          )}
+        </>
       )}
 
       <RecipeDetail recipe={selectedRecipe} isOpen={detailDisc.isOpen} onClose={detailDisc.onClose}
