@@ -73,7 +73,26 @@ function MenuItemManagement() {
     setNewItem({ ...newItem, ingredients: updatedIngredients });
   };
 
+  const getMissingFieldError = () => {
+    if (!newItem.name.trim()) return t('nameRequiredError');
+    if (!newItem.price) return t('priceRequiredError');
+    if (!newItem.category) return t('categoryRequiredError');
+    return null;
+  };
+
   const handleAddItem = async () => {
+    const missingFieldError = getMissingFieldError();
+    if (missingFieldError) {
+      toast({
+        title: t('errorTitle'),
+        description: missingFieldError,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     try {
       const response = await api.post('/menu/items', newItem);
       setItems([...items, response.data]);
@@ -99,6 +118,18 @@ function MenuItemManagement() {
   };
 
   const handleUpdateItem = async () => {
+    const missingFieldError = getMissingFieldError();
+    if (missingFieldError) {
+      toast({
+        title: t('errorTitle'),
+        description: missingFieldError,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     try {
       const response = await api.put(`/menu/items/${editingItem._id}`, newItem);
       const updatedItem = response.data;
