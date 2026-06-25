@@ -166,7 +166,12 @@ export const ThemeProvider = ({ children }) => {
           900: `${clientTheme.colors.text}1A`,
         },
       },
-      fonts: clientTheme.fonts,
+      // Fixed font family regardless of theme/color — only colors should
+      // change when switching themes, not typography.
+      fonts: {
+        body: "'Arial', sans-serif",
+        heading: "'Arial', sans-serif",
+      },
       // Add logo to theme
       logo: clientTheme.logo,
       config: {
