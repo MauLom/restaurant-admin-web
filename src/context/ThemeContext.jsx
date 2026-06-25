@@ -47,11 +47,17 @@ export const ThemeProvider = ({ children }) => {
           baseStyle: {
             borderRadius: 'md',
             fontWeight: 'semibold',
+            whiteSpace: 'normal',
+            wordBreak: 'break-word',
+            lineHeight: '1.3',
+            paddingY: 2,
+            flexShrink: 0,
           },
           variants: {
             solid: {
               bg: clientTheme.colors.primary[500],
               color: 'white',
+              height: 'auto',
               _hover: {
                 bg: `${clientTheme.colors.primary[500]}DD`, // Slightly more transparent
               },
@@ -62,12 +68,14 @@ export const ThemeProvider = ({ children }) => {
             outline: {
               borderColor: clientTheme.colors.primary[500],
               color: clientTheme.colors.primary[500],
+              height: 'auto',
               _hover: {
                 bg: `${clientTheme.colors.primary[500]}20`,
               },
             },
             ghost: {
               color: clientTheme.colors.primary[500],
+              height: 'auto',
               _hover: {
                 bg: `${clientTheme.colors.primary[500]}20`,
               },
