@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { initializeDemoData, getDemoData, clearDemoData, isDemoMode as checkDemoMode } from '../utils/demoData';
-import { getRandomFranchise } from '../theme/demoFranchises';
 
 const DemoContext = createContext();
 
@@ -8,7 +7,6 @@ export const DemoProvider = ({ children }) => {
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [demoData, setDemoData] = useState(null);
   const [currentThemeName, setCurrentThemeName] = useState(null);
-  const [currentFranchise, setCurrentFranchise] = useState(null);
 
   useEffect(() => {
     // Check if already in demo mode on mount
@@ -16,7 +14,6 @@ export const DemoProvider = ({ children }) => {
     if (demoModeStatus) {
       setIsDemoMode(true);
       setDemoData(getDemoData());
-      setCurrentFranchise(getRandomFranchise());
     }
   }, []);
 
@@ -24,7 +21,6 @@ export const DemoProvider = ({ children }) => {
     const data = initializeDemoData();
     setIsDemoMode(true);
     setDemoData(data);
-    setCurrentFranchise(getRandomFranchise());
 
     // Apply random theme when entering demo mode if theme context is provided
     if (themeContext) {
@@ -40,19 +36,11 @@ export const DemoProvider = ({ children }) => {
     setIsDemoMode(false);
     setDemoData(null);
     setCurrentThemeName(null);
-    setCurrentFranchise(null);
 
     // Reset to default theme when exiting demo if theme context is provided
     if (themeContext) {
       themeContext.resetTheme();
     }
-  };
-
-  // Picks a new random franchise badge (called alongside theme color changes in demo mode)
-  const applyRandomFranchise = () => {
-    const franchise = getRandomFranchise();
-    setCurrentFranchise(franchise);
-    return franchise;
   };
 
   const value = {
@@ -61,8 +49,6 @@ export const DemoProvider = ({ children }) => {
     enterDemoMode,
     exitDemoMode,
     currentThemeName,
-    currentFranchise,
-    applyRandomFranchise,
   };
 
   return (

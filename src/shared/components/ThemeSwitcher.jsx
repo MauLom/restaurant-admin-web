@@ -5,14 +5,13 @@ import { useDemoContext } from '../../context/DemoContext';
 
 function ThemeSwitcher() {
   const { applyRandomTheme, toggleColorMode, colorMode } = useTheme();
-  const { isDemoMode, applyRandomFranchise } = useDemoContext();
+  const { isDemoMode } = useDemoContext();
   const { t } = useLanguage();
 
   const handleThemeChange = () => {
     if (isDemoMode) {
       const newTheme = applyRandomTheme();
-      const newFranchise = applyRandomFranchise();
-      console.log(`Tema cambiado a: ${newTheme.name} (${newFranchise.name})`);
+      console.log(`Tema cambiado a: ${newTheme.name}`);
     } else {
       const newMode = toggleColorMode();
       console.log(`Modo de color cambiado a: ${newMode}`);

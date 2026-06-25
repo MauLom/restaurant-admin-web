@@ -1,19 +1,20 @@
-// Placeholder franchise identities for demo mode logo cycling.
-// Uses emoji/text badges instead of real trademarked logos.
+// Maps each client color theme (clientThemes.js) to a fixed franchise/brand
+// shown in the header during demo mode, so picking a color theme always
+// shows the same matching logo.
 
-const demoFranchises = [
-  { key: 'mcdonalds', name: "McDonald's", emoji: '🍔', bg: '#DA291C', color: '#FFC72C' },
-  { key: 'burgerking', name: 'Burger King', emoji: '👑', bg: '#D62300', color: '#FFFFFF' },
-  { key: 'wendys', name: "Wendy's", emoji: '🍟', bg: '#E2231A', color: '#FFFFFF' },
-  { key: 'kfc', name: 'KFC', emoji: '🍗', bg: '#C8102E', color: '#FFFFFF' },
-  { key: 'pizzahut', name: 'Pizza Hut', emoji: '🍕', bg: '#EE3124', color: '#FFFFFF' },
-  { key: 'tacobell', name: 'Taco Bell', emoji: '🌮', bg: '#702F8A', color: '#FFFFFF' },
-  { key: 'starbucks', name: 'Starbucks', emoji: '☕', bg: '#00704A', color: '#FFFFFF' },
-  { key: 'subway', name: 'Subway', emoji: '🥪', bg: '#00543D', color: '#FFFFFF' },
-];
-
-export const getRandomFranchise = () => {
-  return demoFranchises[Math.floor(Math.random() * demoFranchises.length)];
+const themeFranchises = {
+  classic: { name: 'Mahalo', logo: '/Mahalo.jpg' },
+  modern: { name: 'Pizza Hut', logo: '/Pizza Hut.svg' },
+  warm: { name: "McDonald's", logo: "/McDonald's.png" },
+  forest: { name: 'Starbucks', logo: '/Starbucks.png' },
+  purple: { name: "Dunkin' Donuts", logo: "/Dunkin' Donuts.jpg" },
+  ocean: { name: 'Burger King', logo: '/Burger King.svg' },
+  earth: { name: 'Papa Johns', logo: '/Papa Johns.webp' },
+  midnight: { name: 'Subway', logo: '/Subway.jpg' },
 };
 
-export default demoFranchises;
+export const getFranchiseByThemeKey = (key) => {
+  return themeFranchises[key] || themeFranchises.classic;
+};
+
+export default themeFranchises;
