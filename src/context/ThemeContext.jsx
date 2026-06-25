@@ -88,6 +88,26 @@ export const ThemeProvider = ({ children }) => {
           },
         },
         Toast,
+        // Toasts render Alert with variant="solid". Chakra's built-in solid
+        // variant picks its text color from the "gray.900" token when its
+        // internal color mode is dark (which it always is here, see
+        // config.initialColorMode below). Since the global `gray` scale
+        // above is repurposed as alpha-blended shades of the theme's text
+        // color, gray.900 ends up ~10% opaque and the toast text becomes
+        // unreadable. Set explicit, theme-independent colors instead.
+        Alert: {
+          variants: {
+            solid: (props) => {
+              const { colorScheme: c } = props;
+              return {
+                container: {
+                  bg: `${c}.500`,
+                  color: 'white',
+                },
+              };
+            },
+          },
+        },
         // Add Box component styling
         Box: {
           baseStyle: {

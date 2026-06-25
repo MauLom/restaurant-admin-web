@@ -393,11 +393,13 @@ function PinLogin() {
   }
 
   return (
-    <Flex 
+    <Flex
       ref={containerRef}
-      height="90vh" 
-      direction="column" 
-      align="center" 
+      minH="100vh"
+      bg="#1c1c1c"
+      color="white"
+      direction="column"
+      align="center"
       justify="center"
       tabIndex={0}
       outline="none"
