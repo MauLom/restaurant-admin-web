@@ -13,6 +13,7 @@ import { useUserContext } from '../context/UserContext';
 import { useDemoContext } from '../context/DemoContext';
 import { useCustomToast } from '../hooks/useCustomToast';
 import api from '../services/api';
+import permissions from '../config/permissions';
 
 function PinLogin() {
   const { t } = useLanguage();
@@ -114,7 +115,7 @@ function PinLogin() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const user = profileResponse.data.user;
+      const user = { ...profileResponse.data.user, permissions: profileResponse.data.permissions };
       setUser(user);
       login(user);
 
@@ -152,7 +153,7 @@ function PinLogin() {
       const demoData = enterDemoMode();
       
       // Set demo admin user
-      const demoAdmin = demoData.users.find(user => user.role === 'admin');
+      const demoAdmin = { ...demoData.users.find(user => user.role === 'admin'), permissions: permissions.admin.access };
       setUser(demoAdmin);
       login(demoAdmin);
       

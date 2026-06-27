@@ -3,15 +3,13 @@ import { Box, SimpleGrid, Heading, Text, VStack, useTheme, HStack } from '@chakr
 import { FaCogs } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useAuthContext } from '../../../context/AuthContext';
 
 function ConfigurationPage() {
   const { t } = useLanguage();
+  const { user } = useAuthContext();
+  const userPermissions = user?.permissions || [];
   const options = [
-    {
-      title: t('generatePINsTitle'),
-      description: t('generatePINsDescription'),
-      link: '/dashboard/generate-pins'
-    },
     {
       title: t('configureProfileTitle'),
       description: t('configureProfileDescription'),
@@ -25,9 +23,15 @@ function ConfigurationPage() {
     {
       title: t('manageLayoutTitle'),
       description: t('manageLayoutDescription'),
-      link: '/dashboard/sections'
+      link: '/dashboard/sections',
+      requiredAccess: 'sections'
     },
-  ];
+    {
+      title: t('manageUsersTitle'),
+      description: t('manageUsersDescription'),
+      link: '/dashboard/user-management'
+    },
+  ].filter(option => !option.requiredAccess || userPermissions.includes(option.requiredAccess));
 
   // Use theme colors directly for consistency with custom theme system
   const theme = useTheme();

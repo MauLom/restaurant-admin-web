@@ -19,8 +19,8 @@ function SystemSettings() {
     const fetchData = async () => {
       try {
         const [rolesRes, permsRes] = await Promise.all([
-          api.get('/roles'),
-          api.get('/permissions')
+          api.get('/users/roles'),
+          api.get('/users/permissions')
         ]);
         setRoles(rolesRes.data);
         setPermissions(permsRes.data);
@@ -41,8 +41,8 @@ function SystemSettings() {
     const fetchRolePermissions = async () => {
       if (!selectedRoleId) return;
       try {
-        const res = await api.get(`/roles/${selectedRoleId}/permissions`);
-        setRolePermissions(new Set(res.data));
+        const res = await api.get(`/users/roles/${selectedRoleId}/permissions`);
+        setRolePermissions(new Set(res.data.map((perm) => perm.name)));
       } catch (error) {
         toast({
           title: t('errorTitle'),
@@ -64,7 +64,7 @@ function SystemSettings() {
 
   const handleSave = async () => {
     try {
-      await api.put(`/roles/${selectedRoleId}/permissions`, { permissions: Array.from(rolePermissions) });
+      await api.put(`/users/roles/${selectedRoleId}/permissions`, { permissions: Array.from(rolePermissions) });
       toast({
         title: t('settingsUpdatedTitle'),
         description: t('permissionsUpdated'),
@@ -88,7 +88,7 @@ function SystemSettings() {
       <VStack spacing={6} align="start">
         <Select placeholder={t('selectRole')} value={selectedRoleId} onChange={(e) => setSelectedRoleId(e.target.value)}>
           {roles.map((role) => (
-            <option key={role.id} value={role.id} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{role.name}</option>
+            <option key={role._id} value={role._id} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{role.name}</option>
           ))}
         </Select>
 
@@ -98,11 +98,11 @@ function SystemSettings() {
             <VStack align="start">
               {permissions.map((perm) => (
                 <Checkbox
-                  key={perm.id}
-                  isChecked={rolePermissions.has(perm.key)}
-                  onChange={() => togglePermission(perm.key)}
+                  key={perm._id}
+                  isChecked={rolePermissions.has(perm.name)}
+                  onChange={() => togglePermission(perm.name)}
                 >
-                  {perm.label}
+                  {perm.name}
                 </Checkbox>
               ))}
             </VStack>

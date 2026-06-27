@@ -17,11 +17,14 @@ function ResponsiveSidebar() {
     return null;
   }
 
+  const userPermissions = user.permissions || [];
+  const canManageProducts = ['manageCategories', 'manageItems', 'inventory'].some(access => userPermissions.includes(access));
+
   const hubItems = [
     { name: t('restaurantStatus'), path: '/dashboard/restaurant-status', icon: FaUtensils },
-    { name: t('productManagement'), path: '/dashboard/product-management', icon: FaHamburger },
+    canManageProducts && { name: t('productManagement'), path: '/dashboard/product-management', icon: FaHamburger },
     { name: t('settings'), path: '/dashboard/configuration', icon: FaCogs }
-  ];
+  ].filter(Boolean);
 
   return isMobile ? (
     <Box

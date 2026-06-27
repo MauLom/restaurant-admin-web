@@ -2,31 +2,38 @@ import React from 'react';
 import { Box, SimpleGrid, Heading, Text, VStack, useTheme } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useAuthContext } from '../../../context/AuthContext';
 
 function RestaurantStatusPage() {
   const { t } = useLanguage();
+  const { user } = useAuthContext();
+  const userPermissions = user?.permissions || [];
   const options = [
     {
       title: t('manageOrdersTitle'),
       description: t('manageOrdersDescription'),
-      link: '/dashboard/orders'
+      link: '/dashboard/orders',
+      requiredAccess: 'orders'
     },
     {
       title: t('ordersPrepTitle'),
       description: t('ordersPrepDescription'),
-      link: '/dashboard/kitchen-orders'
+      link: '/dashboard/kitchen-orders',
+      requiredAccess: 'kitchenOrders'
     },
     {
       title: t('manageBillingTitle'),
       description: t('manageBillingDescription'),
-      link: '/dashboard/cashier'
+      link: '/dashboard/cashier',
+      requiredAccess: 'cashier'
     },
     {
       title: t('consultAnalyticsTitle'),
       description: t('consultAnalyticsDescription'),
-      link: '/dashboard/analytics'
+      link: '/dashboard/analytics',
+      requiredAccess: 'analytics'
     },
-  ];
+  ].filter(option => userPermissions.includes(option.requiredAccess));
 
   // Use theme colors directly for consistency with custom theme system
   const theme = useTheme();

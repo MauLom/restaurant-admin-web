@@ -3,31 +3,37 @@ import { Box, SimpleGrid, Heading, Text, VStack, HStack, useTheme } from '@chakr
 import { FaHamburger } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useAuthContext } from '../../../context/AuthContext';
 
 function ProductManagementPage() {
   const { t } = useLanguage();
+  const { user } = useAuthContext();
+  const userPermissions = user?.permissions || [];
   const options = [
     {
       title: t('manageCategoriesTitle'),
       description: t('manageCategoriesDescription'),
-      link: '/dashboard/manage-categories'
+      link: '/dashboard/manage-categories',
+      requiredAccess: 'manageCategories'
     },
     {
       title: t('manageProductsTitle'),
       description: t('manageProductsDescription'),
-      link: '/dashboard/manage-items'
+      link: '/dashboard/manage-items',
+      requiredAccess: 'manageItems'
     },
     {
       title: t('manageInventoryTitle'),
       description: t('manageInventoryDescription'),
-      link: '/dashboard/inventory'
+      link: '/dashboard/inventory',
+      requiredAccess: 'inventory'
     },
     {
       title: t('recipesNavCardTitle'),
       description: t('recipesDescription'),
       link: '/dashboard/recipes',
     },
-  ];
+  ].filter(option => !option.requiredAccess || userPermissions.includes(option.requiredAccess));
 
   // Use theme colors directly for consistency with custom theme system
   const theme = useTheme();
