@@ -88,7 +88,7 @@ function SystemSettings() {
       <VStack spacing={6} align="start">
         <Select placeholder={t('selectRole')} value={selectedRoleId} onChange={(e) => setSelectedRoleId(e.target.value)}>
           {roles.map((role) => (
-            <option key={role._id} value={role._id} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{role.name}</option>
+            <option key={role._id} value={role._id} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{t(`role_${role.name}`)}</option>
           ))}
         </Select>
 
@@ -102,7 +102,7 @@ function SystemSettings() {
                   isChecked={rolePermissions.has(perm.name)}
                   onChange={() => togglePermission(perm.name)}
                 >
-                  {perm.name}
+                  {t(`permission_${perm.name}`)}
                 </Checkbox>
               ))}
             </VStack>

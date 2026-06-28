@@ -3,6 +3,7 @@ import {
   Box, Heading, Input, Select, Button, VStack, Spinner, Text, SimpleGrid, Divider, HStack, IconButton, useTheme,
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Textarea, FormControl, FormLabel,
   AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter,
+  PinInput, PinInputField,
 } from '@chakra-ui/react';
 import { FaTrash, FaEdit, FaBan, FaCheckCircle } from 'react-icons/fa';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -22,8 +23,9 @@ function UserManagement() {
   const [username, setUsername] = useState('');
   const [role, setRole] = useState('waiter');
   const [pin, setPin] = useState('');
-  const [lastGeneratedPin, setLastGeneratedPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
   const [loading, setLoading] = useState(false);
+  const [creatingUser, setCreatingUser] = useState(false);
 
   const [editingUser, setEditingUser] = useState(null);
   const [editUsername, setEditUsername] = useState('');
@@ -56,25 +58,28 @@ function UserManagement() {
   }, []);
 
   const handleGenerateUser = async () => {
-    if (!username || !role) {
-      toast({ title: t('errorTitle'), description: t('completeUsernameAndRoleDescription'), status: 'error' });
+    if (!username || !role || pin.length !== 6) {
+      toast({ title: t('errorTitle'), description: t('usernameAndPinRequired'), status: 'error' });
+      return;
+    }
+    if (pin !== confirmPin) {
+      toast({ title: t('errorTitle'), description: t('pinsDoNotMatch'), status: 'error' });
       return;
     }
 
-    const finalPin = pin || Math.floor(100000 + Math.random() * 900000).toString();
-
+    setCreatingUser(true);
     try {
       await api.post('/users/pins', {
         username,
         role,
-        pin: finalPin
+        pin
       });
 
-      setLastGeneratedPin(finalPin);
       toast({ title: t('userCreatedTitle'), description: t('userCreatedDescription'), status: 'success' });
       setUsername('');
       setRole('waiter');
       setPin('');
+      setConfirmPin('');
       fetchUsers();
     } catch (error) {
       console.error('Error generating user:', error);
@@ -82,6 +87,8 @@ function UserManagement() {
         ? t('duplicateUserFieldDescription')
         : t('errorGeneratingUserDescription');
       toast({ title: t('errorTitle'), description, status: 'error' });
+    } finally {
+      setCreatingUser(false);
     }
   };
 
@@ -162,44 +169,101 @@ function UserManagement() {
     <Box p={6}>
       <Heading size="lg" mb={4} color="teal.300">{t('userManagementHeading')}</Heading>
 
-      <VStack spacing={4} align="stretch" mb={6}>
-        <Input
-          placeholder={t('usernamePlaceholderEs')}
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          bg="gray.700"
-          color="white"
-          _placeholder={{ color: 'gray.400' }}
-        />
-        <Select
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-        >
-          {ROLE_OPTIONS.map((roleOption) => (
-            <option
-              key={roleOption}
-              value={roleOption}
-              style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}
+      <Box bg="#363636" borderRadius="xl" borderTop="3px solid" borderTopColor="teal.400" p={6} mb={6}>
+        <Text fontSize="lg" fontWeight="bold" color="white" mb={1}>{t('createAccountTitle')}</Text>
+        <Text fontSize="xs" color="gray.400" mb={4}>{t('completeFieldsToRegister')}</Text>
+
+        <VStack spacing={5}>
+          <FormControl isRequired>
+            <FormLabel fontSize="sm" color="gray.300" mb={1}>{t('usernameLabel')}</FormLabel>
+            <Input
+              placeholder={t('usernamePlaceholderEs')}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              bg="gray.700"
+              border="none"
+              color="white"
+              _placeholder={{ color: 'gray.400' }}
+              _focus={{ bg: 'gray.600', boxShadow: '0 0 0 2px #319795' }}
+            />
+          </FormControl>
+
+          <FormControl isRequired>
+            <FormLabel fontSize="sm" color="gray.300" mb={1}>{t('rolePlaceholder')}</FormLabel>
+            <Select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              bg="gray.700"
+              border="none"
+              color="white"
             >
-              {t(`role_${roleOption}`)}
-            </option>
-          ))}
-        </Select>
-        <Input
-          placeholder={t('newPinOptionalLabel')}
-          value={pin}
-          onChange={(e) => setPin(e.target.value)}
-          maxLength={6}
-        />
-        <Button colorScheme="teal" onClick={handleGenerateUser}>
-          {t('generatePinButton')}
-        </Button>
-        {lastGeneratedPin && (
-          <Text color="green.300" fontWeight="bold">
-            {t('generatedPinLabel').replace('{pin}', lastGeneratedPin)}
-          </Text>
-        )}
-      </VStack>
+              {ROLE_OPTIONS.map((roleOption) => (
+                <option
+                  key={roleOption}
+                  value={roleOption}
+                  style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}
+                >
+                  {t(`role_${roleOption}`)}
+                </option>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl isRequired>
+            <FormLabel fontSize="sm" color="gray.300" mb={2} textAlign="center">{t('choosePinLabel')}</FormLabel>
+            <HStack justify="center">
+              <PinInput type="number" value={pin} onChange={setPin} size="lg" mask>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <PinInputField
+                    key={i}
+                    bg="#2a2a2a"
+                    border="1px solid"
+                    borderColor="gray.600"
+                    color="white"
+                    _focus={{ borderColor: 'teal.400', boxShadow: '0 0 0 1px #319795' }}
+                  />
+                ))}
+              </PinInput>
+            </HStack>
+          </FormControl>
+
+          <FormControl isRequired>
+            <FormLabel fontSize="sm" color="gray.300" mb={2} textAlign="center">{t('confirmPinLabel')}</FormLabel>
+            <HStack justify="center">
+              <PinInput type="number" value={confirmPin} onChange={setConfirmPin} size="lg" mask>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <PinInputField
+                    key={i}
+                    bg="#2a2a2a"
+                    border="1px solid"
+                    borderColor="gray.600"
+                    color="white"
+                    _focus={{ borderColor: 'teal.400', boxShadow: '0 0 0 1px #319795' }}
+                  />
+                ))}
+              </PinInput>
+            </HStack>
+            {confirmPin.length === 6 && pin !== confirmPin && (
+              <Text fontSize="xs" color="red.400" textAlign="center" mt={2}>
+                {t('pinsDoNotMatch')}
+              </Text>
+            )}
+          </FormControl>
+
+          <Button
+            bg="teal.500"
+            color="white"
+            _hover={{ bg: 'teal.600' }}
+            _active={{ bg: 'teal.700' }}
+            onClick={handleGenerateUser}
+            isLoading={creatingUser}
+            loadingText={t('creatingEllipsis')}
+            w="full"
+          >
+            {t('createAccountTitle')}
+          </Button>
+        </VStack>
+      </Box>
 
       <Divider my={6} />
 
