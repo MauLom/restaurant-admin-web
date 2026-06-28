@@ -21,13 +21,13 @@ export const DemoProvider = ({ children }) => {
     const data = initializeDemoData();
     setIsDemoMode(true);
     setDemoData(data);
-    
+
     // Apply random theme when entering demo mode if theme context is provided
     if (themeContext) {
       const appliedTheme = themeContext.applyRandomTheme();
       setCurrentThemeName(appliedTheme.name);
     }
-    
+
     return data;
   };
 
@@ -36,7 +36,7 @@ export const DemoProvider = ({ children }) => {
     setIsDemoMode(false);
     setDemoData(null);
     setCurrentThemeName(null);
-    
+
     // Reset to default theme when exiting demo if theme context is provided
     if (themeContext) {
       themeContext.resetTheme();

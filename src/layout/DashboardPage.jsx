@@ -8,13 +8,15 @@ import DemoTutorial from '../components/DemoTutorial';
 import { useLanguage } from '../context/LanguageContext';
 import { useDemoContext } from '../context/DemoContext';
 import { useTheme } from '../context/ThemeContext';
+import { getFranchiseByThemeKey } from '../theme/demoFranchises';
 
 function DashboardPage() {
   const {t} = useLanguage();
   const { isDemoMode, exitDemoMode } = useDemoContext();
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentTheme } = useTheme();
+  const { currentTheme, currentThemeKey } = useTheme();
+  const franchise = isDemoMode ? getFranchiseByThemeKey(currentThemeKey) : null;
 
   // Extract current page from pathname for tutorial
   const getCurrentPage = () => {
@@ -33,7 +35,21 @@ function DashboardPage() {
   return (
     <Flex direction="column" height="100vh">
       <Flex as="header" justify="space-between" align="center" p={6} bg={currentTheme.colors.interface?.header || "#333"} minH="80px">
-        <Img className="logo" maxW="5rem" src={currentTheme.logo || "maui-logo.png"} borderRadius={10}/>
+        {franchise ? (
+          <Flex
+            align="center"
+            justify="center"
+            bg="white"
+            borderRadius={10}
+            p={1}
+            minW="5rem"
+            h="3rem"
+          >
+            <Img src={franchise.logo} alt={franchise.name} maxW="4.5rem" maxH="2.6rem" objectFit="contain" />
+          </Flex>
+        ) : (
+          <Img className="logo" maxW="5rem" src={currentTheme.logo || "maui-logo.png"} borderRadius={10}/>
+        )}
         <HStack spacing={6}>
           <ThemeSwitcher />
           <LanguageSwitcher />
