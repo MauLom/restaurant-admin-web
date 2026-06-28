@@ -17,7 +17,6 @@ import InventoryPage from './features/inventory/pages/InventoryPage';
 import CashierPage from './features/teamManagement/pages/CashierPage';
 import HostessPage from './features/teamManagement/pages/HostessPage';
 import ReservationPage from './features/teamManagement/components/ReservationPage';
-import UserProfilePage from './features/teamManagement/pages/UserProfilePage';
 import UserSettingsPage from './features/teamManagement/pages/UserSettingsPage';
 import UserManagementPage from './features/teamManagement/pages/UserManagementPage';
 import NotificationPage from './features/teamManagement/pages/NotificationPage';
@@ -143,15 +142,6 @@ const App = () => {
             element={
               // <ProtectedRoute requiredAccess={['hostess']}>
                 <HostessPage />
-              // </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="profile"
-            element={
-              // <ProtectedRoute requiredAccess={['profile']}>
-                <UserProfilePage />
               // </ProtectedRoute>
             }
           />

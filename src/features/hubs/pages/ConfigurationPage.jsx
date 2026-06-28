@@ -11,11 +11,6 @@ function ConfigurationPage() {
   const userPermissions = user?.permissions || [];
   const options = [
     {
-      title: t('configureProfileTitle'),
-      description: t('configureProfileDescription'),
-      link: '/dashboard/profile'
-    },
-    {
       title: t('configureSystemTitle'),
       description: t('configureSystemDescription'),
       link: '/dashboard/settings'
