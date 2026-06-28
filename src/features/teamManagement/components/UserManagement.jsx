@@ -180,11 +180,12 @@ function UserManagement() {
               placeholder={t('usernamePlaceholderEs')}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              bg="gray.700"
-              border="none"
+              bg="gray.600"
+              border="1px solid"
+              borderColor="gray.500"
               color="white"
               _placeholder={{ color: 'gray.400' }}
-              _focus={{ bg: 'gray.600', boxShadow: '0 0 0 2px #319795' }}
+              _focus={{ bg: 'gray.500', borderColor: 'teal.400', boxShadow: '0 0 0 1px #319795' }}
             />
           </FormControl>
 
@@ -193,9 +194,11 @@ function UserManagement() {
             <Select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              bg="gray.700"
-              border="none"
+              bg="gray.600"
+              border="1px solid"
+              borderColor="gray.500"
               color="white"
+              _focus={{ bg: 'gray.500', borderColor: 'teal.400', boxShadow: '0 0 0 1px #319795' }}
             >
               {ROLE_OPTIONS.map((roleOption) => (
                 <option
