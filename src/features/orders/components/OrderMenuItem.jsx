@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge, Button, HStack, IconButton, VStack, Text } from "@chakra-ui/react";
+import { Badge, Button, HStack, IconButton, VStack, Text, Wrap, WrapItem } from "@chakra-ui/react";
 import { FaMinus, FaPlus, FaTrash } from "react-icons/fa";
 import { useLanguage } from '../../../context/LanguageContext';
 
@@ -38,6 +38,16 @@ function OrderMenuItem({
         <Badge colorScheme="yellow" mb={1}>
           {t('lowStock')}
         </Badge>
+      )}
+
+      {item.allergens && item.allergens.length > 0 && (
+        <Wrap spacing={1} justify="center">
+          {item.allergens.map((allergen) => (
+            <WrapItem key={allergen}>
+              <Badge colorScheme="red" fontSize="0.6em">{t(`allergen_${allergen}`)}</Badge>
+            </WrapItem>
+          ))}
+        </Wrap>
       )}
 
       <Button

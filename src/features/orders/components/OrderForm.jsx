@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import {
-  Box, Button, Grid, Text, VStack, HStack, IconButton, Textarea, Wrap, WrapItem
+  Box, Button, Grid, Text, VStack, HStack, IconButton, Textarea, Wrap, WrapItem, Select, useTheme
 } from '@chakra-ui/react';
 import { FaPlus, FaMinus, FaTrash, FaCashRegister } from 'react-icons/fa';
 import api from '../../../services/api';
@@ -10,9 +10,11 @@ import { useCustomToast } from '../../../hooks/useCustomToast';
 import { ItemSearchBar } from './ItemSearchBar'; // Asegúrate de importar el componente de búsqueda
 import OrderMenuItem from './OrderMenuItem';
 import { useLanguage } from '../../../context/LanguageContext';
+import ALLERGENS from '../../../config/allergens';
 function OrderForm({ table, onBack }) {
   const toast = useCustomToast();
   const { t } = useLanguage();
+  const theme = useTheme();
   const { user } = useContext(UserContext);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -22,10 +24,27 @@ function OrderForm({ table, onBack }) {
   const [inventory, setInventory] = useState([]);
   const [lowStockThreshold, setLowStockThreshold] = useState(3);
   const [filteredItems, setFilteredItems] = useState([]);
+  const [session, setSession] = useState(null);
+  const [seatRestrictions, setSeatRestrictions] = useState([]);
+  const [savingRestrictions, setSavingRestrictions] = useState(false);
 
   useEffect(() => {
     setFilteredItems(menuItems); // Inicialmente mostramos todos
   }, [menuItems]);
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      if (!table.tableSessionId) return;
+      try {
+        const response = await api.get(`/tableSession/${table.tableSessionId}`);
+        setSession(response.data.session);
+        setSeatRestrictions(response.data.session.seatRestrictions || []);
+      } catch (error) {
+        console.warn('No se pudo cargar la sesión de mesa para las restricciones por asiento.');
+      }
+    };
+    fetchSession();
+  }, [table.tableSessionId]);
 
 
 
@@ -148,6 +167,61 @@ function OrderForm({ table, onBack }) {
     );
   };
 
+  const handleSeatChange = (itemId, seatNumber) => {
+    setOrderItems(prevItems =>
+      prevItems.map(i => i._id === itemId ? { ...i, seatNumber: seatNumber ? Number(seatNumber) : null } : i)
+    );
+  };
+
+  const toggleSeatAllergen = (seatNumber, allergen) => {
+    setSeatRestrictions(prev => {
+      const existing = prev.find(r => r.seatNumber === seatNumber);
+      if (existing) {
+        const hasAllergen = existing.allergens.includes(allergen);
+        const updatedAllergens = hasAllergen
+          ? existing.allergens.filter(a => a !== allergen)
+          : [...existing.allergens, allergen];
+        return prev.map(r => r.seatNumber === seatNumber ? { ...r, allergens: updatedAllergens } : r);
+      }
+      return [...prev, { seatNumber, allergens: [allergen] }];
+    });
+  };
+
+  const getSeatAllergens = (seatNumber) => seatRestrictions.find(r => r.seatNumber === seatNumber)?.allergens || [];
+
+  const handleSaveSeatRestrictions = async () => {
+    if (!session) return;
+    setSavingRestrictions(true);
+    try {
+      await api.put(`/tableSession/${session._id}/seat-restrictions`, { seatRestrictions });
+      toast({
+        title: t('restrictionsSavedTitle'),
+        description: t('restrictionsSavedDescription'),
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: t('errorTitle'),
+        description: t('errorSavingRestrictionsDescription'),
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setSavingRestrictions(false);
+    }
+  };
+
+  const getSeatConflict = (item, seatNumber) => {
+    if (!seatNumber || !item.allergens) return null;
+    const restriction = seatRestrictions.find(r => r.seatNumber === Number(seatNumber));
+    if (!restriction) return null;
+    const conflicts = item.allergens.filter(a => restriction.allergens.includes(a));
+    return conflicts.length > 0 ? conflicts : null;
+  };
+
   const calculateTotal = () => {
     return orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   };
@@ -163,6 +237,19 @@ function OrderForm({ table, onBack }) {
       });
       return;
     }
+
+    const conflictingItems = orderItems.filter(item => getSeatConflict(item, item.seatNumber));
+    if (conflictingItems.length > 0) {
+      toast({
+        title: t('allergyConflictTitle'),
+        description: t('allergyConflictBlockedDescription'),
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
     try {
       const orderPayload = {
         tableId: table._id,
@@ -174,6 +261,7 @@ function OrderForm({ table, onBack }) {
           comments: item.note || '',
           quantity: item.quantity,
           area: item.category?.area,
+          seatNumber: item.seatNumber || undefined,
         })),
         tableSessionId: table.tableSessionId,
         comment,
@@ -189,11 +277,18 @@ function OrderForm({ table, onBack }) {
       setOrderItems([]);
       setComment('');
     } catch (error) {
+      const conflicts = error.response?.data?.conflicts;
+      const description = error.response?.status === 409 && conflicts
+        ? t('allergyConflictDescription').replace(
+            '{details}',
+            conflicts.map(c => `${c.itemName} (${t('seatLabel').replace('{number}', c.seatNumber)}: ${c.allergens.map(a => t(`allergen_${a}`)).join(', ')})`).join('; ')
+          )
+        : t('createOrderError');
       toast({
         title: t('errorTitle'),
-        description: t('createOrderError'),
+        description,
         status: 'error',
-        duration: 3000,
+        duration: 5000,
         isClosable: true,
       });
     }
@@ -240,6 +335,47 @@ function OrderForm({ table, onBack }) {
       <Text fontSize="xl" fontWeight="bold" color="teal.200">
         {t('orderForTable').replace('{tableNumber}', table.number)}
       </Text>
+
+      {session && session.numberOfGuests > 0 && (
+        <Box p={4} borderWidth="1px" borderRadius="md" bg="#363636">
+          <Text fontSize="lg" fontWeight="bold" mb={1}>{t('seatRestrictionsTitle')}</Text>
+          <Text fontSize="xs" color="gray.400" mb={3}>{t('seatRestrictionsDescription')}</Text>
+          <VStack align="stretch" spacing={3}>
+            {Array.from({ length: session.numberOfGuests }, (_, i) => i + 1).map(seatNumber => (
+              <Box key={seatNumber} p={2} borderWidth="1px" borderRadius="md" borderColor="gray.600">
+                <Text fontSize="sm" fontWeight="semibold" mb={2}>
+                  {t('seatLabel').replace('{number}', seatNumber)}
+                </Text>
+                <Wrap spacing={2}>
+                  {ALLERGENS.map(allergen => {
+                    const active = getSeatAllergens(seatNumber).includes(allergen);
+                    return (
+                      <WrapItem key={allergen}>
+                        <Badge
+                          as="button"
+                          type="button"
+                          onClick={() => toggleSeatAllergen(seatNumber, allergen)}
+                          colorScheme={active ? 'red' : 'gray'}
+                          variant={active ? 'solid' : 'outline'}
+                          px={2}
+                          py={1}
+                          borderRadius="md"
+                          cursor="pointer"
+                        >
+                          {t(`allergen_${allergen}`)}
+                        </Badge>
+                      </WrapItem>
+                    );
+                  })}
+                </Wrap>
+              </Box>
+            ))}
+          </VStack>
+          <Button mt={3} size="sm" colorScheme="teal" onClick={handleSaveSeatRestrictions} isLoading={savingRestrictions}>
+            {t('saveRestrictionsButton')}
+          </Button>
+        </Box>
+      )}
 
       <Box p={4}>
         <Text mb={2} fontWeight="semibold">{t('categoriesLabel')}:</Text>
@@ -295,25 +431,56 @@ function OrderForm({ table, onBack }) {
           <Text>{t('noItemsSelected')}</Text>
         ) : (
           <VStack spacing={4} align="stretch">
-            {orderItems.map(item => (
-              <Box key={item._id} p={2} borderWidth="1px" borderRadius="md" bg="gray.700">
-                <HStack justify="space-between">
-                  <Text fontWeight="semibold">{item.name}</Text>
-                  <Text>
-                    {item.quantity} x ${item.price.toFixed(2)} = ${(item.quantity * item.price).toFixed(2)}
-                  </Text>
-                </HStack>
-                <Textarea
-                  mt={2}
-                  placeholder={t('addNotePlaceholder')}
-                  value={item.note}
-                  onChange={(e) => handleNoteChange(item._id, e.target.value)}
-                  bg="gray.600"
-                  color="white"
-                  _placeholder={{ color: 'gray.300' }}
-                />
-              </Box>
-            ))}
+            {orderItems.map(item => {
+              const conflict = getSeatConflict(item, item.seatNumber);
+              return (
+                <Box key={item._id} p={2} borderWidth="1px" borderRadius="md" bg="gray.700">
+                  <HStack justify="space-between">
+                    <Text fontWeight="semibold">{item.name}</Text>
+                    <Text>
+                      {item.quantity} x ${item.price.toFixed(2)} = ${(item.quantity * item.price).toFixed(2)}
+                    </Text>
+                  </HStack>
+                  {session && session.numberOfGuests > 0 && (
+                    <Select
+                      mt={2}
+                      size="sm"
+                      value={item.seatNumber || ''}
+                      onChange={(e) => handleSeatChange(item._id, e.target.value)}
+                      bg="gray.600"
+                      color="white"
+                    >
+                      <option value="" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>
+                        {t('noSeatAssignedOption')}
+                      </option>
+                      {Array.from({ length: session.numberOfGuests }, (_, i) => i + 1).map(seatNumber => (
+                        <option
+                          key={seatNumber}
+                          value={seatNumber}
+                          style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}
+                        >
+                          {t('seatLabel').replace('{number}', seatNumber)}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
+                  {conflict && (
+                    <Text fontSize="xs" color="red.300" fontWeight="bold" mt={1}>
+                      ⚠️ {t('allergyConflictWarning').replace('{allergens}', conflict.map(a => t(`allergen_${a}`)).join(', '))}
+                    </Text>
+                  )}
+                  <Textarea
+                    mt={2}
+                    placeholder={t('addNotePlaceholder')}
+                    value={item.note}
+                    onChange={(e) => handleNoteChange(item._id, e.target.value)}
+                    bg="gray.600"
+                    color="white"
+                    _placeholder={{ color: 'gray.300' }}
+                  />
+                </Box>
+              );
+            })}
           </VStack>
         )}
       </Box>

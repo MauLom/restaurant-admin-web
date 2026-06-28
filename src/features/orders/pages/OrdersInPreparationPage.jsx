@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, VStack, HStack, Text, Button, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react';
+import { Box, VStack, HStack, Text, Button, Tabs, TabList, TabPanels, Tab, TabPanel, Badge, Wrap, WrapItem } from '@chakra-ui/react';
 import api from '../../../services/api';
 import { useAuthContext } from '../../../context/AuthContext';
 import { io } from 'socket.io-client';
@@ -106,7 +106,12 @@ function OrdersPreparationPage() {
                         .map((item, index) => (
                           <Box key={index} p={3} borderWidth="1px" borderRadius="md" bg="gray.700">
                             <HStack justifyContent="space-between" mb={2}>
-                              <Text fontWeight="bold">{item.name} (x{item.quantity})</Text>
+                              <HStack>
+                                <Text fontWeight="bold">{item.name} (x{item.quantity})</Text>
+                                {item.seatNumber && (
+                                  <Badge colorScheme="purple">{t('seatLabel').replace('{number}', item.seatNumber)}</Badge>
+                                )}
+                              </HStack>
                               <HStack>
                                 <Text>{item.status === 'ready' ? t('statusReadyText') : t('statusPreparingText')}</Text>
                                 <Button
@@ -119,6 +124,22 @@ function OrdersPreparationPage() {
                                 </Button>
                               </HStack>
                             </HStack>
+
+                            {item.allergens && item.allergens.length > 0 && (
+                              <Wrap spacing={1} mb={2}>
+                                {item.allergens.map((allergen) => (
+                                  <WrapItem key={allergen}>
+                                    <Badge colorScheme="red" fontSize="0.65em">{t(`allergen_${allergen}`)}</Badge>
+                                  </WrapItem>
+                                ))}
+                              </Wrap>
+                            )}
+
+                            {item.comments && (
+                              <Text fontSize="sm" color="gray.300" mb={2}>
+                                📝 {item.comments}
+                              </Text>
+                            )}
 
                             {item.description && (
                               <Text fontSize="sm" color="gray.300" mb={2}>

@@ -2,18 +2,20 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Box, VStack, HStack, Button, Input, Text, Select, Grid, Image, IconButton, Collapse, Heading,
   AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter,
+  Badge, Wrap, WrapItem,
   useTheme
 } from '@chakra-ui/react';
 import { FaTrash, FaEdit, FaPlus } from 'react-icons/fa';
 import api from '../../services/api';
 import { useCustomToast } from '../../hooks/useCustomToast';
 import { useLanguage } from '../../context/LanguageContext';
+import ALLERGENS from '../../config/allergens';
 
 function MenuItemManagement() {
   const [categories, setCategories] = useState([]);
   const [inventoryItems, setInventoryItems] = useState([]);
   const [items, setItems] = useState([]);
-  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', category: '', image: '', ingredients: [] });
+  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', category: '', image: '', ingredients: [], allergens: [] });
   const [editingItem, setEditingItem] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const toast = useCustomToast();
@@ -50,8 +52,17 @@ function MenuItemManagement() {
   }, [toast]);
 
   const resetForm = () => {
-    setNewItem({ name: '', description: '', price: '', category: '', image: '', ingredients: [] });
+    setNewItem({ name: '', description: '', price: '', category: '', image: '', ingredients: [], allergens: [] });
     setEditingItem(null);
+  };
+
+  const toggleAllergen = (allergen) => {
+    setNewItem((prev) => ({
+      ...prev,
+      allergens: prev.allergens.includes(allergen)
+        ? prev.allergens.filter((a) => a !== allergen)
+        : [...prev.allergens, allergen],
+    }));
   };
 
   const handleAddIngredient = () => {
@@ -156,7 +167,8 @@ function MenuItemManagement() {
       price: item.price,
       category: item.category?._id || '',
       image: item.image || '',
-      ingredients: item.ingredients || []
+      ingredients: item.ingredients || [],
+      allergens: item.allergens || []
     });
     setShowAddForm(true);
   };
@@ -204,6 +216,32 @@ function MenuItemManagement() {
               </VStack>
             </Box>
 
+            <Box width="100%">
+              <Text fontWeight="bold" mb={2}>{t('itemAllergensLabel')}</Text>
+              <Wrap spacing={2}>
+                {ALLERGENS.map((allergen) => {
+                  const active = newItem.allergens.includes(allergen);
+                  return (
+                    <WrapItem key={allergen}>
+                      <Badge
+                        as="button"
+                        type="button"
+                        onClick={() => toggleAllergen(allergen)}
+                        colorScheme={active ? 'red' : 'gray'}
+                        variant={active ? 'solid' : 'outline'}
+                        px={2}
+                        py={1}
+                        borderRadius="md"
+                        cursor="pointer"
+                      >
+                        {t(`allergen_${allergen}`)}
+                      </Badge>
+                    </WrapItem>
+                  );
+                })}
+              </Wrap>
+            </Box>
+
             <Button colorScheme="green" onClick={editingItem ? handleUpdateItem : handleAddItem}>{editingItem ? t('updateItem') : t('saveItem')}</Button>
           </VStack>
         </Box>
@@ -225,6 +263,15 @@ function MenuItemManagement() {
               <Text fontWeight="bold">{item.name}</Text>
               <Text fontSize="sm" color="gray.600">{item.category?.name} ({item.category?.area})</Text>
               <Text fontSize="md" color="teal.500">${parseFloat(item.price).toFixed(2)}</Text>
+              {item.allergens && item.allergens.length > 0 && (
+                <Wrap spacing={1}>
+                  {item.allergens.map((allergen) => (
+                    <WrapItem key={allergen}>
+                      <Badge colorScheme="red" fontSize="0.6em">{t(`allergen_${allergen}`)}</Badge>
+                    </WrapItem>
+                  ))}
+                </Wrap>
+              )}
               <HStack justify="space-between">
                 <IconButton icon={<FaEdit />} colorScheme="yellow" onClick={() => handleEditItem(item)} aria-label={t('editItemAriaLabel')} />
                 <IconButton icon={<FaTrash />} colorScheme="red" onClick={() => setDeletingItem(item)} aria-label={t('deleteItemAriaLabel')} />
