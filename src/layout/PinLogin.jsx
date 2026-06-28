@@ -142,7 +142,7 @@ function PinLogin() {
         }
       }
     } catch (error) {
-      setError(t('invalidPin'));
+      setError(error.response?.status === 403 ? t('accountDeactivatedError') : t('invalidPin'));
       setPin('');
     }
   };

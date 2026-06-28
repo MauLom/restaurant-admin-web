@@ -1,5 +1,5 @@
 // import React from 'react';
-import { Box, Flex, Button, HStack, Img } from '@chakra-ui/react';
+import { Box, Flex, Button, HStack, Img, Text } from '@chakra-ui/react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import ResponsiveSidebar from '../shared/components/ResponsiveSidebar';
 import LanguageSwitcher from '../shared/components/LanguageSwitcher';
@@ -8,10 +8,12 @@ import DemoTutorial from '../components/DemoTutorial';
 import { useLanguage } from '../context/LanguageContext';
 import { useDemoContext } from '../context/DemoContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAuthContext } from '../context/AuthContext';
 
 function DashboardPage() {
   const {t} = useLanguage();
   const { isDemoMode, exitDemoMode } = useDemoContext();
+  const { user } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
   const { currentTheme } = useTheme();
@@ -33,7 +35,14 @@ function DashboardPage() {
   return (
     <Flex direction="column" height="100vh">
       <Flex as="header" justify="space-between" align="center" p={6} bg={currentTheme.colors.interface?.header || "#333"} minH="80px">
-        <Img className="logo" maxW="5rem" src={currentTheme.logo || "maui-logo.png"} borderRadius={10}/>
+        <HStack spacing={4}>
+          <Img className="logo" maxW="5rem" src={currentTheme.logo || "maui-logo.png"} borderRadius={10}/>
+          {user?.username && (
+            <Text color="white" fontWeight="medium" fontSize="lg">
+              {t('greetingLabel').replace('{username}', user.username)}
+            </Text>
+          )}
+        </HStack>
         <HStack spacing={6}>
           <ThemeSwitcher />
           <LanguageSwitcher />
