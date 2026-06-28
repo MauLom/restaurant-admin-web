@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Box, Button, VStack, HStack, Text, Center, Flex, Grid, Img, Input, Divider,
-  Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
-  FormControl, FormLabel, FormHelperText,
-  PinInput, PinInputField,
-  useDisclosure,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -27,7 +23,6 @@ function PinLogin() {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [noUsers, setNoUsers] = useState(false);
-  const { isOpen: isRegisterOpen, onOpen: onRegisterOpen, onClose: onRegisterClose } = useDisclosure();
 
   useEffect(() => {
     const checkIfUsersExist = async () => {
@@ -119,27 +114,21 @@ function PinLogin() {
       setUser(user);
       login(user);
 
-      console.log('User profile:', user);
-      console.log('Profile response:', profileResponse.data);
-      if (!profileResponse.data.isProfileComplete) {
-        navigate('/complete-profile');
-      } else {
-        switch (user.role) {
-          case 'waiter':
-            navigate('/dashboard/orders');
-            break;
-          case 'admin':
-            navigate('/dashboard');
-            break;
-          case 'cashier':
-            navigate('/dashboard/cashier');
-            break;
-          case 'kitchen':
-            navigate('/dashboard/kitchen-orders');
-            break;
-          default:
-            navigate('/dashboard');
-        }
+      switch (user.role) {
+        case 'waiter':
+          navigate('/dashboard/orders');
+          break;
+        case 'admin':
+          navigate('/dashboard');
+          break;
+        case 'cashier':
+          navigate('/dashboard/cashier');
+          break;
+        case 'kitchen':
+          navigate('/dashboard/kitchen-orders');
+          break;
+        default:
+          navigate('/dashboard');
       }
     } catch (error) {
       setError(error.response?.status === 403 ? t('accountDeactivatedError') : t('invalidPin'));
@@ -178,172 +167,6 @@ function PinLogin() {
       });
     }
   };
-
-  function RegisterModal() {
-    const [regUsername, setRegUsername] = useState('');
-    const [regEmail, setRegEmail] = useState('');
-    const [regPin, setRegPin] = useState('');
-    const [regConfirmPin, setRegConfirmPin] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    const handleRegister = async () => {
-      if (!regUsername || regPin.length !== 6) {
-        toast({ title: t('errorTitle'), description: t('usernameAndPinRequired'), status: 'error' });
-        return;
-      }
-      if (regPin !== regConfirmPin) {
-        toast({ title: t('errorTitle'), description: t('pinsDoNotMatch'), status: 'error' });
-        return;
-      }
-
-      setLoading(true);
-      try {
-        await api.post('/users/register', {
-          username: regUsername,
-          email: regEmail || undefined,
-          pin: regPin,
-        });
-        toast({ title: t('accountCreatedTitle'), description: t('accountCreatedDescription'), status: 'success' });
-        onRegisterClose();
-      } catch (err) {
-        const msg = err.response?.data?.error || t('errorCreatingAccount');
-        toast({ title: t('errorTitle'), description: msg, status: 'error' });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const inputStyles = {
-      bg: 'gray.700',
-      border: 'none',
-      color: 'white',
-      _placeholder: { color: 'gray.400' },
-      _focus: { bg: 'gray.600', boxShadow: '0 0 0 2px #319795' },
-    };
-
-    const pinFieldStyles = {
-      bg: '#2a2a2a',
-      border: '1px solid',
-      borderColor: 'gray.600',
-      color: 'white',
-      _focus: { borderColor: 'teal.400', boxShadow: '0 0 0 1px #319795' },
-    };
-
-    return (
-      <Modal isOpen={isRegisterOpen} onClose={onRegisterClose} isCentered size="md">
-        <ModalOverlay bg="blackAlpha.700" backdropFilter="blur(4px)" />
-        <ModalContent
-          bg="#363636"
-          color="white"
-          borderRadius="xl"
-          borderTop="3px solid"
-          borderTopColor="teal.400"
-          boxShadow="0 25px 50px rgba(0,0,0,0.6)"
-        >
-          <ModalHeader pb={1}>
-            <VStack align="start" spacing={0}>
-              <Text fontSize="lg" fontWeight="bold">{t('createAccountTitle')}</Text>
-              <Text fontSize="xs" color="gray.400" fontWeight="normal">
-                {t('completeFieldsToRegister')}
-              </Text>
-            </VStack>
-          </ModalHeader>
-          <ModalCloseButton color="gray.400" _hover={{ color: 'white', bg: 'gray.600' }} />
-
-          <ModalBody pt={4} pb={2}>
-            <VStack spacing={5}>
-              <FormControl isRequired>
-                <FormLabel fontSize="sm" color="gray.300" mb={1}>{t('usernameLabel')}</FormLabel>
-                <Input
-                  placeholder={t('usernamePlaceholder')}
-                  value={regUsername}
-                  onChange={(e) => setRegUsername(e.target.value)}
-                  {...inputStyles}
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormLabel fontSize="sm" color="gray.300" mb={1}>
-                  {t('emailPlaceholder')}{' '}
-                  <Text as="span" fontSize="xs" color="gray.500">({t('optionalLabel')})</Text>
-                </FormLabel>
-                <Input
-                  type="email"
-                  placeholder={t('emailExamplePlaceholder')}
-                  value={regEmail}
-                  onChange={(e) => setRegEmail(e.target.value)}
-                  {...inputStyles}
-                />
-              </FormControl>
-
-              <Box w="full">
-                <Divider borderColor="gray.600" mb={4} />
-                <FormControl isRequired>
-                  <FormLabel fontSize="sm" color="gray.300" mb={2} textAlign="center">
-                    {t('choosePinLabel')}
-                  </FormLabel>
-                  <HStack justify="center">
-                    <PinInput type="number" value={regPin} onChange={setRegPin} size="lg" mask>
-                      <PinInputField {...pinFieldStyles} />
-                      <PinInputField {...pinFieldStyles} />
-                      <PinInputField {...pinFieldStyles} />
-                      <PinInputField {...pinFieldStyles} />
-                      <PinInputField {...pinFieldStyles} />
-                      <PinInputField {...pinFieldStyles} />
-                    </PinInput>
-                  </HStack>
-                </FormControl>
-
-                <FormControl isRequired mt={4}>
-                  <FormLabel fontSize="sm" color="gray.300" mb={2} textAlign="center">
-                    {t('confirmPinLabel')}
-                  </FormLabel>
-                  <HStack justify="center">
-                    <PinInput type="number" value={regConfirmPin} onChange={setRegConfirmPin} size="lg" mask>
-                      <PinInputField {...pinFieldStyles} />
-                      <PinInputField {...pinFieldStyles} />
-                      <PinInputField {...pinFieldStyles} />
-                      <PinInputField {...pinFieldStyles} />
-                      <PinInputField {...pinFieldStyles} />
-                      <PinInputField {...pinFieldStyles} />
-                    </PinInput>
-                  </HStack>
-                  {regConfirmPin.length === 6 && regPin !== regConfirmPin && (
-                    <Text fontSize="xs" color="red.400" textAlign="center" mt={2}>
-                      {t('pinsDoNotMatch')}
-                    </Text>
-                  )}
-                </FormControl>
-              </Box>
-            </VStack>
-          </ModalBody>
-
-          <ModalFooter pt={4} gap={2}>
-            <Button
-              variant="ghost"
-              color="gray.300"
-              _hover={{ color: 'white', bg: 'gray.600' }}
-              onClick={onRegisterClose}
-            >
-              {t('cancel')}
-            </Button>
-            <Button
-              bg="teal.500"
-              color="white"
-              _hover={{ bg: 'teal.600' }}
-              _active={{ bg: 'teal.700' }}
-              onClick={handleRegister}
-              isLoading={loading}
-              loadingText={t('creatingEllipsis')}
-              px={6}
-            >
-              {t('createAccountTitle')}
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    );
-  }
 
   function FirstAdminCreation() {
     const [username, setUsername] = useState('');
@@ -407,8 +230,6 @@ function PinLogin() {
       <Center flex="1">
         <Img className="logo" maxW="220px" src="maui-logo.png" />
       </Center>
-
-      <RegisterModal />
 
       {noUsers ? (
         <FirstAdminCreation />
@@ -495,7 +316,7 @@ function PinLogin() {
                 colorScheme="blue"
                 variant="outline"
                 size="md"
-                onClick={onRegisterOpen}
+                onClick={() => navigate('/register')}
                 w="full"
                 maxW="300px"
               >

@@ -25,7 +25,7 @@ import UnauthorizedPage from './shared/components/UnauthorizedPage';
 import RestaurantStatusPage from './features/hubs/pages/RestaurantStatusPage';
 import ProductManagementPage from './features/hubs/pages/ProductManagementPage';
 import ConfigurationPage from './features/hubs/pages/ConfigurationPage';
-import CompleteProfilePage from './features/auth/CompleteProfilePage';
+import RegisterPage from './features/auth/RegisterPage';
 import RecipeListPage from './features/recipes/pages/RecipeListPage';
 import ProtectedRoute from './shared/components/ProtectedRoute';
 
@@ -41,7 +41,7 @@ const App = () => {
         <Route path="/login" element={<PinLogin />} />
         <Route path="/" element={<PinLogin />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
-        <Route path="/complete-profile" element={<CompleteProfilePage />}/>
+        <Route path="/register" element={<RegisterPage />} />
 
 
         {/* Rutas protegidas bajo /dashboard */}
