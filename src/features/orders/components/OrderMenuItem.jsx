@@ -1,90 +1,82 @@
 import React from 'react';
-import { Badge, Button, HStack, IconButton, VStack, Text } from "@chakra-ui/react";
-import { FaMinus, FaPlus, FaTrash } from "react-icons/fa";
+import { Badge, Box, Text } from "@chakra-ui/react";
 import { useLanguage } from '../../../context/LanguageContext';
 
 function OrderMenuItem({
   item,
-  stock,
   available,
   selectedQty,
   canAddMore,
   inventory,
   lowStockThreshold,
   onAddItem,
-  onRemoveItem,
 }) {
   const { t } = useLanguage();
+  const isSelected = selectedQty > 0;
+  const isClickable = available && canAddMore;
+
   const isLowStock = () => {
     const found = inventory.find(inv => inv.name.toLowerCase() === item.name.toLowerCase());
     return found ? found.quantity > 0 && found.quantity <= lowStockThreshold : false;
   };
 
-  const handleRemoveItem = () => {
-    onRemoveItem(item._id);
+  const handleClick = () => {
+    if (isClickable) {
+      onAddItem(item, 1);
+    }
   };
 
   return (
-    <VStack
-      key={item._id}
-      p={2}
-      borderWidth="1px"
-      borderRadius="md"
-      opacity={available ? 1 : 0.5}
+    <Box
+      position="relative"
+      onClick={handleClick}
+      cursor={isClickable ? 'pointer' : 'not-allowed'}
       bg="gray.700"
-      spacing={2}
+      borderWidth="2px"
+      borderColor={isSelected ? 'green.400' : 'transparent'}
+      borderRadius="md"
+      p={3}
+      opacity={available ? 1 : 0.5}
+      transition="border-color 0.15s ease"
+      _hover={isClickable ? { borderColor: isSelected ? 'green.400' : 'gray.500' } : undefined}
     >
-      {isLowStock() && (
-        <Badge colorScheme="yellow" mb={1}>
+      {isSelected && (
+        <Box
+          position="absolute"
+          top="-8px"
+          right="-8px"
+          bg="green.400"
+          color="white"
+          borderRadius="full"
+          minW="22px"
+          h="22px"
+          px={1}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          fontSize="xs"
+          fontWeight="bold"
+        >
+          {selectedQty}
+        </Box>
+      )}
+
+      <Text fontWeight="semibold" noOfLines={2} mb={1}>
+        {item.name}
+      </Text>
+
+      {available ? (
+        <Text fontSize="sm" color="gray.300">${item.price.toFixed(2)}</Text>
+      ) : (
+        <Text fontSize="sm" color="red.300">{t('notAvailable')}</Text>
+      )}
+
+      {available && isLowStock() && (
+        <Badge colorScheme="yellow" fontSize="2xs" mt={1}>
           {t('lowStock')}
         </Badge>
       )}
-
-      <Button
-        colorScheme={available ? "teal" : "gray"}
-        onClick={() => available && onAddItem(item, 1)}
-        isDisabled={!available}
-        w="full"
-      >
-        {item.name} <br /> (${item.price.toFixed(2)})
-      </Button>
-
-      {!available && (
-        <Text fontSize="xs" color="red.300">
-          {t('notAvailable')}
-        </Text>
-      )}
-
-      <HStack spacing={2} w="full" justify="center">
-        <IconButton
-          size="sm"
-          colorScheme="red"
-          icon={<FaMinus />}
-          onClick={() => onAddItem(item, -1)}
-          aria-label={t('decreaseQuantity')}
-          isDisabled={selectedQty === 0}
-        />
-        <Text minW="30px" textAlign="center">
-          {selectedQty}
-        </Text>
-        <IconButton
-          size="sm"
-          colorScheme="green"
-          icon={<FaPlus />}
-          onClick={() => onAddItem(item, 1)}
-          aria-label={t('increaseQuantity')}
-          isDisabled={!canAddMore}
-        />
-        <IconButton
-          size="sm"
-          colorScheme="red"
-          icon={<FaTrash />}
-          onClick={handleRemoveItem}
-          aria-label="Eliminar ítem"
-          isDisabled={selectedQty === 0}
-        />
-      </HStack>
-    </VStack>
+    </Box>
   );
 }
 
