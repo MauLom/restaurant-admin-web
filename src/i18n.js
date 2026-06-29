@@ -671,6 +671,9 @@ const translations = {
     errorSendingOrderToCashierDescription: 'Could not send the order to the cashier.',
     sendOrderToCashierButton: 'Send to cashier',
     statusSentToCashierText: 'Sent to cashier',
+    ingredientConflictWarning: '⚠️ {ingredient} contains {allergens} — restricted for this seat',
+    fillAllergenNoteButton: 'Add kitchen notice',
+    allergenPrewrittenNote: 'Diner allergic to {allergens}, avoid {ingredients}',
   },
   es: {
     addItem: 'Agregar Artículo',
@@ -1344,6 +1347,9 @@ const translations = {
     errorSendingOrderToCashierDescription: 'No se pudo enviar la orden al cajero.',
     sendOrderToCashierButton: 'Enviar a caja',
     statusSentToCashierText: 'Enviada a caja',
+    ingredientConflictWarning: '⚠️ {ingredient} contiene {allergens} — restringido para este asiento',
+    fillAllergenNoteButton: 'Añadir aviso a cocina',
+    allergenPrewrittenNote: 'Comensal alérgico a {allergens}, evitar {ingredients}',
   }
 };
 

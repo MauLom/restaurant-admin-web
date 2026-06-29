@@ -17,9 +17,11 @@ const PREDEFINED_TAGS = [
   'Aceites y grasas', 'Bebidas', 'Alcohol', 'Salsas',
 ];
 
+const ALLERGENS = ['gluten', 'lactose', 'nuts', 'peanuts', 'shellfish', 'fish', 'eggs', 'soy', 'sesame'];
+
 const EMPTY_FORM = {
   name: '', quantity: '', unit: '', equivalentMl: '',
-  equivalentGr: '', cost: '', minStock: '', supplier: '', tags: [],
+  equivalentGr: '', cost: '', minStock: '', supplier: '', tags: [], allergens: [],
 };
 
 function InventoryManagement() {
@@ -56,6 +58,15 @@ function InventoryManagement() {
       tags: prev.tags.includes(tag)
         ? prev.tags.filter(t => t !== tag)
         : [...prev.tags, tag],
+    }));
+  };
+
+  const toggleAllergen = (allergen) => {
+    setNewItem(prev => ({
+      ...prev,
+      allergens: prev.allergens.includes(allergen)
+        ? prev.allergens.filter(a => a !== allergen)
+        : [...prev.allergens, allergen],
     }));
   };
 
@@ -117,6 +128,7 @@ function InventoryManagement() {
       minStock: item.minStock || '',
       supplier: item.supplier || '',
       tags: Array.isArray(item.tags) ? item.tags : [],
+      allergens: Array.isArray(item.allergens) ? item.allergens : [],
     });
     setShowForm(true);
     setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
@@ -222,6 +234,11 @@ function InventoryManagement() {
                   <Text fontWeight="semibold">{item.name}</Text>
                   {item.tags?.map(tag => (
                     <Badge key={tag} colorScheme="blue" fontSize="10px">{tag}</Badge>
+                  ))}
+                  {item.allergens?.map(allergen => (
+                    <Badge key={allergen} bg="orange.600" color="white" fontSize="10px">
+                      {t(`allergen_${allergen}`)}
+                    </Badge>
                   ))}
                 </HStack>
                 <HStack spacing={3} mt={1}>
@@ -388,6 +405,34 @@ function InventoryManagement() {
                 />
                 <IconButton icon={<FaPlus />} size="sm" onClick={addCustomTag} aria-label="Agregar etiqueta" />
               </HStack>
+            </Box>
+
+            <Divider borderColor="whiteAlpha.200" />
+
+            {/* Allergens */}
+            <Box>
+              <Text fontSize="sm" mb={2} opacity={0.8}>{t('itemAllergensLabel')}</Text>
+              <Wrap>
+                {ALLERGENS.map(allergen => {
+                  const active = newItem.allergens.includes(allergen);
+                  return (
+                    <WrapItem key={allergen}>
+                      <Tag
+                        cursor="pointer"
+                        onClick={() => toggleAllergen(allergen)}
+                        size="sm"
+                        bg={active ? 'orange.500' : 'gray.600'}
+                        color={active ? 'white' : 'gray.200'}
+                        border="1px solid"
+                        borderColor={active ? 'orange.400' : 'gray.500'}
+                        fontWeight="medium"
+                      >
+                        <TagLabel>{t(`allergen_${allergen}`)}</TagLabel>
+                      </Tag>
+                    </WrapItem>
+                  );
+                })}
+              </Wrap>
             </Box>
 
             <HStack>

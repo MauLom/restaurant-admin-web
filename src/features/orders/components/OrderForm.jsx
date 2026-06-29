@@ -222,6 +222,30 @@ function OrderForm({ table, onBack }) {
     return conflicts.length > 0 ? conflicts : null;
   };
 
+  const getIngredientConflict = (item, seatNumber) => {
+    if (!seatNumber || !item.ingredients || item.ingredients.length === 0) return null;
+    const restriction = seatRestrictions.find(r => r.seatNumber === Number(seatNumber));
+    if (!restriction || restriction.allergens.length === 0) return null;
+    const conflicts = [];
+    for (const ing of item.ingredients) {
+      const inv = ing.inventoryItem;
+      if (!inv || !Array.isArray(inv.allergens) || inv.allergens.length === 0) continue;
+      const shared = inv.allergens.filter(a => restriction.allergens.includes(a));
+      if (shared.length > 0) conflicts.push({ ingredientName: inv.name, allergens: shared });
+    }
+    return conflicts.length > 0 ? conflicts : null;
+  };
+
+  const handleFillAllergenNote = (itemId, seatNumber, ingredientConflicts) => {
+    const restriction = seatRestrictions.find(r => r.seatNumber === Number(seatNumber));
+    const allergenNames = (restriction?.allergens || []).map(a => t(`allergen_${a}`)).join(', ');
+    const ingredientNames = ingredientConflicts.map(ic => ic.ingredientName).join(', ');
+    const message = t('allergenPrewrittenNote')
+      .replace('{allergens}', allergenNames)
+      .replace('{ingredients}', ingredientNames);
+    handleNoteChange(itemId, message);
+  };
+
   const calculateTotal = () => {
     return orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   };
@@ -405,6 +429,7 @@ function OrderForm({ table, onBack }) {
           <VStack spacing={4} align="stretch">
             {orderItems.map(item => {
               const conflict = getSeatConflict(item, item.seatNumber);
+              const ingredientConflict = getIngredientConflict(item, item.seatNumber);
               return (
                 <Box key={item._id} p={2} borderWidth="1px" borderRadius="md" bg="gray.700">
                   <HStack justify="space-between">
@@ -437,9 +462,30 @@ function OrderForm({ table, onBack }) {
                     </Select>
                   )}
                   {conflict && (
-                    <Text fontSize="xs" color="red.300" fontWeight="bold" mt={1}>
+                    <Text fontSize="xs" color="red.300" fontWeight="medium" mt={1}>
                       ⚠️ {t('allergyConflictWarning').replace('{allergens}', conflict.map(a => t(`allergen_${a}`)).join(', '))}
                     </Text>
+                  )}
+                  {ingredientConflict && !conflict && (
+                    <Box mt={1}>
+                      {ingredientConflict.map(ic => (
+                        <Text key={ic.ingredientName} fontSize="xs" color="orange.300" fontWeight="medium">
+                          ⚠️ {t('ingredientConflictWarning')
+                            .replace('{ingredient}', ic.ingredientName)
+                            .replace('{allergens}', ic.allergens.map(a => t(`allergen_${a}`)).join(', '))}
+                        </Text>
+                      ))}
+                      <Button
+                        mt={1}
+                        size="xs"
+                        bg="orange.600"
+                        color="white"
+                        _hover={{ bg: 'orange.500' }}
+                        onClick={() => handleFillAllergenNote(item._id, item.seatNumber, ingredientConflict)}
+                      >
+                        {t('fillAllergenNoteButton')}
+                      </Button>
+                    </Box>
                   )}
                   <Textarea
                     mt={2}
