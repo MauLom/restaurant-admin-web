@@ -9,9 +9,11 @@ import { useCustomToast } from '../../../hooks/useCustomToast';
 import { ItemSearchBar } from './ItemSearchBar'; // Asegúrate de importar el componente de búsqueda
 import OrderMenuItem from './OrderMenuItem';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useTheme } from '../../../context/ThemeContext';
 function OrderForm({ table, onBack }) {
   const toast = useCustomToast();
   const { t } = useLanguage();
+  const { currentTheme } = useTheme();
   const { user } = useContext(UserContext);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -226,8 +228,8 @@ function OrderForm({ table, onBack }) {
       direction={{ base: 'column', md: 'row' }}
       align="flex-start"
       gap={4}
-      bg="#1a202c"
-      color="white"
+      bg={currentTheme.colors.interface?.content || currentTheme.colors.background}
+      color={currentTheme.colors.text}
       p={4}
       borderRadius="md"
     >
@@ -237,7 +239,7 @@ function OrderForm({ table, onBack }) {
           <Button size="sm" onClick={onBack} bg="gray.600" _hover={{ bg: 'gray.500' }} color="white">
             {t('backToTables')}
           </Button>
-          <Text fontSize="lg" fontWeight="bold" color="teal.200">
+          <Text fontSize="lg" fontWeight="bold" color={currentTheme.colors.primary[500]}>
             {t('orderForTable').replace('{tableNumber}', table.number)}
           </Text>
         </HStack>
@@ -298,7 +300,7 @@ function OrderForm({ table, onBack }) {
         top="4"
         alignSelf="flex-start"
         maxH={{ base: 'none', md: 'calc(100vh - 140px)' }}
-        bg="#22272f"
+        bg={currentTheme.colors.interface?.surface || currentTheme.colors.surface}
         borderWidth="1px"
         borderColor="gray.700"
         borderRadius="md"

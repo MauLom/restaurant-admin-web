@@ -10,10 +10,12 @@ import OrderCard from '../components/OrderCard';
 import PaymentMethodSelector from '../components/PaymentMethodSelector';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useTheme } from '../../../context/ThemeContext';
 
 function OrderPage() {
   const toast = useCustomToast();
   const { t } = useLanguage();
+  const { currentTheme } = useTheme();
 
   const [sections, setSections] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
@@ -227,7 +229,13 @@ function OrderPage() {
   };
 
   return (
-    <Flex height="100vh" direction="column" p={4} bg="#1a202c" color="white">
+    <Flex
+      height="100vh"
+      direction="column"
+      p={4}
+      bg={currentTheme.colors.interface?.content || currentTheme.colors.background}
+      color={currentTheme.colors.text}
+    >
       {!selectedTable || selectedTable._pendingOpen ? (
         <TableSelection sections={sections} onTableClick={handleTableClick} />
       ) : creatingNewOrder ? (
