@@ -5,7 +5,7 @@ import PaymentMethodSelector from './PaymentMethodSelector';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import { useLanguage } from '../../../context/LanguageContext';
 
-function OrderCard({ order, onPaid }) {
+function OrderCard({ order, onPaid, allowPayment = false }) {
   const toast = useCustomToast();
   const { t } = useLanguage();
   const [tip, setTip] = useState(0);
@@ -24,6 +24,28 @@ function OrderCard({ order, onPaid }) {
     const selected = order.items.filter(item => selectedItems.includes(item.itemId));
     return selected.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   }, [order.items, selectedItems]);
+
+  const handleSendToCashier = async () => {
+    try {
+      await api.put(`/orders/${order._id}/send-to-cashier`);
+      toast({
+        title: t('orderSentToCashierTitle'),
+        description: t('orderSentToCashierDescription'),
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      if (onPaid) onPaid();
+    } catch (error) {
+      toast({
+        title: t('errorTitle'),
+        description: t('errorSendingOrderToCashierDescription'),
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
 
   const handlePaySelectedItems = async () => {
     try {
@@ -68,14 +90,24 @@ function OrderCard({ order, onPaid }) {
     <Box borderWidth="1px" borderRadius="md" p={4}>
       <HStack justify="space-between">
         <Text fontWeight="bold">{t('orderNumber').replace('{number}', order._id.slice(-4))}</Text>
-        <Tag colorScheme={order.status === 'ready' ? 'green' : 'orange'}>
-          {order.status === 'ready' ? 'Lista' : 'En preparación'}
+        <Tag colorScheme={order.status === 'ready' ? 'green' : order.status === 'sent to cashier' ? 'blue' : 'orange'}>
+          {order.status === 'ready'
+            ? t('statusReadyText')
+            : order.status === 'sent to cashier'
+              ? t('statusSentToCashierText')
+              : t('statusPreparingText')}
         </Tag>
       </HStack>
 
       <Text fontSize="sm" color="gray.400">
         {t('orderTotal')}: ${order.total.toFixed(2)}
       </Text>
+
+      {!order.paid && order.status !== 'ready' && order.status !== 'sent to cashier' && (
+        <Button size="sm" colorScheme="blue" mt={2} onClick={handleSendToCashier}>
+          {t('sendOrderToCashierButton')}
+        </Button>
+      )}
 
       <VStack align="start" mt={2} spacing={2}>
         {order.items.map((item, idx) => (
@@ -85,7 +117,9 @@ function OrderCard({ order, onPaid }) {
               <Text fontSize="sm">{item.quantity} x ${item.price.toFixed(2)}</Text>
             </HStack>
 
-            {!item.paid ? (
+            {item.paid ? (
+              <Tag size="sm" colorScheme="blue" mt={1}>{t('paid')}</Tag>
+            ) : allowPayment ? (
               <Checkbox
                 size="sm"
                 colorScheme="teal"
@@ -94,14 +128,12 @@ function OrderCard({ order, onPaid }) {
               >
                 {t('selectForPayment')}
               </Checkbox>
-            ) : (
-              <Tag size="sm" colorScheme="blue" mt={1}>{t('paid')}</Tag>
-            )}
+            ) : null}
           </Box>
         ))}
       </VStack>
 
-      {selectedItems.length > 0 && (
+      {allowPayment && selectedItems.length > 0 && (
         <>
           <Divider my={3} />
           <Text fontWeight="bold">

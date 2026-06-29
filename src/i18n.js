@@ -318,7 +318,6 @@ const translations = {
     noOrdersImageAlt: 'No orders',
     noTablesWithPendingOrders: 'No tables with pending orders',
     ordersForTable: 'Orders for Table {table}',
-    orderNumberLabel: 'Order #{id}',
     subtotalLabel: 'Subtotal:',
     tipLabel: 'Tip:',
     add5PercentTip: 'Add 5% Tip',
@@ -666,6 +665,12 @@ const translations = {
     allergyConflictBlockedDescription: 'One or more items conflict with an allergen restriction for the assigned seat. Adjust the seat or remove the item before sending the order.',
     allergyConflictDescription: 'The order was blocked due to allergy conflicts: {details}',
     allergyConflictWarning: 'Contains {allergens}, restricted for this seat',
+    noEligibleOrdersToSendDescription: 'There are no pending orders for this table to send to the cashier.',
+    orderSentToCashierTitle: 'Order sent to cashier',
+    orderSentToCashierDescription: 'The order was sent to the cashier and can now be charged.',
+    errorSendingOrderToCashierDescription: 'Could not send the order to the cashier.',
+    sendOrderToCashierButton: 'Send to cashier',
+    statusSentToCashierText: 'Sent to cashier',
   },
   es: {
     addItem: 'Agregar Artículo',
@@ -986,7 +991,6 @@ const translations = {
     noOrdersImageAlt: 'Sin pedidos',
     noTablesWithPendingOrders: 'No hay mesas con pedidos pendientes',
     ordersForTable: 'Pedidos para la Mesa {table}',
-    orderNumberLabel: 'Pedido #{id}',
     subtotalLabel: 'Subtotal:',
     tipLabel: 'Propina:',
     add5PercentTip: 'Agregar 5% de Propina',
@@ -1334,6 +1338,12 @@ const translations = {
     allergyConflictBlockedDescription: 'Uno o más artículos entran en conflicto con una restricción alimentaria del asiento asignado. Ajusta el asiento o elimina el artículo antes de enviar el pedido.',
     allergyConflictDescription: 'El pedido fue bloqueado por conflictos de alérgenos: {details}',
     allergyConflictWarning: 'Contiene {allergens}, restringido para este asiento',
+    noEligibleOrdersToSendDescription: 'No hay órdenes pendientes de esta mesa para enviar al cajero.',
+    orderSentToCashierTitle: 'Orden enviada al cajero',
+    orderSentToCashierDescription: 'La orden fue enviada al cajero y ya puede cobrarse.',
+    errorSendingOrderToCashierDescription: 'No se pudo enviar la orden al cajero.',
+    sendOrderToCashierButton: 'Enviar a caja',
+    statusSentToCashierText: 'Enviada a caja',
   }
 };
 

@@ -296,7 +296,7 @@ function OrderForm({ table, onBack }) {
 
   const handleSendToCashier = async () => {
     try {
-      await api.put(`/tables/${table._id}`, { status: 'ready_for_payment' });
+      await api.put(`/orders/send-all-to-cashier/${table._id}`);
       toast({
         title: t('tableReadyForPayment'),
         description: t('cashierNotified'),
@@ -305,9 +305,12 @@ function OrderForm({ table, onBack }) {
         isClosable: true,
       });
     } catch (error) {
+      const description = error.response?.status === 404
+        ? t('noEligibleOrdersToSendDescription')
+        : t('cashierNotificationError');
       toast({
         title: t('errorTitle'),
-        description: t('cashierNotificationError'),
+        description,
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -355,8 +358,11 @@ function OrderForm({ table, onBack }) {
                           as="button"
                           type="button"
                           onClick={() => toggleSeatAllergen(seatNumber, allergen)}
-                          colorScheme={active ? 'red' : 'gray'}
-                          variant={active ? 'solid' : 'outline'}
+                          bg={active ? 'red.500' : 'gray.600'}
+                          color={active ? 'white' : 'gray.200'}
+                          border={active ? 'none' : '1px solid'}
+                          borderColor="gray.500"
+                          fontWeight="medium"
                           px={2}
                           py={1}
                           borderRadius="md"

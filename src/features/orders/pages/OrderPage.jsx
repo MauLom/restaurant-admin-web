@@ -81,7 +81,7 @@ function OrderPage() {
     }
   };
 
-  const handleConfirmTable = async (comment, numberOfGuests, waiterId) => {
+  const handleConfirmTable = async (comment, numberOfGuests, waiterId, seatRestrictions = []) => {
     try {
       let tableSessionData = null;
       const res = await api.post('/tableSession', {
@@ -91,6 +91,21 @@ function OrderPage() {
         comment
       });
       tableSessionData = res.data;
+
+      if (seatRestrictions.length > 0) {
+        try {
+          await api.put(`/tableSession/${tableSessionData._id}/seat-restrictions`, { seatRestrictions });
+        } catch (restrictionError) {
+          console.error('Error al guardar restricciones por asiento:', restrictionError);
+          toast({
+            title: t('errorTitle'),
+            description: t('errorSavingRestrictionsDescription'),
+            status: 'warning',
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      }
 
       toast({
         title: t('tableOpened'),

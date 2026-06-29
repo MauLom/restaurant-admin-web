@@ -227,8 +227,11 @@ function MenuItemManagement() {
                         as="button"
                         type="button"
                         onClick={() => toggleAllergen(allergen)}
-                        colorScheme={active ? 'red' : 'gray'}
-                        variant={active ? 'solid' : 'outline'}
+                        bg={active ? 'red.500' : 'gray.600'}
+                        color={active ? 'white' : 'gray.200'}
+                        border={active ? 'none' : '1px solid'}
+                        borderColor="gray.500"
+                        fontWeight="medium"
                         px={2}
                         py={1}
                         borderRadius="md"

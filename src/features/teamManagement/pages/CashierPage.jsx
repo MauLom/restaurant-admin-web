@@ -9,6 +9,7 @@ import {
 import api from '../../../services/api';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import { useLanguage } from '../../../context/LanguageContext';
+import OrderCard from '../../orders/components/OrderCard';
 
 function CashierPage() {
   const { t } = useLanguage();
@@ -45,6 +46,8 @@ function CashierPage() {
       setTotal(totalAmount);
     } catch (error) {
       console.error('Error fetching orders for payment:', error);
+      setOrders([]);
+      setTotal(0);
     }
   };
 
@@ -181,10 +184,12 @@ function CashierPage() {
           <VStack spacing={4} align="stretch" mt={6}>
             <Text fontSize="lg" fontWeight="bold">{t('ordersForTable').replace('{table}', selectedTable)}</Text>
             {orders.map((order) => (
-              <Box key={order._id} p={4} borderWidth="1px" borderRadius="md" width="full">
-                <Text fontSize="lg" fontWeight="bold">{t('orderNumberLabel').replace('{id}', order._id)}</Text>
-                {/* Order details, similar to your existing layout */}
-              </Box>
+              <OrderCard
+                key={order._id}
+                order={order}
+                allowPayment
+                onPaid={() => handleTableSelect(selectedTable)}
+              />
             ))}
 
             <HStack justifyContent="space-between">
