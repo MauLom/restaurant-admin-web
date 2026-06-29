@@ -48,7 +48,6 @@ function RecipeForm({ isOpen, onClose, onSave, initialData, ingredientImageMap =
   const { t } = useLanguage();
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-  const [openIngImg, setOpenIngImg] = useState({});
 
   const primary = currentTheme.colors.primary[500];
   const surface = currentTheme.colors.interface?.surface || '#333';

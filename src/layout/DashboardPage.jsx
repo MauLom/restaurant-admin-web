@@ -33,8 +33,8 @@ function DashboardPage() {
   };
 
   return (
-    <Flex direction="column" height="100vh">
-      <Flex as="header" justify="space-between" align="center" p={6} bg={currentTheme.colors.interface?.header || "#333"} minH="80px">
+    <Flex direction="column" height="100%">
+      <Flex as="header" justify="space-between" align="center" p={6} bg={currentTheme.colors.interface?.header || "#333"} minH="80px" flexShrink={0}>
         {franchise ? (
           <Flex
             align="center"
@@ -96,9 +96,9 @@ function DashboardPage() {
           </Button>
         </HStack>
       </Flex>
-      <Flex as="main" flex="1" overflowY="auto" maxHeight="calc(100vh - 80px)">
+      <Flex as="main" flex="1" minH="0" overflowY="auto">
         <ResponsiveSidebar />
-        <Box flex="1" p={4} bg={currentTheme.colors.interface?.content || "#222"} overflowY="auto" pt={isDemoMode ? 12 : 4}>
+        <Box flex="1" p={4} bg={currentTheme.colors.interface?.content || "#222"} overflowY="auto">
           <Outlet />
           <DemoTutorial currentPage={getCurrentPage()} />
         </Box>

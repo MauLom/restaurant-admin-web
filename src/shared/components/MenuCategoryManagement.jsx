@@ -30,7 +30,7 @@ function MenuCategoryManagement() {
     };
 
     fetchCategories();
-  }, [toast]);
+  }, [toast, t]);
 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) {

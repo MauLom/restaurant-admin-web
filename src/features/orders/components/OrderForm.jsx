@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import {
-  Box, Button, Grid, Text, VStack, HStack, IconButton, Textarea, Wrap, WrapItem
+  Box, Button, Grid, Text, VStack, HStack, Textarea, Wrap, WrapItem
 } from '@chakra-ui/react';
-import { FaPlus, FaMinus, FaTrash, FaCashRegister } from 'react-icons/fa';
+import { FaCashRegister } from 'react-icons/fa';
 import api from '../../../services/api';
 import { UserContext } from '../../../context/UserContext';
-import { Badge } from '@chakra-ui/react';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import { ItemSearchBar } from './ItemSearchBar'; // Asegúrate de importar el componente de búsqueda
 import OrderMenuItem from './OrderMenuItem';

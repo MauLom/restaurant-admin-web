@@ -7,7 +7,6 @@ import { useLanguage } from '../../../context/LanguageContext';
 function TableSelection({ sections, onTableClick, onRefreshSections }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [virtualTables, setVirtualTables] = useState([]);
-  const [isLoadingVirtual, setIsLoadingVirtual] = useState(false);
   const toast = useToast();
   const { t } = useLanguage();
 
@@ -22,13 +21,10 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
 
   const fetchVirtualTables = async () => {
     try {
-      setIsLoadingVirtual(true);
       const response = await api.get('/virtual-tables?active=true');
       setVirtualTables(response.data);
     } catch (error) {
       console.error('Error fetching virtual tables:', error);
-    } finally {
-      setIsLoadingVirtual(false);
     }
   };
 

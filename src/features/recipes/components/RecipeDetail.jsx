@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import {
-  Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
-  Button, Box, Image, Text, HStack, VStack, Badge, Flex, Divider,
+  Modal, ModalOverlay, ModalContent, ModalCloseButton, ModalBody, ModalFooter,
+  Button, Box, Image, Text, HStack, VStack, Badge, Flex,
 } from '@chakra-ui/react';
-import { FaClock, FaFireAlt, FaUsers, FaEdit, FaTrash, FaDollarSign, FaTag } from 'react-icons/fa';
+import { FaClock, FaFireAlt, FaUsers, FaEdit, FaTrash } from 'react-icons/fa';
 import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../../../context/LanguageContext';
 import { resolveImageUrl } from './ImageInput';

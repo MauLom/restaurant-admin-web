@@ -47,7 +47,7 @@ function MenuItemManagement() {
     };
 
     fetchData();
-  }, [toast]);
+  }, [toast, t]);
 
   const resetForm = () => {
     setNewItem({ name: '', description: '', price: '', category: '', image: '', ingredients: [] });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Heading, Input, Select, Button, VStack, Spinner, Text, SimpleGrid, Divider, HStack, IconButton, useTheme
 } from '@chakra-ui/react';
@@ -18,7 +18,7 @@ function UserManagement() {
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get('/users');
@@ -29,11 +29,11 @@ function UserManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, t]);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   const handleGenerateUser = async () => {
     if (!username || !role) {

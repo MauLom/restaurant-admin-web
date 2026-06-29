@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, VStack, HStack, Text, Checkbox, Select, useTheme } from '@chakra-ui/react';
+import { Box, Button, VStack, Text, Checkbox, Select, useTheme } from '@chakra-ui/react';
 import api from '../../../services/api';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useCustomToast } from '../../../hooks/useCustomToast';

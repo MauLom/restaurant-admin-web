@@ -74,7 +74,7 @@ function RecipeManagement() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

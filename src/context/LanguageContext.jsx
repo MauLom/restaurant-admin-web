@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import translations from '../i18n';
 
 const LanguageContext = createContext();
@@ -13,9 +13,9 @@ export const LanguageProvider = ({ children }) => {
     setLanguageState(lang);
   };
 
-  const t = (key) => {
+  const t = useCallback((key) => {
     return translations[language][key] || key;
-  };
+  }, [language]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

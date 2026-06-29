@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -67,16 +67,6 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
   const [combineBilling, setCombineBilling] = useState(true);
   const [configNotes, setConfigNotes] = useState('');
 
-  // Cargar mesas disponibles cuando se abre el modal (solo en modo combinado)
-  useEffect(() => {
-    if (isOpen) {
-      if (mode === 'combined') {
-        fetchAvailableTables();
-      }
-      resetForm();
-    }
-  }, [isOpen, mode]);
-
   const resetForm = () => {
     setVirtualTableName('');
     setDescription('');
@@ -91,7 +81,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
     setErrors({});
   };
 
-  const fetchAvailableTables = async () => {
+  const fetchAvailableTables = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await api.get('/virtual-tables/available-tables');
@@ -108,7 +98,17 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast, t]);
+
+  // Cargar mesas disponibles cuando se abre el modal (solo en modo combinado)
+  useEffect(() => {
+    if (isOpen) {
+      if (mode === 'combined') {
+        fetchAvailableTables();
+      }
+      resetForm();
+    }
+  }, [isOpen, mode, fetchAvailableTables]);
 
   const validateForm = () => {
     const newErrors = {};

@@ -5,7 +5,7 @@ import {
   Popover, PopoverTrigger, PopoverContent, PopoverBody, PopoverArrow,
   Badge, Divider, Tooltip, Collapse, useTheme,
 } from '@chakra-ui/react';
-import { FaEdit, FaExclamationTriangle, FaPlus, FaTimes } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaPlus } from 'react-icons/fa';
 import { useLanguage } from '../../../context/LanguageContext';
 import api from '../../../services/api';
 import { useCustomToast } from '../../../hooks/useCustomToast';
