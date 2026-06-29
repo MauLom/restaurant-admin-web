@@ -1,6 +1,5 @@
 import React from 'react';
 import { Box, SimpleGrid, Heading, Text, VStack, useTheme, HStack } from '@chakra-ui/react';
-import { FaCogs } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useAuthContext } from '../../../context/AuthContext';

@@ -1,6 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box, Button, VStack, HStack, Text, Center, Flex, Grid, Img, Input, Divider,
+  Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
+  FormControl, FormLabel,
+  PinInput, PinInputField,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -37,6 +41,48 @@ function PinLogin() {
     };
     checkIfUsersExist();
   }, []);
+
+  const handleLogin = useCallback(async () => {
+    try {
+      const response = await api.post('/users/login-pin', { pin });
+      const token = response.data.token;
+      localStorage.setItem('token', token);
+
+      const profileResponse = await api.get('/users/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const user = profileResponse.data.user;
+      setUser(user);
+      login(user);
+
+      console.log('User profile:', user);
+      console.log('Profile response:', profileResponse.data);
+      if (!profileResponse.data.isProfileComplete) {
+        navigate('/complete-profile');
+      } else {
+        switch (user.role) {
+          case 'waiter':
+            navigate('/dashboard/orders');
+            break;
+          case 'admin':
+            navigate('/dashboard');
+            break;
+          case 'cashier':
+            navigate('/dashboard/cashier');
+            break;
+          case 'kitchen':
+            navigate('/dashboard/kitchen-orders');
+            break;
+          default:
+            navigate('/dashboard');
+        }
+      }
+    } catch (error) {
+      setError(t('invalidPin'));
+      setPin('');
+    }
+  }, [pin, setUser, login, navigate, t]);
 
   // Event listener para el teclado físico
   useEffect(() => {
@@ -88,7 +134,7 @@ function PinLogin() {
     return () => {
       document.removeEventListener('keydown', handleKeyPress);
     };
-  }, [pin, noUsers]); // Dependencias: pin para verificar longitud y noUsers para controlar el estado
+  }, [pin, noUsers, handleLogin]); // Dependencias: pin para verificar longitud y noUsers para controlar el estado
 
   const handleButtonClick = (digit) => {
     if (pin.length < 6) {
@@ -217,11 +263,13 @@ function PinLogin() {
   }
 
   return (
-    <Flex 
+    <Flex
       ref={containerRef}
-      height="90vh" 
-      direction="column" 
-      align="center" 
+      minH="100vh"
+      bg="#1c1c1c"
+      color="white"
+      direction="column"
+      align="center"
       justify="center"
       tabIndex={0}
       outline="none"

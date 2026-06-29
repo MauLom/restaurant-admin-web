@@ -8,7 +8,7 @@ import DemoTutorial from '../components/DemoTutorial';
 import { useLanguage } from '../context/LanguageContext';
 import { useDemoContext } from '../context/DemoContext';
 import { useTheme } from '../context/ThemeContext';
-import { useAuthContext } from '../context/AuthContext';
+import { getFranchiseByThemeKey } from '../theme/demoFranchises';
 
 function DashboardPage() {
   const {t} = useLanguage();
@@ -16,7 +16,8 @@ function DashboardPage() {
   const { user } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentTheme } = useTheme();
+  const { currentTheme, currentThemeKey } = useTheme();
+  const franchise = isDemoMode ? getFranchiseByThemeKey(currentThemeKey) : null;
 
   // Extract current page from pathname for tutorial
   const getCurrentPage = () => {
@@ -89,9 +90,9 @@ function DashboardPage() {
           </Button>
         </HStack>
       </Flex>
-      <Flex as="main" flex="1" overflowY="auto" maxHeight="calc(100vh - 80px)">
+      <Flex as="main" flex="1" minH="0" overflowY="auto">
         <ResponsiveSidebar />
-        <Box flex="1" p={4} bg={currentTheme.colors.interface?.content || "#222"} overflowY="auto" pt={isDemoMode ? 12 : 4}>
+        <Box flex="1" p={4} bg={currentTheme.colors.interface?.content || "#222"} overflowY="auto">
           <Outlet />
           <DemoTutorial currentPage={getCurrentPage()} />
         </Box>

@@ -30,9 +30,20 @@ function MenuCategoryManagement() {
     };
 
     fetchCategories();
-  }, [toast]);
+  }, [toast, t]);
 
   const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) {
+      toast({
+        title: t('errorTitle'),
+        description: t('nameRequiredError'),
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     try {
       const response = await api.post('/menu/categories', { name: newCategoryName, area: newCategoryArea });
       setCategories([...categories, response.data]);

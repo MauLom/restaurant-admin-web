@@ -23,10 +23,7 @@ const DemoBanner = () => {
       color="white"
       py={2}
       px={4}
-      position="fixed"
-      top="0"
-      left="0"
-      right="0"
+      position="relative"
       zIndex="banner"
       boxShadow="sm"
     >

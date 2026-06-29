@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useContext } from 'react';
 import {
-  Box, Button, Grid, Text, VStack, HStack, IconButton, Textarea, Wrap, WrapItem
+  Box, Button, Flex, Grid, Icon, IconButton, Text, VStack, HStack, Textarea, Wrap, WrapItem
 } from '@chakra-ui/react';
-import { FaPlus, FaMinus, FaTrash, FaCashRegister } from 'react-icons/fa';
+import { FaCashRegister, FaShoppingBasket, FaMinus, FaPlus } from 'react-icons/fa';
 import api from '../../../services/api';
 import { UserContext } from '../../../context/UserContext';
-import { Badge } from '@chakra-ui/react';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import { ItemSearchBar } from './ItemSearchBar'; // Asegúrate de importar el componente de búsqueda
 import OrderMenuItem from './OrderMenuItem';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useTheme } from '../../../context/ThemeContext';
 function OrderForm({ table, onBack }) {
   const toast = useCustomToast();
   const { t } = useLanguage();
+  const { currentTheme } = useTheme();
   const { user } = useContext(UserContext);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -132,20 +133,10 @@ function OrderForm({ table, onBack }) {
         }
 
         return delta > 0
-          ? [...prevItems, { ...item, quantity: delta, note: '' }]
+          ? [...prevItems, { ...item, quantity: delta }]
           : prevItems;
       }
     });
-  };
-
-  const handleRemoveItem = (itemId) => {
-    setOrderItems(prevItems => prevItems.filter(i => i._id !== itemId));
-  };
-
-  const handleNoteChange = (itemId, note) => {
-    setOrderItems(prevItems =>
-      prevItems.map(i => i._id === itemId ? { ...i, note } : i)
-    );
   };
 
   const calculateTotal = () => {
@@ -171,7 +162,7 @@ function OrderForm({ table, onBack }) {
           itemId: item._id,
           name: item.name,
           price: item.price,
-          comments: item.note || '',
+          comments: '',
           quantity: item.quantity,
           area: item.category?.area,
         })),
@@ -233,37 +224,50 @@ function OrderForm({ table, onBack }) {
 
 
   return (
-    <VStack align="stretch" spacing={6} bg="#1a202c" color="white" p={4} borderRadius="md">
-      <Button mb={4} onClick={onBack} bg="gray.600" _hover={{ bg: 'gray.500' }} color="white">
-        {t('backToTables')}
-      </Button>
-      <Text fontSize="xl" fontWeight="bold" color="teal.200">
-        {t('orderForTable').replace('{tableNumber}', table.number)}
-      </Text>
+    <Flex
+      direction={{ base: 'column', md: 'row' }}
+      align="flex-start"
+      gap={4}
+      bg={currentTheme.colors.interface?.content || currentTheme.colors.background}
+      color={currentTheme.colors.text}
+      p={4}
+      borderRadius="md"
+    >
+      {/* Columna izquierda: categorías + menú */}
+      <Box flex="1" minW="0" w="full">
+        <HStack justify="space-between" align="center" mb={4}>
+          <Button size="sm" onClick={onBack} bg="gray.600" _hover={{ bg: 'gray.500' }} color="white">
+            {t('backToTables')}
+          </Button>
+          <Text fontSize="lg" fontWeight="bold" color={currentTheme.colors.primary[500]}>
+            {t('orderForTable').replace('{tableNumber}', table.number)}
+          </Text>
+        </HStack>
 
-      <Box p={4}>
         <Text mb={2} fontWeight="semibold">{t('categoriesLabel')}:</Text>
-        <Wrap spacing="12px">
+        <Wrap spacing="10px" mb={6}>
           {categories.map(category => (
             <WrapItem key={category._id}>
               <Button
                 onClick={() => setSelectedCategory(category)}
                 variant={selectedCategory?._id === category._id ? "solid" : "outline"}
                 colorScheme="teal"
+                size="lg"
+                minW="110px"
+                h="60px"
+                borderRadius="lg"
               >
                 {category.name}
               </Button>
             </WrapItem>
           ))}
         </Wrap>
-      </Box>
 
-      <Box p={4}>
         <HStack justify="space-between" align="center" mb={2}>
           <Text fontWeight="semibold">{t('menuLabel')}:</Text>
           <ItemSearchBar items={menuItems} onFilter={setFilteredItems} />
         </HStack>
-        <Grid templateColumns="repeat(auto-fill, minmax(150px, 1fr))" gap={4}>
+        <Grid templateColumns="repeat(auto-fill, minmax(130px, 1fr))" gap={3}>
           {filteredItems.map(item => {
             const available = isItemAvailable(item.name);
             const stock = getItemStock(item.name);
@@ -281,65 +285,100 @@ function OrderForm({ table, onBack }) {
                 inventory={inventory}
                 lowStockThreshold={lowStockThreshold}
                 onAddItem={handleAddItem}
-                onRemoveItem={handleRemoveItem}
               />
             );
           })}
         </Grid>
       </Box>
 
+      {/* Columna derecha: resumen de la orden, fijo en pantallas medianas+ */}
+      <Flex
+        direction="column"
+        w={{ base: 'full', md: '340px' }}
+        flexShrink={0}
+        position={{ base: 'static', md: 'sticky' }}
+        top="4"
+        alignSelf="flex-start"
+        maxH={{ base: 'none', md: 'calc(100vh - 140px)' }}
+        bg={currentTheme.colors.interface?.surface || currentTheme.colors.surface}
+        borderWidth="1px"
+        borderColor="gray.700"
+        borderRadius="md"
+        p={4}
+      >
+        <Text fontSize="lg" fontWeight="bold" mb={3}>{t('orderSummary')}</Text>
 
-      <Box p={4} borderWidth="1px" borderRadius="md" bg="#363636">
-        <Text fontSize="lg" fontWeight="bold" mb={2}>{t('orderSummary')}</Text>
-        {orderItems.length === 0 ? (
-          <Text>{t('noItemsSelected')}</Text>
-        ) : (
-          <VStack spacing={4} align="stretch">
-            {orderItems.map(item => (
-              <Box key={item._id} p={2} borderWidth="1px" borderRadius="md" bg="gray.700">
-                <HStack justify="space-between">
-                  <Text fontWeight="semibold">{item.name}</Text>
-                  <Text>
-                    {item.quantity} x ${item.price.toFixed(2)} = ${(item.quantity * item.price).toFixed(2)}
-                  </Text>
-                </HStack>
-                <Textarea
-                  mt={2}
-                  placeholder={t('addNotePlaceholder')}
-                  value={item.note}
-                  onChange={(e) => handleNoteChange(item._id, e.target.value)}
-                  bg="gray.600"
-                  color="white"
-                  _placeholder={{ color: 'gray.300' }}
-                />
-              </Box>
-            ))}
+        <Box flex="1" minH="0" overflowY="auto" mb={3}>
+          {orderItems.length === 0 ? (
+            <VStack justify="center" minH="180px" h="full" color="gray.500" spacing={3}>
+              <Icon as={FaShoppingBasket} boxSize={10} />
+              <Text>{t('noItemsSelected')}</Text>
+            </VStack>
+          ) : (
+            <VStack spacing={2} align="stretch">
+              {orderItems.map(item => {
+                const stock = getItemStock(item.name);
+                const canAddMore = stock === null || item.quantity < stock;
+
+                return (
+                  <HStack key={item._id} justify="space-between" p={2} borderRadius="md" bg="gray.700">
+                    <HStack spacing={2}>
+                      <IconButton
+                        size="xs"
+                        colorScheme="red"
+                        icon={<FaMinus />}
+                        onClick={() => handleAddItem(item, -1)}
+                        aria-label={t('decreaseQuantity')}
+                      />
+                      <Text minW="20px" textAlign="center">{item.quantity}</Text>
+                      <IconButton
+                        size="xs"
+                        colorScheme="green"
+                        icon={<FaPlus />}
+                        onClick={() => handleAddItem(item, 1)}
+                        aria-label={t('increaseQuantity')}
+                        isDisabled={!canAddMore}
+                      />
+                      <Text fontWeight="semibold" noOfLines={1}>{item.name}</Text>
+                    </HStack>
+                    <Text fontWeight="bold" whiteSpace="nowrap">
+                      ${(item.quantity * item.price).toFixed(2)}
+                    </Text>
+                  </HStack>
+                );
+              })}
+            </VStack>
+          )}
+        </Box>
+
+        <Box borderTopWidth="1px" borderColor="gray.700" pt={3}>
+          <HStack justify="space-between" mb={3}>
+            <Text fontWeight="semibold" color="gray.300">{t('total')}</Text>
+            <Text fontSize="xl" fontWeight="bold">${calculateTotal().toFixed(2)}</Text>
+          </HStack>
+
+          <Textarea
+            placeholder={t('generalCommentsPlaceholder')}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            bg="gray.700"
+            color="white"
+            _placeholder={{ color: 'gray.400' }}
+            size="sm"
+            mb={3}
+          />
+
+          <VStack spacing={2}>
+            <Button w="full" bg="teal.500" _hover={{ bg: 'teal.600' }} onClick={handleSubmitOrder} color="white">
+              {t('confirmOrder')}
+            </Button>
+            <Button w="full" bg="orange.500" _hover={{ bg: 'orange.600' }} onClick={handleSendToCashier} leftIcon={<FaCashRegister />} color="white">
+              Enviar al Cajero
+            </Button>
           </VStack>
-        )}
-      </Box>
-
-      <Box p={4}>
-        <Text fontWeight="bold">Total: ${calculateTotal().toFixed(2)}</Text>
-      </Box>
-      <Textarea
-        placeholder={t('generalCommentsPlaceholder')}
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        bg="gray.700"
-        color="white"
-        _placeholder={{ color: 'gray.400' }}
-      />
-      <Box position={{ base: "fixed", md: "static" }} bottom="0" left="0" right="0" bg="gray.900" p={4} zIndex="10" boxShadow="dark-lg" pb={{ base: "100px", md: "15px" }}>
-        <HStack justify="center" spacing={4}>
-          <Button bg="teal.500" _hover={{ bg: 'teal.600' }} onClick={handleSubmitOrder} color="white">
-            {t('confirmOrder')}
-          </Button>
-          <Button bg="orange.500" _hover={{ bg: 'orange.600' }} onClick={handleSendToCashier} leftIcon={<FaCashRegister />} color="white">
-            Enviar al Cajero
-          </Button>
-        </HStack>
-      </Box>
-    </VStack>
+        </Box>
+      </Flex>
+    </Flex>
   );
 }
 

@@ -33,9 +33,10 @@ const App = () => {
   return (
     <>
       <DemoThemeController />
-      <DemoBanner />
-      <Box minHeight="100vh" pb={{ base: "70px", md: "0" }}>
-        <Routes>
+      <Box display="flex" flexDirection="column" height="100vh">
+        <DemoBanner />
+        <Box flex="1" minH="0" overflow="auto" pb={{ base: "70px", md: "0" }}>
+          <Routes>
 
         {/* Rutas públicas */}
         <Route path="/login" element={<PinLogin />} />
@@ -195,7 +196,8 @@ const App = () => {
           <Route path="notifications" element={<NotificationPage />} />
 
         </Route>
-        </Routes>
+          </Routes>
+        </Box>
       </Box>
     </>
   );

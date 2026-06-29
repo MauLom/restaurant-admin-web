@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import {
-    Box, Text, VStack, HStack, Spinner, Accordion, AccordionItem, AccordionButton,
+    Box, Text, VStack, Spinner, Accordion, AccordionItem, AccordionButton,
     AccordionPanel, AccordionIcon, Divider, Heading
 } from '@chakra-ui/react';
 import api from '../../../services/api';

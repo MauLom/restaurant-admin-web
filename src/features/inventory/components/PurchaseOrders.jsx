@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Box, VStack, HStack, Button, Text, Input, NumberInput, NumberInputField,
+  Box, VStack, HStack, Button, Text, NumberInput, NumberInputField,
   Badge, IconButton, Heading, Divider, Spinner, Center, Tooltip,
   Table, Thead, Tbody, Tr, Th, Td, TableContainer,
 } from '@chakra-ui/react';
@@ -85,7 +85,7 @@ function PurchaseOrders() {
       })
       .catch(() => toast({ title: t('inventoryLoadError'), status: 'error', duration: 3000 }))
       .finally(() => setLoading(false));
-  }, [toast]);
+  }, [toast, t]);
 
   const itemsMap = useMemo(() => {
     const map = {};

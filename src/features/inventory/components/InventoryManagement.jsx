@@ -5,7 +5,7 @@ import {
   Popover, PopoverTrigger, PopoverContent, PopoverBody, PopoverArrow,
   Badge, Divider, Tooltip, Collapse, useTheme,
 } from '@chakra-ui/react';
-import { FaEdit, FaExclamationTriangle, FaPlus, FaTimes } from 'react-icons/fa';
+import { FaEdit, FaExclamationTriangle, FaPlus } from 'react-icons/fa';
 import { useLanguage } from '../../../context/LanguageContext';
 import api from '../../../services/api';
 import { useCustomToast } from '../../../hooks/useCustomToast';
@@ -72,8 +72,16 @@ function InventoryManagement() {
   };
 
   const handleAddOrUpdateItem = async () => {
-    if (!newItem.name || !newItem.quantity || !newItem.unit) {
-      toast({ title: t('invalidInputTitle'), description: t('invalidInputDescription'), status: 'error', duration: 3000, isClosable: true });
+    if (!newItem.name) {
+      toast({ title: t('invalidInputTitle'), description: t('nameRequiredError'), status: 'error', duration: 3000, isClosable: true });
+      return;
+    }
+    if (!newItem.quantity) {
+      toast({ title: t('invalidInputTitle'), description: t('quantityRequiredError'), status: 'error', duration: 3000, isClosable: true });
+      return;
+    }
+    if (!newItem.unit) {
+      toast({ title: t('invalidInputTitle'), description: t('unitRequiredError'), status: 'error', duration: 3000, isClosable: true });
       return;
     }
 

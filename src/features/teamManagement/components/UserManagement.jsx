@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Heading, Input, Select, Button, VStack, Spinner, Text, SimpleGrid, Divider, HStack, IconButton, useTheme,
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Textarea, FormControl, FormLabel,
@@ -40,7 +40,7 @@ function UserManagement() {
   const [deactivateReason, setDeactivateReason] = useState('');
   const cancelDeactivateRef = useRef(null);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get('/users');
@@ -51,11 +51,11 @@ function UserManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, t]);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   const handleGenerateUser = async () => {
     if (!username || !role || pin.length !== 6) {

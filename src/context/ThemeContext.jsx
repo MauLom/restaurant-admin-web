@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { extendTheme } from '@chakra-ui/react';
 import { Toast } from '../theme/components/Toast';
-import { clientThemes, getThemeByKey, getRandomTheme } from '../theme/clientThemes';
+import { clientThemes, getThemeByKey, getRandomTheme, lightTheme } from '../theme/clientThemes';
 
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
   const [currentThemeKey, setCurrentThemeKey] = useState('classic');
   const [currentTheme, setCurrentTheme] = useState(null);
+  const [colorMode, setColorMode] = useState('dark');
 
   // Function to create Chakra theme from client theme config
   const createChakraTheme = (clientTheme) => {
@@ -95,6 +96,26 @@ export const ThemeProvider = ({ children }) => {
           },
         },
         Toast,
+        // Toasts render Alert with variant="solid". Chakra's built-in solid
+        // variant picks its text color from the "gray.900" token when its
+        // internal color mode is dark (which it always is here, see
+        // config.initialColorMode below). Since the global `gray` scale
+        // above is repurposed as alpha-blended shades of the theme's text
+        // color, gray.900 ends up ~10% opaque and the toast text becomes
+        // unreadable. Set explicit, theme-independent colors instead.
+        Alert: {
+          variants: {
+            solid: (props) => {
+              const { colorScheme: c } = props;
+              return {
+                container: {
+                  bg: `${c}.500`,
+                  color: 'white',
+                },
+              };
+            },
+          },
+        },
         // Add Box component styling
         Box: {
           baseStyle: {
@@ -153,7 +174,12 @@ export const ThemeProvider = ({ children }) => {
           900: `${clientTheme.colors.text}1A`,
         },
       },
-      fonts: clientTheme.fonts,
+      // Fixed font family regardless of theme/color — only colors should
+      // change when switching themes, not typography.
+      fonts: {
+        body: "'Arial', sans-serif",
+        heading: "'Arial', sans-serif",
+      },
       // Add logo to theme
       logo: clientTheme.logo,
       config: {
@@ -174,12 +200,32 @@ export const ThemeProvider = ({ children }) => {
   // Initialize theme on mount
   useEffect(() => {
     const savedThemeKey = localStorage.getItem('clientThemeKey');
+    const savedColorMode = localStorage.getItem('colorMode') || 'dark';
     const initialThemeKey = savedThemeKey || 'classic';
-    
+
     setCurrentThemeKey(initialThemeKey);
-    const clientTheme = getThemeByKey(initialThemeKey);
-    setCurrentTheme(createChakraTheme(clientTheme));
+    setColorMode(savedColorMode);
+
+    // A saved theme key other than 'classic' means demo mode had applied a
+    // random client theme — keep it. Otherwise honor the light/dark preference.
+    if (savedThemeKey && savedThemeKey !== 'classic') {
+      setCurrentTheme(createChakraTheme(getThemeByKey(savedThemeKey)));
+    } else {
+      setCurrentTheme(createChakraTheme(savedColorMode === 'light' ? lightTheme : clientThemes.classic));
+    }
   }, []);
+
+  // Function to toggle between light and dark mode (normal, non-demo usage)
+  const toggleColorMode = () => {
+    const newMode = colorMode === 'dark' ? 'light' : 'dark';
+    setColorMode(newMode);
+    localStorage.setItem('colorMode', newMode);
+
+    setCurrentThemeKey('classic');
+    setCurrentTheme(createChakraTheme(newMode === 'light' ? lightTheme : clientThemes.classic));
+
+    return newMode;
+  };
 
   // Function to change theme
   const changeTheme = (themeKey) => {
@@ -207,17 +253,21 @@ export const ThemeProvider = ({ children }) => {
     return { key, name: theme.name };
   };
 
-  // Function to reset to default theme
+  // Function to reset to default theme (restores the light/dark preference
+  // that was active before demo mode applied a random client theme)
   const resetTheme = () => {
-    changeTheme('classic');
     localStorage.removeItem('clientThemeKey');
+    setCurrentThemeKey('classic');
+    setCurrentTheme(createChakraTheme(colorMode === 'light' ? lightTheme : clientThemes.classic));
   };
 
   const value = {
     currentThemeKey,
     currentTheme,
+    colorMode,
     changeTheme,
     applyRandomTheme,
+    toggleColorMode,
     resetTheme,
     availableThemes: clientThemes,
     getCurrentThemeName: () => clientThemes[currentThemeKey]?.name || 'Classic Elegance',

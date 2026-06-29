@@ -28,10 +28,20 @@ function ReservationForm() {
   }, []);
 
   const handleReserve = async () => {
-    if (!selectedTable || !customerName) {
+    if (!selectedTable) {
       toast({
         title: t('invalidInputTitle'),
-        description: t('invalidInputDescription'),
+        description: t('tableRequiredError'),
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    if (!customerName) {
+      toast({
+        title: t('invalidInputTitle'),
+        description: t('customerNameRequiredError'),
         status: "error",
         duration: 3000,
         isClosable: true,

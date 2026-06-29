@@ -52,7 +52,7 @@ function AnalyticsPage() {
       }
     }
     fetchAnalytics();
-  }, [startDate, endDate, toast]);
+  }, [startDate, endDate, toast, t]);
 
   const formatCurrency = (amount) => `$${(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
 

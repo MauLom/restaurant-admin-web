@@ -20,10 +20,6 @@ export const clientThemes = {
       content: "#242424",
       surface: "#2a2a2a",
     },
-    fonts: {
-      body: "'Arial', sans-serif",
-      heading: "'Arial', sans-serif",
-    },
   },
   
   modern: {
@@ -43,10 +39,6 @@ export const clientThemes = {
       sidebar: "#243447",
       content: "#15202b",
       surface: "#1e2a3a",
-    },
-    fonts: {
-      body: "'Inter', sans-serif",
-      heading: "'Inter', sans-serif",
     },
   },
   
@@ -68,10 +60,6 @@ export const clientThemes = {
       content: "#361f12",
       surface: "#432818",
     },
-    fonts: {
-      body: "'Poppins', sans-serif",
-      heading: "'Poppins', sans-serif",
-    },
   },
   
   forest: {
@@ -91,10 +79,6 @@ export const clientThemes = {
       sidebar: "#2d3c28",
       content: "#1f2a1a",
       surface: "#243018",
-    },
-    fonts: {
-      body: "'Roboto', sans-serif",
-      heading: "'Roboto', sans-serif",
     },
   },
   
@@ -116,10 +100,6 @@ export const clientThemes = {
       content: "#311f3a",
       surface: "#3a2345",
     },
-    fonts: {
-      body: "'Open Sans', sans-serif",
-      heading: "'Open Sans', sans-serif",
-    },
   },
   
   ocean: {
@@ -139,10 +119,6 @@ export const clientThemes = {
       sidebar: "#243b42",
       content: "#152428",
       surface: "#1e333a",
-    },
-    fonts: {
-      body: "'Lato', sans-serif",
-      heading: "'Lato', sans-serif",
     },
   },
   
@@ -164,10 +140,6 @@ export const clientThemes = {
       content: "#462b25",
       surface: "#52362f",
     },
-    fonts: {
-      body: "'Lato', sans-serif",
-      heading: "'Lato', sans-serif",
-    },
   },
   
   midnight: {
@@ -188,10 +160,27 @@ export const clientThemes = {
       content: "#0f1329",
       surface: "#181d38",
     },
-    fonts: {
-      body: "'Source Sans Pro', sans-serif",
-      heading: "'Source Sans Pro', sans-serif",
+  },
+};
+
+// Simple light mode for normal (non-demo) usage — single fixed accent color
+export const lightTheme = {
+  name: 'Light Mode',
+  logo: '/public/../logo.png',
+  colors: {
+    background: "#f7f7f7",
+    text: "#1a1a1a",
+    primary: {
+      500: "#319795", // teal, matches classic accent
     },
+    secondary: {
+      500: "#ED8936", // orange
+    },
+    // Interface colors
+    header: "#ffffff",
+    sidebar: "#f0f0f0",
+    content: "#fafafa",
+    surface: "#ffffff",
   },
 };
 
