@@ -1,5 +1,5 @@
 // import React from 'react';
-import { Box, Flex, Button, HStack, Img } from '@chakra-ui/react';
+import { Box, Flex, Button, HStack, Img, Text } from '@chakra-ui/react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import ResponsiveSidebar from '../shared/components/ResponsiveSidebar';
 import LanguageSwitcher from '../shared/components/LanguageSwitcher';
@@ -13,6 +13,7 @@ import { getFranchiseByThemeKey } from '../theme/demoFranchises';
 function DashboardPage() {
   const {t} = useLanguage();
   const { isDemoMode, exitDemoMode } = useDemoContext();
+  const { user } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
   const { currentTheme, currentThemeKey } = useTheme();
@@ -33,23 +34,16 @@ function DashboardPage() {
   };
 
   return (
-    <Flex direction="column" height="100%">
-      <Flex as="header" justify="space-between" align="center" p={6} bg={currentTheme.colors.interface?.header || "#333"} minH="80px" flexShrink={0}>
-        {franchise ? (
-          <Flex
-            align="center"
-            justify="center"
-            bg="white"
-            borderRadius={10}
-            p={1}
-            minW="5rem"
-            h="3rem"
-          >
-            <Img src={franchise.logo} alt={franchise.name} maxW="4.5rem" maxH="2.6rem" objectFit="contain" />
-          </Flex>
-        ) : (
+    <Flex direction="column" height="100vh">
+      <Flex as="header" justify="space-between" align="center" p={6} bg={currentTheme.colors.interface?.header || "#333"} minH="80px">
+        <HStack spacing={4}>
           <Img className="logo" maxW="5rem" src={currentTheme.logo || "maui-logo.png"} borderRadius={10}/>
-        )}
+          {user?.username && (
+            <Text color="white" fontWeight="medium" fontSize="lg">
+              {t('greetingLabel').replace('{username}', user.username)}
+            </Text>
+          )}
+        </HStack>
         <HStack spacing={6}>
           <ThemeSwitcher />
           <LanguageSwitcher />

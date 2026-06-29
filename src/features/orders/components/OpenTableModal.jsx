@@ -8,6 +8,7 @@ import { FaPlus, FaMinus } from 'react-icons/fa';
 
 import { UserContext } from '../../../context/UserContext';
 import { useLanguage } from '../../../context/LanguageContext';
+import api from '../../../services/api';
 
 function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
   const { user } = React.useContext(UserContext);
@@ -16,12 +17,29 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
   const [comment, setComment] = useState('');
   const [numDiners, setNumDiners] = useState(2);
   const [selectedWaiter, setSelectedWaiter] = useState(user?._id || '');
+  const [waiters, setWaiters] = useState([]);
 
   useEffect(() => {
     if (isOpen) {
       setComment('');
       setNumDiners(2);
       setSelectedWaiter(user?._id || '');
+
+      const fetchWaiters = async () => {
+        try {
+          const response = await api.get('/users/waiters');
+          setWaiters(response.data);
+
+          const isCurrentUserAWaiter = response.data.some(waiter => waiter._id === user?._id);
+          if (!isCurrentUserAWaiter && response.data.length > 0) {
+            setSelectedWaiter(response.data[0]._id);
+          }
+        } catch (error) {
+          console.error('Error fetching waiters:', error);
+          setWaiters([]);
+        }
+      };
+      fetchWaiters();
     }
   }, [isOpen, user]);
 
@@ -48,7 +66,15 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
               value={selectedWaiter}
               onChange={(e) => setSelectedWaiter(e.target.value)}
             >
-              <option style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }} value={user?._id}>{user?.name}</option>
+              {waiters.map((waiter) => (
+                <option
+                  key={waiter._id}
+                  style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}
+                  value={waiter._id}
+                >
+                  {waiter.username}
+                </option>
+              ))}
             </Select>
           </FormControl>
 

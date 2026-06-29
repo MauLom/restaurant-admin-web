@@ -155,11 +155,11 @@ function CashierPage() {
                 <Text color={'black'} fontSize="lg" fontWeight="bold">{t('tableNumberLabel').replace('{number}', table.number)}</Text>
                 {table.orders && table.orders.length > 0 ? (
                   <>
-                    <Text>Total Orders: {table.orders.length}</Text>
-                    <Text>Total Amount: ${table.orders.reduce((sum, order) => sum + order.total, 0).toFixed(2)}</Text>
+                    <Text color="black">Total Orders: {table.orders.length}</Text>
+                    <Text color="black">Total Amount: ${table.orders.reduce((sum, order) => sum + order.total, 0).toFixed(2)}</Text>
                   </>
                 ) : (
-                  <Text>{t('noPendingOrders')}</Text>
+                  <Text color="black">{t('noPendingOrders')}</Text>
                 )}
               </Box>
             ))}
@@ -258,7 +258,7 @@ function CashierPage() {
             {/* Confirmation Modal */}
             <Modal isOpen={isOpen} onClose={onClose}>
               <ModalOverlay />
-              <ModalContent>
+              <ModalContent bg="white">
                 <ModalHeader color="black">{t('confirmPayment')}</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>

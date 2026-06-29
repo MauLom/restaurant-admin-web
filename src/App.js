@@ -7,7 +7,6 @@ import DemoBanner from './components/DemoBanner';
 import DemoThemeController from './components/DemoThemeController';
 
 // Páginas protegidas
-import GeneratePins from './shared/components/GeneratePins';
 import MenuCategoryManagement from './shared/components/MenuCategoryManagement';
 import MenuItemManagement from './shared/components/MenuItemManagement';
 import OrderPage from './features/orders/pages/OrderPage';
@@ -18,16 +17,17 @@ import InventoryPage from './features/inventory/pages/InventoryPage';
 import CashierPage from './features/teamManagement/pages/CashierPage';
 import HostessPage from './features/teamManagement/pages/HostessPage';
 import ReservationPage from './features/teamManagement/components/ReservationPage';
-import UserProfilePage from './features/teamManagement/pages/UserProfilePage';
 import UserSettingsPage from './features/teamManagement/pages/UserSettingsPage';
+import UserManagementPage from './features/teamManagement/pages/UserManagementPage';
 import NotificationPage from './features/teamManagement/pages/NotificationPage';
 import WaiterOrdersPage from './features/teamManagement/pages/WaiterOrdersPage';
 import UnauthorizedPage from './shared/components/UnauthorizedPage';
 import RestaurantStatusPage from './features/hubs/pages/RestaurantStatusPage';
 import ProductManagementPage from './features/hubs/pages/ProductManagementPage';
 import ConfigurationPage from './features/hubs/pages/ConfigurationPage';
-import CompleteProfilePage from './features/auth/CompleteProfilePage';
+import RegisterPage from './features/auth/RegisterPage';
 import RecipeListPage from './features/recipes/pages/RecipeListPage';
+import ProtectedRoute from './shared/components/ProtectedRoute';
 
 const App = () => {
   return (
@@ -42,7 +42,7 @@ const App = () => {
         <Route path="/login" element={<PinLogin />} />
         <Route path="/" element={<PinLogin />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
-        <Route path="/complete-profile" element={<CompleteProfilePage />}/>
+        <Route path="/register" element={<RegisterPage />} />
 
 
         {/* Rutas protegidas bajo /dashboard */}
@@ -51,90 +51,81 @@ const App = () => {
           <Route
             path="sections"
             element={
-              // <ProtectedRoute requiredAccess={['sections']}>
+              <ProtectedRoute requiredAccess={['sections']}>
                 <SectionPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="orders"
             element={
-              // <ProtectedRoute requiredAccess={['orders']}>
+              <ProtectedRoute requiredAccess={['orders']}>
                 <OrderPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="waiter-orders"
             element={
-              // <ProtectedRoute requiredAccess={['waiterOrders']}>
+              <ProtectedRoute requiredAccess={['waiterOrders']}>
                 <WaiterOrdersPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="cashier"
             element={
-              // <ProtectedRoute requiredAccess={['cashier']}>
+              <ProtectedRoute requiredAccess={['cashier']}>
                 <CashierPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="kitchen-orders"
             element={
-              // <ProtectedRoute requiredAccess={['kitchenOrders']}>
+              <ProtectedRoute requiredAccess={['kitchenOrders']}>
                 <OrdersPreparationPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="inventory"
             element={
-              // <ProtectedRoute requiredAccess={['inventory']}>
+              <ProtectedRoute requiredAccess={['inventory']}>
                 <InventoryPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="analytics"
             element={
-              // <ProtectedRoute requiredAccess={['analytics']}>
+              <ProtectedRoute requiredAccess={['analytics']}>
                 <AnalyticsPage />
-              // </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="generate-pins"
-            element={
-              // <ProtectedRoute requiredAccess={['generatePins']}>
-                <GeneratePins />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="manage-categories"
             element={
-              // <ProtectedRoute requiredAccess={['manageCategories']}>
+              <ProtectedRoute requiredAccess={['manageCategories']}>
                 <MenuCategoryManagement />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="manage-items"
             element={
-              // <ProtectedRoute requiredAccess={['manageItems']}>
+              <ProtectedRoute requiredAccess={['manageItems']}>
                 <MenuItemManagement />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
 
@@ -157,15 +148,6 @@ const App = () => {
           />
 
           <Route
-            path="profile"
-            element={
-              // <ProtectedRoute requiredAccess={['profile']}>
-                <UserProfilePage />
-              // </ProtectedRoute>
-            }
-          />
-
-          <Route
             path="settings"
             element={
               // <ProtectedRoute requiredAccess={['settings']}>
@@ -177,25 +159,33 @@ const App = () => {
           <Route
             path="restaurant-status"
             element={
-              // <ProtectedRoute allowedRoles={['admin', 'waiter', 'cashier', 'kitchen', 'bar']}>
+              <ProtectedRoute allowedRoles={['admin', 'waiter', 'cashier', 'kitchen', 'bar']}>
                 <RestaurantStatusPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
           <Route
             path="product-management"
             element={
-              // <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin']}>
                 <ProductManagementPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
           <Route
             path="configuration"
             element={
-              // <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin']}>
                 <ConfigurationPage />
-              // </ProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="user-management"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <UserManagementPage />
+              </ProtectedRoute>
             }
           />
 
