@@ -5,12 +5,11 @@ import {
 import { FaPlus, FaMinus, FaTrash, FaCashRegister } from 'react-icons/fa';
 import api from '../../../services/api';
 import { UserContext } from '../../../context/UserContext';
-import { Badge } from '@chakra-ui/react';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import { ItemSearchBar } from './ItemSearchBar'; // Asegúrate de importar el componente de búsqueda
 import OrderMenuItem from './OrderMenuItem';
+import SeatAllergenPanel from './SeatAllergenPanel';
 import { useLanguage } from '../../../context/LanguageContext';
-import ALLERGENS from '../../../config/allergens';
 function OrderForm({ table, onBack }) {
   const toast = useCustomToast();
   const { t } = useLanguage();
@@ -181,13 +180,14 @@ function OrderForm({ table, onBack }) {
         const updatedAllergens = hasAllergen
           ? existing.allergens.filter(a => a !== allergen)
           : [...existing.allergens, allergen];
+        if (updatedAllergens.length === 0) {
+          return prev.filter(r => r.seatNumber !== seatNumber);
+        }
         return prev.map(r => r.seatNumber === seatNumber ? { ...r, allergens: updatedAllergens } : r);
       }
       return [...prev, { seatNumber, allergens: [allergen] }];
     });
   };
-
-  const getSeatAllergens = (seatNumber) => seatRestrictions.find(r => r.seatNumber === seatNumber)?.allergens || [];
 
   const handleSaveSeatRestrictions = async () => {
     if (!session) return;
@@ -340,47 +340,13 @@ function OrderForm({ table, onBack }) {
       </Text>
 
       {session && session.numberOfGuests > 0 && (
-        <Box p={4} borderWidth="1px" borderRadius="md" bg="#363636">
-          <Text fontSize="lg" fontWeight="bold" mb={1}>{t('seatRestrictionsTitle')}</Text>
-          <Text fontSize="xs" color="gray.400" mb={3}>{t('seatRestrictionsDescription')}</Text>
-          <VStack align="stretch" spacing={3}>
-            {Array.from({ length: session.numberOfGuests }, (_, i) => i + 1).map(seatNumber => (
-              <Box key={seatNumber} p={2} borderWidth="1px" borderRadius="md" borderColor="gray.600">
-                <Text fontSize="sm" fontWeight="semibold" mb={2}>
-                  {t('seatLabel').replace('{number}', seatNumber)}
-                </Text>
-                <Wrap spacing={2}>
-                  {ALLERGENS.map(allergen => {
-                    const active = getSeatAllergens(seatNumber).includes(allergen);
-                    return (
-                      <WrapItem key={allergen}>
-                        <Badge
-                          as="button"
-                          type="button"
-                          onClick={() => toggleSeatAllergen(seatNumber, allergen)}
-                          bg={active ? 'red.500' : 'gray.600'}
-                          color={active ? 'white' : 'gray.200'}
-                          border={active ? 'none' : '1px solid'}
-                          borderColor="gray.500"
-                          fontWeight="medium"
-                          px={2}
-                          py={1}
-                          borderRadius="md"
-                          cursor="pointer"
-                        >
-                          {t(`allergen_${allergen}`)}
-                        </Badge>
-                      </WrapItem>
-                    );
-                  })}
-                </Wrap>
-              </Box>
-            ))}
-          </VStack>
-          <Button mt={3} size="sm" colorScheme="teal" onClick={handleSaveSeatRestrictions} isLoading={savingRestrictions}>
-            {t('saveRestrictionsButton')}
-          </Button>
-        </Box>
+        <SeatAllergenPanel
+          numberOfGuests={session.numberOfGuests}
+          seatRestrictions={seatRestrictions}
+          onToggleAllergen={toggleSeatAllergen}
+          onSave={handleSaveSeatRestrictions}
+          saving={savingRestrictions}
+        />
       )}
 
       <Box p={4}>
