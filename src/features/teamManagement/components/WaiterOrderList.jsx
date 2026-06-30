@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Box, VStack, HStack, Text, Badge, Button } from '@chakra-ui/react';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useCustomToast } from '../../../hooks/useCustomToast';
 import api from '../../../services/api'; // Import the API service
 
 function WaiterOrderList() {
   const { t } = useLanguage();
+  const toast = useCustomToast();
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
@@ -20,19 +22,22 @@ function WaiterOrderList() {
     fetchOrders();
   }, []);
 
-  const handleUpdateStatus = async (orderId) => {
+  const handleDeliverOrder = async (orderId) => {
     try {
-      const order = orders.find(order => order._id === orderId);
-      const newStatus = order.status === 'preparing' ? 'ready' : 'delivered';
+      const response = await api.put(`/orders/${orderId}/deliver`);
 
-      await api.put(`/orders/${orderId}`, { status: newStatus }); // Update order status
-
-      const updatedOrders = orders.map(order =>
-        order._id === orderId ? { ...order, status: newStatus } : order
+      setOrders(prevOrders =>
+        prevOrders.map(order => (order._id === orderId ? response.data : order))
       );
-      setOrders(updatedOrders);
     } catch (error) {
-      console.error('Error updating order status:', error);
+      console.error('Error delivering order:', error);
+      toast({
+        title: t('errorTitle'),
+        description: t('deliverOrderError'),
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
@@ -44,7 +49,7 @@ function WaiterOrderList() {
           <Box key={order._id} p={4} borderWidth="1px" borderRadius="lg" width="100%">
             <HStack justify="space-between">
               <Text>{t('table')} {order.tableId.number} - {t(order.status)}</Text>
-              <Badge colorScheme={order.status === 'ready' ? 'green' : 'yellow'}>
+              <Badge colorScheme={order.status === 'ready' ? 'green' : order.status === 'delivered' ? 'blue' : 'yellow'}>
                 {t(order.status)}
               </Badge>
             </HStack>
@@ -56,15 +61,16 @@ function WaiterOrderList() {
                 </HStack>
               ))}
             </VStack>
-            <Button
-              mt={4}
-              colorScheme="blue"
-              size="sm"
-              onClick={() => handleUpdateStatus(order._id)}
-              isDisabled={order.status === 'delivered'}
-            >
-              {t('updateStatus')}
-            </Button>
+            {order.status === 'ready' && (
+              <Button
+                mt={4}
+                colorScheme="blue"
+                size="sm"
+                onClick={() => handleDeliverOrder(order._id)}
+              >
+                {t('deliverOrder')}
+              </Button>
+            )}
           </Box>
         ))}
       </VStack>

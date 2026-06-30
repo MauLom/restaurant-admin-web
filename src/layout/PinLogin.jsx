@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box, Button, VStack, HStack, Text, Center, Flex, Grid, Img, Input, Divider,
-  Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
-  FormControl, FormLabel,
-  PinInput, PinInputField,
-  useDisclosure,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -52,12 +48,10 @@ function PinLogin() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const user = profileResponse.data.user;
+      const user = { ...profileResponse.data.user, permissions: profileResponse.data.permissions };
       setUser(user);
       login(user);
 
-      console.log('User profile:', user);
-      console.log('Profile response:', profileResponse.data);
       if (!profileResponse.data.isProfileComplete) {
         navigate('/complete-profile');
       } else {
@@ -79,7 +73,7 @@ function PinLogin() {
         }
       }
     } catch (error) {
-      setError(t('invalidPin'));
+      setError(error.response?.status === 403 ? t('accountDeactivatedError') : t('invalidPin'));
       setPin('');
     }
   }, [pin, setUser, login, navigate, t]);
@@ -144,42 +138,6 @@ function PinLogin() {
 
   const handleDelete = () => {
     setPin(pin.slice(0, -1));
-  };
-
-  const handleLogin = async () => {
-    try {
-      const response = await api.post('/users/login-pin', { pin });
-      const token = response.data.token;
-      localStorage.setItem('token', token);
-
-      const profileResponse = await api.get('/users/profile', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const user = { ...profileResponse.data.user, permissions: profileResponse.data.permissions };
-      setUser(user);
-      login(user);
-
-      switch (user.role) {
-        case 'waiter':
-          navigate('/dashboard/orders');
-          break;
-        case 'admin':
-          navigate('/dashboard');
-          break;
-        case 'cashier':
-          navigate('/dashboard/cashier');
-          break;
-        case 'kitchen':
-          navigate('/dashboard/kitchen-orders');
-          break;
-        default:
-          navigate('/dashboard');
-      }
-    } catch (error) {
-      setError(error.response?.status === 403 ? t('accountDeactivatedError') : t('invalidPin'));
-      setPin('');
-    }
   };
 
   const handleDemoLogin = () => {

@@ -6,9 +6,9 @@ import LanguageSwitcher from '../shared/components/LanguageSwitcher';
 import ThemeSwitcher from '../shared/components/ThemeSwitcher';
 import DemoTutorial from '../components/DemoTutorial';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuthContext } from '../context/AuthContext';
 import { useDemoContext } from '../context/DemoContext';
 import { useTheme } from '../context/ThemeContext';
-import { getFranchiseByThemeKey } from '../theme/demoFranchises';
 
 function DashboardPage() {
   const {t} = useLanguage();
@@ -16,8 +16,7 @@ function DashboardPage() {
   const { user } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentTheme, currentThemeKey } = useTheme();
-  const franchise = isDemoMode ? getFranchiseByThemeKey(currentThemeKey) : null;
+  const { currentTheme } = useTheme();
 
   // Extract current page from pathname for tutorial
   const getCurrentPage = () => {
