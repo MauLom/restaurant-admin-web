@@ -44,7 +44,7 @@ function AdminPinModal({ isOpen, onClose, onConfirm }) {
   return (
     <Modal isOpen={isOpen} onClose={handleClose} isCentered size="xs">
       <ModalOverlay />
-      <ModalContent bg="gray.800" color="white">
+      <ModalContent bg="#363636" color="white">
         <ModalHeader fontSize="md">{t('adminPinRequired')}</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
@@ -56,7 +56,7 @@ function AdminPinModal({ isOpen, onClose, onConfirm }) {
                   w="12px"
                   h="12px"
                   borderRadius="50%"
-                  bg={i < pin.length ? 'white' : 'gray.600'}
+                  bg={i < pin.length ? 'white' : '#444'}
                 />
               ))}
             </HStack>
@@ -69,9 +69,9 @@ function AdminPinModal({ isOpen, onClose, onConfirm }) {
                   w="56px"
                   h="56px"
                   borderRadius="50%"
-                  bg="gray.700"
+                  bg="#333"
                   color="white"
-                  _hover={{ bg: 'gray.600' }}
+                  _hover={{ bg: '#555' }}
                 >
                   {num}
                 </Button>
@@ -81,9 +81,9 @@ function AdminPinModal({ isOpen, onClose, onConfirm }) {
                 w="56px"
                 h="56px"
                 borderRadius="50%"
-                bg="gray.700"
+                bg="#333"
                 color="white"
-                _hover={{ bg: 'gray.600' }}
+                _hover={{ bg: '#555' }}
               >
                 ⌫
               </Button>
@@ -92,9 +92,9 @@ function AdminPinModal({ isOpen, onClose, onConfirm }) {
                 w="56px"
                 h="56px"
                 borderRadius="50%"
-                bg="gray.700"
+                bg="#333"
                 color="white"
-                _hover={{ bg: 'gray.600' }}
+                _hover={{ bg: '#555' }}
               >
                 0
               </Button>
@@ -103,11 +103,11 @@ function AdminPinModal({ isOpen, onClose, onConfirm }) {
                 w="56px"
                 h="56px"
                 borderRadius="50%"
-                bg={pin.length === 6 ? 'green.500' : 'gray.600'}
+                bg={pin.length === 6 ? 'green.500' : '#555'}
                 color="white"
                 isDisabled={pin.length !== 6}
                 isLoading={loading}
-                _hover={{ bg: pin.length === 6 ? 'green.600' : 'gray.600' }}
+                _hover={{ bg: pin.length === 6 ? 'green.600' : '#555' }}
               >
                 ✔
               </Button>
