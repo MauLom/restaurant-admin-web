@@ -36,6 +36,18 @@ function OrdersPreparationPage() {
     if (socketURL.includes("/api")) socketURL = socketURL.replace("/api", "");
     const socket = io(socketURL);
 
+    const kitchenAreas = user.role === 'admin'
+      ? ['kitchen', 'bar']
+      : (user.role === 'kitchen' || user.role === 'bar') ? [user.role] : [];
+
+    kitchenAreas.forEach(area => {
+      socket.emit('join-room', { role: area, userId: user._id });
+    });
+
+    if (user.role === 'waiter') {
+      socket.emit('join-room', { role: 'waiter', userId: user._id });
+    }
+
     socket.on('new-order', (newOrder) => {
       setOrders((prevOrders) => [...prevOrders, newOrder]);
     });
