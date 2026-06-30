@@ -41,12 +41,14 @@ import {
 import { useUserContext } from '../../../context/UserContext';
 import api from '../../../services/api';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useTheme } from '../../../context/ThemeContext';
 
 function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = [], isSimpleMode = false }) {
   const { user } = useUserContext();
   const toast = useToast();
   const { t } = useLanguage();
-  
+  const { currentTheme } = useTheme();
+
   // Estados del formulario
   const [mode, setMode] = useState(isSimpleMode ? 'standalone' : 'combined');
   const [virtualTableName, setVirtualTableName] = useState('');
@@ -260,7 +262,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside" bg="black">
       <ModalOverlay />
-      <ModalContent maxW="600px" bg="#363636" color="white">
+      <ModalContent maxW="600px" bg={currentTheme.colors.sidebar} color={currentTheme.colors.text}>
         <ModalHeader>
           🪑 {t('createVirtualTableHeader')}
         </ModalHeader>
@@ -320,8 +322,8 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                           onChange={(e) => setVirtualTableName(e.target.value)}
                           placeholder={t('virtualTableNamePlaceholder')}
                           maxLength={50}
-                          bg="gray.700"
-                          _placeholder={{ color: 'gray.400' }}
+                          bg={currentTheme.colors.surface}
+                          _placeholder={{ color: currentTheme.colors.text, opacity: 0.5 }}
                         />
                         <FormErrorMessage>{errors.name}</FormErrorMessage>
                       </FormControl>
@@ -334,8 +336,8 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                           placeholder={t('descriptionPlaceholder')}
                           maxLength={200}
                           rows={3}
-                          bg="gray.700"
-                          _placeholder={{ color: 'gray.400' }}
+                          bg={currentTheme.colors.surface}
+                          _placeholder={{ color: currentTheme.colors.text, opacity: 0.5 }}
                         />
                       </FormControl>
                     </VStack>
@@ -356,7 +358,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                         min={1}
                         max={50}
                       >
-                        <NumberInputField bg="gray.700" _placeholder={{ color: 'gray.400' }} />
+                        <NumberInputField bg={currentTheme.colors.surface} _placeholder={{ color: currentTheme.colors.text, opacity: 0.5 }} />
                         <NumberInputStepper>
                           <NumberIncrementStepper />
                           <NumberDecrementStepper />
@@ -375,7 +377,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                     </Text>
                     <VStack spacing={4} align="stretch">
                       <FormControl display="flex" alignItems="center">
-                        <FormLabel htmlFor="separate-orders" mb="0" color="gray.300">
+                        <FormLabel htmlFor="separate-orders" mb="0">
                           {t('allowSeparateOrders')}
                         </FormLabel>
                         <Switch
@@ -386,7 +388,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                       </FormControl>
 
                       <FormControl display="flex" alignItems="center">
-                        <FormLabel htmlFor="combine-billing" mb="0" color="gray.300">
+                        <FormLabel htmlFor="combine-billing" mb="0">
                           {t('combinedBilling')}
                         </FormLabel>
                         <Switch
@@ -404,8 +406,8 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                           placeholder={t('configNotesPlaceholder')}
                           maxLength={150}
                           rows={2}
-                          bg="gray.700"
-                          _placeholder={{ color: 'gray.400' }}
+                          bg={currentTheme.colors.surface}
+                          _placeholder={{ color: currentTheme.colors.text, opacity: 0.5 }}
                         />
                       </FormControl>
                     </VStack>
@@ -437,8 +439,8 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                             onChange={(e) => setVirtualTableName(e.target.value)}
                             placeholder={t('virtualTableNamePlaceholder')}
                             maxLength={50}
-                            bg="gray.700"
-                            _placeholder={{ color: 'gray.400' }}
+                            bg={currentTheme.colors.surface}
+                            _placeholder={{ color: currentTheme.colors.text, opacity: 0.5 }}
                           />
                           <FormErrorMessage>{errors.name}</FormErrorMessage>
                         </FormControl>
@@ -451,8 +453,8 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                             placeholder={t('descriptionPlaceholder')}
                             maxLength={200}
                             rows={3}
-                            bg="gray.700"
-                            _placeholder={{ color: 'gray.400' }}
+                            bg={currentTheme.colors.surface}
+                            _placeholder={{ color: currentTheme.colors.text, opacity: 0.5 }}
                           />
                         </FormControl>
                       </VStack>
@@ -524,7 +526,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                       </Text>
                       <VStack spacing={4} align="stretch">
                         <FormControl display="flex" alignItems="center">
-                          <FormLabel htmlFor="separate-orders-combined" mb="0" color="gray.300">
+                          <FormLabel htmlFor="separate-orders-combined" mb="0">
                             {t('allowSeparateOrders')}
                           </FormLabel>
                           <Switch
@@ -535,7 +537,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                         </FormControl>
 
                         <FormControl display="flex" alignItems="center">
-                          <FormLabel htmlFor="combine-billing-combined" mb="0" color="gray.300">
+                          <FormLabel htmlFor="combine-billing-combined" mb="0">
                             {t('combinedBilling')}
                           </FormLabel>
                           <Switch
@@ -553,8 +555,8 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                             placeholder={t('configNotesPlaceholder')}
                             maxLength={150}
                             rows={2}
-                            bg="gray.700"
-                            _placeholder={{ color: 'gray.400' }}
+                            bg={currentTheme.colors.surface}
+                            _placeholder={{ color: currentTheme.colors.text, opacity: 0.5 }}
                           />
                         </FormControl>
                       </VStack>
@@ -588,7 +590,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                             min={1}
                             max={50}
                           >
-                            <NumberInputField bg="gray.700" _placeholder={{ color: 'gray.400' }} />
+                            <NumberInputField bg={currentTheme.colors.surface} _placeholder={{ color: currentTheme.colors.text, opacity: 0.5 }} />
                             <NumberInputStepper>
                               <NumberIncrementStepper />
                               <NumberDecrementStepper />
@@ -603,10 +605,10 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                             onChange={(e) => setMultiplePrefix(e.target.value)}
                             placeholder={t('namePrefixPlaceholder')}
                             maxLength={20}
-                            bg="gray.700"
-                            _placeholder={{ color: 'gray.400' }}
+                            bg={currentTheme.colors.surface}
+                            _placeholder={{ color: currentTheme.colors.text, opacity: 0.5 }}
                           />
-                          <Text fontSize="xs" color="gray.400" mt={1}>
+                          <Text fontSize="xs" opacity={0.7} mt={1}>
                             {t('namingPatternHelper').replace('{prefix}', multiplePrefix).replace('{prefix}', multiplePrefix)}
                           </Text>
                         </FormControl>
@@ -619,7 +621,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                             min={1}
                             max={50}
                           >
-                            <NumberInputField bg="gray.700" _placeholder={{ color: 'gray.400' }} />
+                            <NumberInputField bg={currentTheme.colors.surface} _placeholder={{ color: currentTheme.colors.text, opacity: 0.5 }} />
                             <NumberInputStepper>
                               <NumberIncrementStepper />
                               <NumberDecrementStepper />
@@ -636,7 +638,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                       <Text fontSize="lg" fontWeight="semibold" mb={3}>
                         👀 {t('previewSection')}
                       </Text>
-                      <Box p={4} bg="gray.700" borderRadius="md" border="1px" borderColor="gray.600">
+                      <Box p={4} bg={currentTheme.colors.surface} borderRadius="md" borderWidth="1px" borderColor={currentTheme.colors.primary[500]}>
                         <Text fontSize="sm" mb={2} fontWeight="medium">
                           {t('willGenerateText').replace('{count}', multipleCount)}
                         </Text>
@@ -653,7 +655,7 @@ function VirtualTableModal({ isOpen, onClose, onVirtualTableCreated, sections = 
                             </HStack>
                           ))}
                           {multipleCount > 5 && (
-                            <Text fontSize="xs" color="gray.400" fontStyle="italic">
+                            <Text fontSize="xs" opacity={0.7} fontStyle="italic">
                               ... y {multipleCount - 5} mesa{multipleCount - 5 !== 1 ? 's' : ''} más
                             </Text>
                           )}

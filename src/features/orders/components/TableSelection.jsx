@@ -348,50 +348,46 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
 
                         const isPartOfVirtual = table.virtualTableId || table.isPartOfVirtual;
                         const isMaintenance = table.status === 'maintenance';
-                        const effectiveStatus = getEffectiveStatus(table._id, table.status);
-                        const s = STATUS_STYLES[effectiveStatus];
-
-                        let btnBg, btnHover, btnColor;
-                        if (isPartOfVirtual) {
-                          btnBg = SPECIAL_BUTTON.virtual.bg;
-                          btnHover = SPECIAL_BUTTON.virtual.hover;
-                          btnColor = 'white';
-                        } else if (isMaintenance) {
-                          btnBg = SPECIAL_BUTTON.maintenance.bg;
-                          btnHover = SPECIAL_BUTTON.maintenance.hover;
-                          btnColor = 'white';
-                        } else {
-                          btnBg = s.buttonBg;
-                          btnHover = s.buttonHover;
-                          btnColor = 'white';
-                        }
-
-                        const statusLabel = isPartOfVirtual
-                          ? t('inVirtualTableStatus')
-                          : isMaintenance
-                            ? `🧹 ${t('maintenance')}`
-                            : effectiveStatus === 'available' ? t('available')
-                            : effectiveStatus === 'open' ? t('occupiedStatus')
-                            : t('readyForPayment');
 
                         return (
                           <Box key={table._id} position="relative">
                             <Button
-                              bg={btnBg}
-                              color={btnColor}
-                              _hover={{ bg: btnHover }}
-                              _disabled={{ opacity: 0.6, cursor: 'not-allowed' }}
-                              onClick={() => onTableClick(table)}
-                              isDisabled={isPartOfVirtual || isMaintenance}
+                              colorScheme={
+                                isPartOfVirtual
+                                  ? "purple"
+                                  : table.status === "occupied"
+                                    ? "red"
+                                    : "green"
+                              }
+                              {...(isMaintenance && {
+                                bg: '#DD6B20',
+                                color: 'white',
+                                _hover: { bg: '#C05621' },
+                              })}
+                              onClick={() =>
+                                isMaintenance
+                                  ? handleReleaseTable(table._id)
+                                  : onTableClick(table)
+                              }
+                              isDisabled={isPartOfVirtual}
+                              position="relative"
                               minW="100px"
                               h="60px"
-                              position="relative"
                             >
                               <VStack spacing={1}>
                                 <Text fontSize="sm" fontWeight="bold">
                                   {t('table')} {table.number || t('notAssignedAbbr')}
                                 </Text>
-                                <Text fontSize="xs">{statusLabel}</Text>
+                                <Text fontSize="xs">
+                                  {isPartOfVirtual
+                                    ? t('inVirtualTableStatus')
+                                    : isMaintenance
+                                      ? t('pendingCleaning')
+                                      : table.status === "occupied"
+                                        ? t('occupiedStatus')
+                                        : t('available')
+                                  }
+                                </Text>
                               </VStack>
                               {isPartOfVirtual && (
                                 <Badge
