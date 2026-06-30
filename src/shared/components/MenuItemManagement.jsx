@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Box, VStack, HStack, Button, Input, Text, Select, Grid, Image, IconButton, Collapse, Heading,
   AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter,
@@ -11,9 +12,8 @@ import { useLanguage } from '../../context/LanguageContext';
 
 function MenuItemManagement() {
   const [categories, setCategories] = useState([]);
-  const [inventoryItems, setInventoryItems] = useState([]);
   const [items, setItems] = useState([]);
-  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', category: '', image: '', ingredients: [] });
+  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', category: '', image: '' });
   const [editingItem, setEditingItem] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const toast = useCustomToast();
@@ -26,14 +26,12 @@ function MenuItemManagement() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [categoriesRes, itemsRes, inventoryRes] = await Promise.all([
+        const [categoriesRes, itemsRes] = await Promise.all([
           api.get('/menu/categories'),
           api.get('/menu/items'),
-          api.get('/inventory')
         ]);
         setCategories(categoriesRes.data);
         setItems(itemsRes.data);
-        setInventoryItems(inventoryRes.data);
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
@@ -50,27 +48,8 @@ function MenuItemManagement() {
   }, [toast, t]);
 
   const resetForm = () => {
-    setNewItem({ name: '', description: '', price: '', category: '', image: '', ingredients: [] });
+    setNewItem({ name: '', description: '', price: '', category: '', image: '' });
     setEditingItem(null);
-  };
-
-  const handleAddIngredient = () => {
-    setNewItem({
-      ...newItem,
-      ingredients: [...newItem.ingredients, { inventoryItem: '', quantity: '', unit: '' }]
-    });
-  };
-
-  const handleIngredientChange = (index, field, value) => {
-    const updatedIngredients = [...newItem.ingredients];
-    updatedIngredients[index][field] = value;
-    setNewItem({ ...newItem, ingredients: updatedIngredients });
-  };
-
-  const handleRemoveIngredient = (index) => {
-    const updatedIngredients = [...newItem.ingredients];
-    updatedIngredients.splice(index, 1);
-    setNewItem({ ...newItem, ingredients: updatedIngredients });
   };
 
   const getMissingFieldError = () => {
@@ -187,7 +166,6 @@ function MenuItemManagement() {
       price: item.price,
       category: item.category?._id || '',
       image: item.image || '',
-      ingredients: item.ingredients || []
     });
     setShowAddForm(true);
   };
@@ -212,28 +190,12 @@ function MenuItemManagement() {
               ))}
             </Select>
 
-            <Box width="100%">
-              <Text fontWeight="bold">{t('ingredients')}</Text>
-              <VStack spacing={2} align="stretch">
-                {newItem.ingredients.map((ing, index) => (
-                  <HStack key={index} align="start">
-                    <Select placeholder={t('selectIngredientPlaceholder')} value={ing.inventoryItem} onChange={(e) => handleIngredientChange(index, 'inventoryItem', e.target.value)}>
-                      {inventoryItems.map(inv => (
-                        <option key={inv._id} value={inv._id} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{inv.name}</option>
-                      ))}
-                    </Select>
-                    <Input placeholder="Cantidad" type="number" value={ing.quantity} onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)} />
-                    <Select placeholder="Unidad" value={ing.unit} onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}>
-                      <option value="ml" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>ml</option>
-                      <option value="g" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>g</option>
-                      <option value="unit" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>unidad</option>
-                    </Select>
-                    <Button size="sm" colorScheme="red" onClick={() => handleRemoveIngredient(index)}>{t('removeIngredient')}</Button>
-                  </HStack>
-                ))}
-                <Button size="sm" onClick={handleAddIngredient}>{t('addIngredient')}</Button>
-              </VStack>
-            </Box>
+            <Text fontSize="sm" opacity={0.7} alignSelf="flex-start">
+              {t('manageRecipeHint')}{' '}
+              <Link to="/dashboard/recipes" style={{ textDecoration: 'underline' }}>
+                {t('recipesNavCardTitle')}
+              </Link>
+            </Text>
 
             <Button colorScheme="green" onClick={editingItem ? handleUpdateItem : handleAddItem}>{editingItem ? t('updateItem') : t('saveItem')}</Button>
           </VStack>
