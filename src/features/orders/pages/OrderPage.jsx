@@ -117,6 +117,15 @@ function OrderPage() {
     });
   };
 
+  const handleOrderDeleted = (orderId) => {
+    setOrders(prev => prev.filter(o => o._id !== orderId));
+    setSelectedItems(prev => {
+      const next = { ...prev };
+      delete next[orderId];
+      return next;
+    });
+  };
+
   const totalSelectedCount = Object.values(selectedItems).reduce((acc, set) => acc + set.size, 0);
 
   const handleSendToPayment = async () => {
@@ -194,6 +203,7 @@ function OrderPage() {
               selectedItems={selectedItems[order._id] || new Set()}
               onToggleItem={handleToggleItem}
               onOrderUpdated={handleOrderUpdated}
+              onOrderDeleted={handleOrderDeleted}
             />
           ))}
 

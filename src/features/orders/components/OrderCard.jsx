@@ -1,35 +1,50 @@
 import React, { useState } from 'react';
-import { Box, Text, VStack, HStack, Tag, IconButton, Checkbox } from '@chakra-ui/react';
+import { Box, Text, VStack, HStack, Tag, IconButton, Checkbox, Tooltip } from '@chakra-ui/react';
 import { DeleteIcon, CheckIcon } from '@chakra-ui/icons';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import AdminPinModal from './AdminPinModal';
 import api from '../../../services/api';
 
-function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated }) {
+function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated, onOrderDeleted }) {
   const { t } = useLanguage();
   const toast = useCustomToast();
   const [pinModalOpen, setPinModalOpen] = useState(false);
-  const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  // { type: 'deleteItem', id: string } | { type: 'deleteOrder' } | null
+  const [pendingAction, setPendingAction] = useState(null);
 
-  const handleDeleteClick = (itemSubdocId) => {
-    setPendingDeleteId(itemSubdocId);
+  const handleDeleteItemClick = (itemSubdocId) => {
+    setPendingAction({ type: 'deleteItem', id: itemSubdocId });
+    setPinModalOpen(true);
+  };
+
+  const handleDeleteOrderClick = () => {
+    setPendingAction({ type: 'deleteOrder' });
     setPinModalOpen(true);
   };
 
   const handlePinConfirm = async (adminToken) => {
     try {
-      const response = await api.delete(
-        `/orders/${order._id}/items/${pendingDeleteId}`,
-        { headers: { Authorization: `Bearer ${adminToken}` } }
-      );
-      toast({ title: t('itemDeleted'), status: 'success', duration: 2000 });
-      onOrderUpdated(response.data);
+      if (pendingAction?.type === 'deleteItem') {
+        const response = await api.delete(
+          `/orders/${order._id}/items/${pendingAction.id}`,
+          { headers: { Authorization: `Bearer ${adminToken}` } }
+        );
+        toast({ title: t('itemDeleted'), status: 'success', duration: 2000 });
+        onOrderUpdated(response.data);
+      } else if (pendingAction?.type === 'deleteOrder') {
+        await api.delete(
+          `/orders/${order._id}`,
+          { headers: { Authorization: `Bearer ${adminToken}` } }
+        );
+        toast({ title: t('orderDeleted'), status: 'success', duration: 2000 });
+        onOrderDeleted(order._id);
+      }
     } catch (err) {
       const msg = err.response?.data?.error || t('errorTitle');
       toast({ title: msg, status: 'error', duration: 3000 });
     } finally {
-      setPendingDeleteId(null);
+      setPendingAction(null);
     }
   };
 
@@ -62,9 +77,23 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated }) {
     <Box borderWidth="1px" borderRadius="md" p={4}>
       <HStack justify="space-between" mb={2}>
         <Text fontWeight="bold">{t('orderNumber').replace('{number}', order._id.slice(-4))}</Text>
-        <Tag colorScheme={orderStatusColor(order.status)}>
-          {t(order.status) || order.status}
-        </Tag>
+        <HStack spacing={2}>
+          <Tag colorScheme={orderStatusColor(order.status)}>
+            {t(order.status) || order.status}
+          </Tag>
+          {!order.paid && (
+            <Tooltip label={t('deleteOrder')}>
+              <IconButton
+                icon={<DeleteIcon />}
+                size="xs"
+                colorScheme="red"
+                variant="ghost"
+                aria-label={t('deleteOrder')}
+                onClick={handleDeleteOrderClick}
+              />
+            </Tooltip>
+          )}
+        </HStack>
       </HStack>
 
       <Text fontSize="sm" opacity={0.7} mb={2}>
@@ -133,8 +162,8 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated }) {
                         size="xs"
                         colorScheme="red"
                         variant="ghost"
-                        aria-label="Eliminar ítem"
-                        onClick={() => handleDeleteClick(item._id)}
+                        aria-label={t('itemDeleted')}
+                        onClick={() => handleDeleteItemClick(item._id)}
                       />
                     </>
                   )}
@@ -151,7 +180,7 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated }) {
 
       <AdminPinModal
         isOpen={pinModalOpen}
-        onClose={() => { setPinModalOpen(false); setPendingDeleteId(null); }}
+        onClose={() => { setPinModalOpen(false); setPendingAction(null); }}
         onConfirm={handlePinConfirm}
       />
     </Box>

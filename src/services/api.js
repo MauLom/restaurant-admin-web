@@ -20,8 +20,8 @@ api.interceptors.request.use(
       throw error;
     }
 
-    const token = localStorage.getItem('token'); // Example for auth token
-    if (token && token !== 'demo-token') {
+    const token = localStorage.getItem('token');
+    if (token && token !== 'demo-token' && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;

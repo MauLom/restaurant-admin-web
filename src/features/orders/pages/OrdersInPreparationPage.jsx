@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Box, VStack, HStack, Text, Button, Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react';
+import { Box, VStack, HStack, Text, Button, Tabs, TabList, TabPanels, Tab, TabPanel, IconButton, Tooltip } from '@chakra-ui/react';
+import { DeleteIcon } from '@chakra-ui/icons';
 import api from '../../../services/api';
 import { useAuthContext } from '../../../context/AuthContext';
 import { io } from 'socket.io-client';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useCustomToast } from '../../../hooks/useCustomToast';
+import AdminPinModal from '../components/AdminPinModal';
 
 function OrdersPreparationPage() {
   const [orders, setOrders] = useState([]);
   const [preparationAreas, setPreparationAreas] = useState(['kitchen', 'bar']);
+  const [pinModalOpen, setPinModalOpen] = useState(false);
+  const [pendingDeleteOrderId, setPendingDeleteOrderId] = useState(null);
   const { user } = useAuthContext();
   const { t } = useLanguage();
+  const toast = useCustomToast();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -60,10 +66,34 @@ function OrdersPreparationPage() {
       );
     });
 
+    socket.on('order-deleted', ({ orderId }) => {
+      setOrders((prevOrders) => prevOrders.filter((order) => order._id !== orderId));
+    });
+
     return () => {
       socket.disconnect();
     };
   }, [user.role]);
+
+  const handleDeleteOrderClick = (orderId) => {
+    setPendingDeleteOrderId(orderId);
+    setPinModalOpen(true);
+  };
+
+  const handlePinConfirm = async (adminToken) => {
+    try {
+      await api.delete(`/orders/${pendingDeleteOrderId}`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      setOrders((prev) => prev.filter((o) => o._id !== pendingDeleteOrderId));
+      toast({ title: t('orderDeleted'), status: 'success', duration: 2000 });
+    } catch (err) {
+      const msg = err.response?.data?.error || t('errorTitle');
+      toast({ title: msg, status: 'error', duration: 3000 });
+    } finally {
+      setPendingDeleteOrderId(null);
+    }
+  };
 
   const handleMarkItemAsReady = async (orderId, itemId) => {
     try {
@@ -110,7 +140,19 @@ function OrdersPreparationPage() {
               <VStack spacing={4} align="stretch">
                 {group.orders.map((order) => (
                   <Box key={order._id} p={4} bg="#363636" color="white" borderRadius="md">
-                    <Text fontSize="lg" mb={2}>{t('orderNumberDisplay').replace('{number}', order._id.substring(order._id.length - 4))}</Text>
+                    <HStack justify="space-between" mb={2}>
+                      <Text fontSize="lg">{t('orderNumberDisplay').replace('{number}', order._id.substring(order._id.length - 4))}</Text>
+                      <Tooltip label={t('deleteOrder')}>
+                        <IconButton
+                          icon={<DeleteIcon />}
+                          size="xs"
+                          colorScheme="red"
+                          variant="ghost"
+                          aria-label={t('deleteOrder')}
+                          onClick={() => handleDeleteOrderClick(order._id)}
+                        />
+                      </Tooltip>
+                    </HStack>
 
                     <VStack spacing={3} align="stretch">
                       {order.items
@@ -162,6 +204,12 @@ function OrdersPreparationPage() {
           ))}
         </TabPanels>
       </Tabs>
+
+      <AdminPinModal
+        isOpen={pinModalOpen}
+        onClose={() => { setPinModalOpen(false); setPendingDeleteOrderId(null); }}
+        onConfirm={handlePinConfirm}
+      />
     </Box>
   );
 }
