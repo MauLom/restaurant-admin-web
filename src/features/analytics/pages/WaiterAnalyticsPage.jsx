@@ -11,8 +11,6 @@ import { useCustomToast } from '../../../hooks/useCustomToast';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useTheme } from '../../../context/ThemeContext';
 
-const CHART_COLORS = ['#6B8DE3', '#63C9B2', '#F6AD55', '#FC8181', '#B794F4', '#68D391'];
-
 function WaiterAnalyticsPage() {
   const toast = useCustomToast();
   const { t } = useLanguage();

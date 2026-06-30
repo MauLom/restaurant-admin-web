@@ -53,11 +53,14 @@ function OrdersPreparationPage() {
     });
 
     socket.on('update-order', (updatedOrder) => {
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
+      setOrders((prevOrders) => {
+        if (updatedOrder.status === 'paid') {
+          return prevOrders.filter((order) => order._id !== updatedOrder._id);
+        }
+        return prevOrders.map((order) =>
           order._id === updatedOrder._id ? updatedOrder : order
-        )
-      );
+        );
+      });
     });
 
     return () => {
