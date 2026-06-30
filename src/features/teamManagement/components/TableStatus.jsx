@@ -29,7 +29,12 @@ function TableStatus() {
         {tables.map(table => (
           <HStack key={table._id} justify="space-between" width="100%" p={2} borderWidth="1px" borderRadius="lg">
             <Text>{t('table')} {table.number}</Text>
-            <Badge colorScheme={table.status === 'available' ? 'green' : table.status === 'occupied' ? 'red' : 'yellow'}>
+            <Badge colorScheme={
+              table.status === 'available' ? 'green'
+                : table.status === 'occupied' ? 'red'
+                : table.status === 'maintenance' ? 'orange'
+                : 'yellow'
+            }>
               {t(table.status)}
             </Badge>
           </HStack>

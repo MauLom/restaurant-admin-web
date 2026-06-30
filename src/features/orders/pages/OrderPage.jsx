@@ -237,7 +237,7 @@ function OrderPage() {
       color={currentTheme.colors.text}
     >
       {!selectedTable || selectedTable._pendingOpen ? (
-        <TableSelection sections={sections} onTableClick={handleTableClick} />
+        <TableSelection sections={sections} onTableClick={handleTableClick} onRefreshSections={fetchSections} />
       ) : creatingNewOrder ? (
         <OrderForm table={selectedTable} onBack={handleBackToTables} onSubmitSuccess={handleOrderCreated} />
       ) : (

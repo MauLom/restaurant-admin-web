@@ -282,12 +282,22 @@ function SectionList() {
                       borderWidth="1px"
                       borderRadius="md"
                       boxShadow="sm"
-                      bg={table.status === 'available' ? 'green.50' : table.status === 'occupied' ? 'red.50' : 'yellow.50'}
+                      bg={
+                        table.status === 'available' ? 'green.50'
+                          : table.status === 'occupied' ? 'red.50'
+                          : table.status === 'maintenance' ? 'orange.50'
+                          : 'yellow.50'
+                      }
                     >
                       <Flex justify="space-between" align="center">
                         <Button
                           variant="outline"
-                          colorScheme={table.status === 'available' ? 'green' : table.status === 'occupied' ? 'red' : 'yellow'}
+                          colorScheme={
+                            table.status === 'available' ? 'green'
+                              : table.status === 'occupied' ? 'red'
+                              : table.status === 'maintenance' ? 'orange'
+                              : 'yellow'
+                          }
                           size="md"
                           flex="1"
                           textAlign="left"
@@ -330,6 +340,7 @@ function SectionList() {
                       <option value="available" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{t('available')}</option>
                       <option value="occupied" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{t('occupied')}</option>
                       <option value="reserved" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{t('reserved')}</option>
+                      <option value="maintenance" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{t('maintenance')}</option>
                     </Select>
                     <Button
                       leftIcon={<AddIcon />}

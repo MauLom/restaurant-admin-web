@@ -43,6 +43,30 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
     });
   };
 
+  const handleReleaseTable = async (tableId) => {
+    try {
+      await api.put(`/tables/${tableId}/release`);
+      if (onRefreshSections) {
+        onRefreshSections();
+      }
+      toast({
+        title: t('releaseTable'),
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error releasing table:', error);
+      toast({
+        title: t('errorTitle'),
+        description: t('releaseTableError'),
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   const handleVirtualTableClick = (virtualTable) => {
     // Crear un objeto similar a una mesa física para mantener compatibilidad
     const virtualTableAsTable = {
@@ -269,48 +293,66 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                         
                         // Verificar si la mesa es parte de una mesa virtual
                         const isPartOfVirtual = table.virtualTableId || table.isPartOfVirtual;
-                        
+                        const isMaintenance = table.status === "maintenance";
+
                         return (
-                          <Button
-                            key={table._id}
-                            colorScheme={
-                              isPartOfVirtual 
-                                ? "purple" 
-                                : table.status === "occupied" 
-                                  ? "red" 
-                                  : "green"
-                            }
-                            onClick={() => onTableClick(table)}
-                            isDisabled={isPartOfVirtual}
-                            position="relative"
-                            minW="100px"
-                            h="60px"
-                          >
-                            <VStack spacing={1}>
-                              <Text fontSize="sm" fontWeight="bold">
-                                {t('table')} {table.number || t('notAssignedAbbr')}
-                              </Text>
-                              <Text fontSize="xs">
-                                {isPartOfVirtual
-                                  ? t('inVirtualTableStatus')
-                                  : table.status === "occupied"
-                                    ? t('occupiedStatus')
-                                    : t('available')
-                                }
-                              </Text>
-                            </VStack>
-                            {isPartOfVirtual && (
-                              <Badge 
-                                position="absolute" 
-                                top="-5px" 
-                                right="-5px" 
-                                colorScheme="purple" 
-                                fontSize="xs"
+                          <Box key={table._id} position="relative">
+                            <Button
+                              colorScheme={
+                                isPartOfVirtual
+                                  ? "purple"
+                                  : isMaintenance
+                                    ? "orange"
+                                    : table.status === "occupied"
+                                      ? "red"
+                                      : "green"
+                              }
+                              onClick={() => onTableClick(table)}
+                              isDisabled={isPartOfVirtual || isMaintenance}
+                              position="relative"
+                              minW="100px"
+                              h="60px"
+                            >
+                              <VStack spacing={1}>
+                                <Text fontSize="sm" fontWeight="bold">
+                                  {t('table')} {table.number || t('notAssignedAbbr')}
+                                </Text>
+                                <Text fontSize="xs">
+                                  {isPartOfVirtual
+                                    ? t('inVirtualTableStatus')
+                                    : isMaintenance
+                                      ? `🧹 ${t('maintenance')}`
+                                      : table.status === "occupied"
+                                        ? t('occupiedStatus')
+                                        : t('available')
+                                  }
+                                </Text>
+                              </VStack>
+                              {isPartOfVirtual && (
+                                <Badge
+                                  position="absolute"
+                                  top="-5px"
+                                  right="-5px"
+                                  colorScheme="purple"
+                                  fontSize="xs"
+                                >
+                                  🔗
+                                </Badge>
+                              )}
+                            </Button>
+                            {isMaintenance && !isPartOfVirtual && (
+                              <Button
+                                mt={1}
+                                size="xs"
+                                width="100%"
+                                colorScheme="orange"
+                                variant="outline"
+                                onClick={() => handleReleaseTable(table._id)}
                               >
-                                🔗
-                              </Badge>
+                                {t('releaseTable')}
+                              </Button>
                             )}
-                          </Button>
+                          </Box>
                         );
                       })
                     ) : (
