@@ -2,18 +2,18 @@ import React, { useState, useEffect } from 'react';
 import {
   Flex, Button, Input,
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  Textarea, Select, IconButton, FormControl, FormLabel, useTheme
+  Textarea, Select, IconButton, FormControl, FormLabel,
 } from '@chakra-ui/react';
 import { FaPlus, FaMinus } from 'react-icons/fa';
-
 import { UserContext } from '../../../context/UserContext';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useTheme } from '../../../context/ThemeContext';
 import api from '../../../services/api';
 
 function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
   const { user } = React.useContext(UserContext);
   const { t } = useLanguage();
-  const theme = useTheme();
+  const { currentTheme } = useTheme();
   const [comment, setComment] = useState('');
   const [numDiners, setNumDiners] = useState(2);
   const [selectedWaiter, setSelectedWaiter] = useState(user?._id || '');
@@ -46,22 +46,23 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
-      <ModalContent bg="#363636" color="white">
+      <ModalContent bg={currentTheme.colors.sidebar} color={currentTheme.colors.text}>
         <ModalHeader>📋 {t('openTableModalTitle').replace('{tableNumber}', table?.number)}</ModalHeader>
         <ModalBody>
           <FormControl mb={4}>
-            <FormLabel color="gray.300">{t('commentsLabel')}</FormLabel>
+            <FormLabel>{t('commentsLabel')}</FormLabel>
             <Textarea
               placeholder={t('commentsPlaceholder')}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              bg="gray.700"
-              _placeholder={{ color: 'gray.400' }}
+              bg={currentTheme.colors.surface}
+              color={currentTheme.colors.text}
+              _placeholder={{ color: currentTheme.colors.text, opacity: 0.5 }}
             />
           </FormControl>
 
           <FormControl mb={4}>
-            <FormLabel color="gray.300">{t('waiterAssignedLabel')}</FormLabel>
+            <FormLabel>{t('waiterAssignedLabel')}</FormLabel>
             <Select
               value={selectedWaiter}
               onChange={(e) => setSelectedWaiter(e.target.value)}
@@ -69,7 +70,7 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
               {waiters.map((waiter) => (
                 <option
                   key={waiter._id}
-                  style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}
+                  style={{ backgroundColor: currentTheme.colors.surface, color: currentTheme.colors.text }}
                   value={waiter._id}
                 >
                   {waiter.username}
@@ -79,7 +80,7 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
           </FormControl>
 
           <FormControl mt={4}>
-            <FormLabel color="gray.300" textAlign="center">{t('numberOfDinersLabel')}</FormLabel>
+            <FormLabel textAlign="center">{t('numberOfDinersLabel')}</FormLabel>
             <Flex align="center" justify="center">
               <IconButton
                 icon={<FaMinus />}
@@ -94,8 +95,8 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
                 value={numDiners}
                 readOnly
                 mx={2}
-                bg="gray.700"
-                color="white"
+                bg={currentTheme.colors.surface}
+                color={currentTheme.colors.text}
               />
               <IconButton
                 icon={<FaPlus />}
@@ -108,7 +109,7 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
           </FormControl>
         </ModalBody>
         <ModalFooter>
-          <Button variant="ghost" onClick={onClose} color="gray.300" _hover={{ color: 'white' }} mr={3}>
+          <Button variant="ghost" onClick={onClose} mr={3}>
             Cancelar
           </Button>
           <Button bg="red.500" _hover={{ bg: 'red.600' }} onClick={() => onConfirm(comment, numDiners, selectedWaiter)}>

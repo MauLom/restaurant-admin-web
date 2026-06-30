@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Text, VStack, HStack, Tag, IconButton, Checkbox } from '@chakra-ui/react';
-import { DeleteIcon } from '@chakra-ui/icons';
+import { DeleteIcon, CheckIcon } from '@chakra-ui/icons';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import AdminPinModal from './AdminPinModal';
@@ -33,7 +33,25 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated }) {
     }
   };
 
+  const handleDeliverItem = async (itemSubdocId) => {
+    try {
+      const response = await api.put(`/orders/${order._id}/items/${itemSubdocId}/deliver`);
+      toast({ title: t('itemDelivered'), status: 'success', duration: 2000 });
+      onOrderUpdated(response.data);
+    } catch (err) {
+      const msg = err.response?.data?.error || t('errorTitle');
+      toast({ title: msg, status: 'error', duration: 3000 });
+    }
+  };
+
   const itemStatusColor = (status) => {
+    if (status === 'ready') return 'green';
+    if (status === 'sent to cashier') return 'blue';
+    if (status === 'delivered') return 'purple';
+    return 'orange';
+  };
+
+  const orderStatusColor = (status) => {
     if (status === 'ready') return 'green';
     if (status === 'sent to cashier') return 'blue';
     if (status === 'delivered') return 'purple';
@@ -44,12 +62,12 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated }) {
     <Box borderWidth="1px" borderRadius="md" p={4}>
       <HStack justify="space-between" mb={2}>
         <Text fontWeight="bold">{t('orderNumber').replace('{number}', order._id.slice(-4))}</Text>
-        <Tag colorScheme={order.status === 'ready' ? 'green' : order.status === 'sent to cashier' ? 'blue' : 'orange'}>
+        <Tag colorScheme={orderStatusColor(order.status)}>
           {t(order.status) || order.status}
         </Tag>
       </HStack>
 
-      <Text fontSize="sm" color="gray.400" mb={2}>
+      <Text fontSize="sm" opacity={0.7} mb={2}>
         {t('orderTotal')}: ${order.total.toFixed(2)}
       </Text>
 
@@ -72,7 +90,7 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated }) {
               <HStack justify="space-between">
                 <VStack align="start" spacing={0}>
                   <Text fontWeight="semibold" fontSize="sm">{item.name}</Text>
-                  <Text fontSize="xs" color="gray.400">{item.quantity} x ${item.price.toFixed(2)}</Text>
+                  <Text fontSize="xs" opacity={0.7}>{item.quantity} x ${item.price.toFixed(2)}</Text>
                 </VStack>
 
                 <HStack spacing={2}>
@@ -81,28 +99,50 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated }) {
                   </Tag>
 
                   {isReady && (
-                    <Checkbox
-                      colorScheme="teal"
-                      isChecked={isChecked}
-                      onChange={() => onToggleItem(order._id, item._id)}
-                    />
+                    <>
+                      <Checkbox
+                        colorScheme="teal"
+                        isChecked={isChecked}
+                        onChange={() => onToggleItem(order._id, item._id)}
+                      />
+                      <IconButton
+                        icon={<CheckIcon />}
+                        size="xs"
+                        colorScheme="green"
+                        variant="ghost"
+                        aria-label={t('deliverItem')}
+                        title={t('deliverItem')}
+                        onClick={() => handleDeliverItem(item._id)}
+                      />
+                    </>
                   )}
 
                   {isPreparing && (
-                    <IconButton
-                      icon={<DeleteIcon />}
-                      size="xs"
-                      colorScheme="red"
-                      variant="ghost"
-                      aria-label="Eliminar ítem"
-                      onClick={() => handleDeleteClick(item._id)}
-                    />
+                    <>
+                      <IconButton
+                        icon={<CheckIcon />}
+                        size="xs"
+                        colorScheme="green"
+                        variant="ghost"
+                        aria-label={t('deliverItem')}
+                        title={t('deliverItem')}
+                        onClick={() => handleDeliverItem(item._id)}
+                      />
+                      <IconButton
+                        icon={<DeleteIcon />}
+                        size="xs"
+                        colorScheme="red"
+                        variant="ghost"
+                        aria-label="Eliminar ítem"
+                        onClick={() => handleDeleteClick(item._id)}
+                      />
+                    </>
                   )}
                 </HStack>
               </HStack>
 
               {item.comments && (
-                <Text fontSize="xs" color="gray.400" mt={1}>📝 {item.comments}</Text>
+                <Text fontSize="xs" opacity={0.7} mt={1}>📝 {item.comments}</Text>
               )}
             </Box>
           );

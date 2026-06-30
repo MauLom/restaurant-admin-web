@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Flex, Button, VStack, Heading, Divider, Box, Text,
 } from '@chakra-ui/react';
+import { io } from 'socket.io-client';
 import api from '../../../services/api';
 import TableSelection from '../components/TableSelection';
 import OpenTableModal from '../components/OpenTableModal';
@@ -10,11 +11,13 @@ import OrderCard from '../components/OrderCard';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useTheme } from '../../../context/ThemeContext';
+import { useAuthContext } from '../../../context/AuthContext';
 
 function OrderPage() {
   const toast = useCustomToast();
   const { t } = useLanguage();
   const { currentTheme } = useTheme();
+  const { user } = useAuthContext();
 
   const [sections, setSections] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
@@ -47,6 +50,21 @@ function OrderPage() {
   useEffect(() => {
     fetchSections();
   }, [fetchSections]);
+
+  useEffect(() => {
+    if (!user?._id) return;
+    let socketURL = process.env.REACT_APP_API_URL;
+    if (socketURL.includes('/api')) socketURL = socketURL.replace('/api', '');
+    const socket = io(socketURL);
+    socket.emit('join-room', { role: 'waiter', userId: user._id });
+    socket.on('update-order', (updatedOrder) => {
+      setOrders(prev => prev.map(o => o._id === updatedOrder._id ? updatedOrder : o));
+      if (updatedOrder.items.some(i => i.status === 'ready')) {
+        toast({ title: t('orderReadyForDelivery'), status: 'info', duration: 4000, isClosable: true });
+      }
+    });
+    return () => socket.disconnect();
+  }, [user?._id]);
 
   useEffect(() => {
     if (selectedTable && selectedTable.status === 'occupied') {
@@ -200,7 +218,7 @@ function OrderPage() {
             bg="purple.500"
             _hover={{ bg: 'purple.600' }}
             onClick={handleCloseSession}
-            isDisabled={orders.some(order => !order.paid && order.status !== 'sent to cashier')}
+            isDisabled={orders.some(order => !order.paid && !['sent to cashier', 'delivered'].includes(order.status))}
           >
             🛑 {t('closeTableSession')}
           </Button>

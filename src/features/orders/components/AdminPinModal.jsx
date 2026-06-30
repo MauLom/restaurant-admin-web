@@ -5,13 +5,21 @@ import {
 } from '@chakra-ui/react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useCustomToast } from '../../../hooks/useCustomToast';
+import { useTheme } from '../../../context/ThemeContext';
 import api from '../../../services/api';
 
 function AdminPinModal({ isOpen, onClose, onConfirm }) {
   const { t } = useLanguage();
   const toast = useCustomToast();
+  const { currentTheme, colorMode } = useTheme();
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Light mode needs explicit values because the lightTheme palette has very
+  // little contrast between background/sidebar/surface colors.
+  const pinBg = colorMode === 'light' ? '#d0d0d0' : currentTheme.colors.background;
+  const pinHover = colorMode === 'light' ? '#b8b8b8' : '#555';
+  const dotEmpty = colorMode === 'light' ? '#b8b8b8' : '#444';
 
   const handleDigit = (digit) => {
     if (pin.length < 6) setPin(prev => prev + digit);
@@ -44,7 +52,7 @@ function AdminPinModal({ isOpen, onClose, onConfirm }) {
   return (
     <Modal isOpen={isOpen} onClose={handleClose} isCentered size="xs">
       <ModalOverlay />
-      <ModalContent bg="#363636" color="white">
+      <ModalContent bg={currentTheme.colors.sidebar} color={currentTheme.colors.text}>
         <ModalHeader fontSize="md">{t('adminPinRequired')}</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
@@ -56,7 +64,7 @@ function AdminPinModal({ isOpen, onClose, onConfirm }) {
                   w="12px"
                   h="12px"
                   borderRadius="50%"
-                  bg={i < pin.length ? 'white' : '#444'}
+                  bg={i < pin.length ? currentTheme.colors.text : dotEmpty}
                 />
               ))}
             </HStack>
@@ -69,9 +77,9 @@ function AdminPinModal({ isOpen, onClose, onConfirm }) {
                   w="56px"
                   h="56px"
                   borderRadius="50%"
-                  bg="#333"
-                  color="white"
-                  _hover={{ bg: '#555' }}
+                  bg={pinBg}
+                  color={currentTheme.colors.text}
+                  _hover={{ bg: pinHover }}
                 >
                   {num}
                 </Button>
@@ -81,9 +89,9 @@ function AdminPinModal({ isOpen, onClose, onConfirm }) {
                 w="56px"
                 h="56px"
                 borderRadius="50%"
-                bg="#333"
-                color="white"
-                _hover={{ bg: '#555' }}
+                bg={pinBg}
+                color={currentTheme.colors.text}
+                _hover={{ bg: pinHover }}
               >
                 ⌫
               </Button>
@@ -92,9 +100,9 @@ function AdminPinModal({ isOpen, onClose, onConfirm }) {
                 w="56px"
                 h="56px"
                 borderRadius="50%"
-                bg="#333"
-                color="white"
-                _hover={{ bg: '#555' }}
+                bg={pinBg}
+                color={currentTheme.colors.text}
+                _hover={{ bg: pinHover }}
               >
                 0
               </Button>
@@ -103,11 +111,11 @@ function AdminPinModal({ isOpen, onClose, onConfirm }) {
                 w="56px"
                 h="56px"
                 borderRadius="50%"
-                bg={pin.length === 6 ? 'green.500' : '#555'}
-                color="white"
+                bg={pin.length === 6 ? 'green.500' : pinBg}
+                color={currentTheme.colors.text}
                 isDisabled={pin.length !== 6}
                 isLoading={loading}
-                _hover={{ bg: pin.length === 6 ? 'green.600' : '#555' }}
+                _hover={{ bg: pin.length === 6 ? 'green.600' : pinHover }}
               >
                 ✔
               </Button>
