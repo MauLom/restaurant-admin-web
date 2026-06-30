@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Flex, Button, VStack, Heading, Divider, Input, Box
+  Flex, Button, VStack, Heading, Divider
 } from '@chakra-ui/react';
 import api from '../../../services/api';
 import TableSelection from '../components/TableSelection';
 import OpenTableModal from '../components/OpenTableModal';
 import OrderForm from '../components/OrderForm';
 import OrderCard from '../components/OrderCard';
-import PaymentMethodSelector from '../components/PaymentMethodSelector';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useTheme } from '../../../context/ThemeContext';
@@ -19,8 +18,6 @@ function OrderPage() {
 
   const [sections, setSections] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
-  const [tipAll, setTipAll] = useState(null);
-  const [paymentMethodsAll, setPaymentMethodsAll] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [orders, setOrders] = useState([]);
   const [creatingNewOrder, setCreatingNewOrder] = useState(false);
@@ -122,74 +119,6 @@ function OrderPage() {
     }
   };
 
-  const handlePayAllOrders = async () => {
-    const unpaidOrders = orders.filter(order => !order.paid);
-    const expectedTotal = unpaidOrders.reduce((sum, order) => sum + order.total, 0) + parseFloat(tipAll || 0);
-    const totalEntered = paymentMethodsAll.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0);
-
-    if (paymentMethodsAll.length === 0) {
-      toast({
-        title: t('noPaymentMethods'),
-        description: t('noPaymentMethodsDesc'),
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    const invalidMethod = paymentMethodsAll.some(pm => !pm.method || !pm.amount || parseFloat(pm.amount) <= 0);
-    if (invalidMethod) {
-      toast({
-        title: t('invalidPaymentMethods'),
-        description: t('invalidPaymentMethodsDesc'),
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    if (Math.abs(totalEntered - expectedTotal) > 0.01) {
-      toast({
-        title: t('amountsMismatch'),
-        description: `${t('amountsMismatchDesc')} (${totalEntered.toFixed(2)} / ${expectedTotal.toFixed(2)}).`,
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    try {
-      await api.post(`/orders/payment/${selectedTable._id}`, {
-        tip: parseFloat(tipAll),
-        paymentMethods: paymentMethodsAll,
-      });
-
-      toast({
-        title: t('paymentCompleted'),
-        description: t('paymentCompletedDesc').replace('{tableNumber}', selectedTable.number),
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-
-      await fetchOrdersByTableSessionId(selectedTable._id, selectedTable.tableSessionId);
-      await fetchSections();
-      setPaymentMethodsAll([]);
-      setTipAll(0);
-    } catch (error) {
-      toast({
-        title: t('errorTitle'),
-        description: t('paymentError'),
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
   const handleCloseSession = async () => {
     try {
       await api.put(`/tableSession/close-by-table/${selectedTable._id}`);
@@ -247,34 +176,8 @@ function OrderPage() {
             <OrderCard
               key={order._id}
               order={order}
-              onPaid={() => fetchOrdersByTableSessionId(selectedTable._id, selectedTable.tableSessionId)}
             />
           ))}
-          <Box>
-            <Input
-              type="number"
-              placeholder={t('tipAllOrders')}
-              value={tipAll}
-              onChange={(e) => setTipAll(e.target.value)}
-              size="sm"
-              bg="gray.700"
-              color="white"
-              _placeholder={{ color: 'gray.400' }}
-            />
-          </Box>
-          <PaymentMethodSelector
-            paymentMethods={paymentMethodsAll}
-            setPaymentMethods={setPaymentMethodsAll}
-            expectedTotal={orders.filter(order => !order.paid).reduce((total, order) => total + order.total, 0) + parseFloat(tipAll || 0)}
-          />
-          <Button
-            bg="green.500"
-            _hover={{ bg: 'green.600' }}
-            onClick={handlePayAllOrders}
-            isDisabled={!orders.some(o => o.status === 'ready' && !o.paid)}
-          >
-            💳 {t('payAllOrders')}
-          </Button>
           <Button
             bg="purple.500"
             _hover={{ bg: 'purple.600' }}
