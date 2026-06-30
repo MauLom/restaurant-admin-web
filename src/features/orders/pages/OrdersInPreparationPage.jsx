@@ -63,7 +63,7 @@ function OrdersPreparationPage() {
     return () => {
       socket.disconnect();
     };
-  }, [user.role]);
+  }, [user.role, user._id]);
 
   const handleMarkItemAsReady = async (orderId, itemId) => {
     try {

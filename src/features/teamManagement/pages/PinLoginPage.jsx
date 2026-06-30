@@ -37,7 +37,6 @@ function PinLogin() {
 
    
       login(user);
-      setUser(user); 
 
       console.log('User profile A:', user);
       console.log('Profile response A:', profileResponse.data);
