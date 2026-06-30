@@ -104,7 +104,8 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated, onOrder
         {order.items.map((item) => {
           const isReady = item.status === 'ready';
           const isPreparing = item.status === 'preparing';
-          const isTerminal = item.status === 'sent to cashier' || item.status === 'delivered';
+          const isDelivered = item.status === 'delivered';
+          const isTerminal = item.status === 'sent to cashier';
           const isChecked = selectedItems?.has(item._id);
 
           return (
@@ -127,23 +128,24 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated, onOrder
                     {t(item.status) || item.status}
                   </Tag>
 
+                  {(isReady || isDelivered) && (
+                    <Checkbox
+                      colorScheme="teal"
+                      isChecked={isChecked}
+                      onChange={() => onToggleItem(order._id, item._id)}
+                    />
+                  )}
+
                   {isReady && (
-                    <>
-                      <Checkbox
-                        colorScheme="teal"
-                        isChecked={isChecked}
-                        onChange={() => onToggleItem(order._id, item._id)}
-                      />
-                      <IconButton
-                        icon={<CheckIcon />}
-                        size="xs"
-                        colorScheme="green"
-                        variant="ghost"
-                        aria-label={t('deliverItem')}
-                        title={t('deliverItem')}
-                        onClick={() => handleDeliverItem(item._id)}
-                      />
-                    </>
+                    <IconButton
+                      icon={<CheckIcon />}
+                      size="xs"
+                      colorScheme="green"
+                      variant="ghost"
+                      aria-label={t('deliverItem')}
+                      title={t('deliverItem')}
+                      onClick={() => handleDeliverItem(item._id)}
+                    />
                   )}
 
                   {isPreparing && (
