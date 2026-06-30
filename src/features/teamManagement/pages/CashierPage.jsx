@@ -1,308 +1,470 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, VStack, HStack, Text, Button, Input, useDisclosure, Stack, Image,
-  Select, useTheme,
+  Box, Grid, VStack, HStack, Text, Button, Input, Divider,
+  Badge, IconButton, Heading, Checkbox,
 } from '@chakra-ui/react';
-import {
-  Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton,
-} from '@chakra-ui/react';
+import { FaMoneyBillAlt, FaCreditCard, FaExchangeAlt, FaTimes } from 'react-icons/fa';
 import api from '../../../services/api';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useTheme } from '../../../context/ThemeContext';
+
+const PAYMENT_METHODS = [
+  { key: 'cash', Icon: FaMoneyBillAlt },
+  { key: 'card', Icon: FaCreditCard },
+  { key: 'transfer', Icon: FaExchangeAlt },
+];
 
 function CashierPage() {
   const { t } = useLanguage();
+  const toast = useCustomToast();
+  const { currentTheme } = useTheme();
+
   const [tables, setTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
   const [orders, setOrders] = useState([]);
-  const [total, setTotal] = useState(0);
+  const [selectedKeys, setSelectedKeys] = useState(new Set());
   const [tip, setTip] = useState(0);
-  const [paymentMethods, setPaymentMethods] = useState([{ method: 'cash', amount: 0 }]);
-  const toast = useCustomToast();
-  const theme = useTheme();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [customTipInput, setCustomTipInput] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [cashReceived, setCashReceived] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    const fetchTables = async () => {
-      try {
-        const response = await api.get('/sections'); // Fetching sections and tables
-        const fetchedTables = response.data.flatMap(section => section.tables);
-        setTables(fetchedTables);
-      } catch (error) {
-        console.error('Error fetching tables:', error);
-      }
-    };
-
-    fetchTables();
-  }, []);
-
-  const handleTableSelect = async (tableId) => {
-    setSelectedTable(tableId);
+  // Fetch sections + filter to only tables with pending payment orders
+  const fetchTables = async () => {
     try {
-      const response = await api.get(`/orders/payment/${tableId}`);
-      setOrders(response.data);
-      const totalAmount = response.data.reduce((sum, order) => sum + order.total, 0);
-      setTotal(totalAmount);
-    } catch (error) {
-      console.error('Error fetching orders for payment:', error);
+      const [sectionsRes, pendingRes] = await Promise.all([
+        api.get('/sections'),
+        api.get('/orders/pending-payment-tables'),
+      ]);
+      const pendingIds = new Set(pendingRes.data);
+      const allTables = sectionsRes.data.flatMap(s => s.tables);
+      setTables(allTables.filter(t => pendingIds.has(t._id)));
+    } catch (err) {
+      console.error('Error fetching tables:', err);
     }
   };
 
-  // Handle tip percentage shortcut
-  const handleTipShortcut = (percentage) => {
-    setTip(total * (percentage / 100));
+  useEffect(() => { fetchTables(); }, []);
+
+  if (!currentTheme) return null;
+  const c = currentTheme.colors;
+
+  const panelBg          = c.surface;
+  const panelBorder      = `${c.primary[500]}40`;
+  const dimText          = `${c.text}80`;
+  const itemRowBg        = `${c.background}B0`;
+  const selectedMethodBg = `${c.primary[500]}25`;
+  const primaryColor     = c.primary[500];
+
+  // Flat list of all items with order context
+  const allItems = orders.flatMap(o =>
+    (o.items ?? []).map((item, idx) => ({
+      ...item,
+      orderId: o._id.toString(),
+      // Use orderId+index as unique display key (handles duplicate itemIds)
+      key: `${o._id}:${idx}`,
+      // itemId as string for the backend
+      itemIdStr: item.itemId?.toString() ?? String(idx),
+    }))
+  );
+
+  const unpaidItems = allItems.filter(i => !i.paid);
+  const isAllSelected = unpaidItems.length > 0 && unpaidItems.every(i => selectedKeys.has(i.key));
+
+  const selectedItems  = allItems.filter(i => selectedKeys.has(i.key) && !i.paid);
+  const baseAmount     = selectedItems.reduce((s, i) => s + i.price * i.quantity, 0);
+  const payableTotal   = baseAmount + tip;
+  const cashReceivedAmount = parseFloat(cashReceived) || 0;
+  const change         = paymentMethod === 'cash' ? cashReceivedAmount - payableTotal : 0;
+  const isPaymentValid = selectedItems.length > 0 &&
+    (paymentMethod === 'cash' ? cashReceivedAmount >= payableTotal : true);
+
+  const activeTipPct = [5, 10, 15].find(
+    pct => baseAmount > 0 && Math.abs(tip - baseAmount * pct / 100) < 0.01
+  );
+
+  const handleTableSelect = async (table) => {
+    if (selectedTable?._id === table._id) { handleClose(); return; }
+    try {
+      const res = await api.get(`/orders/payment/${table._id}`);
+      setSelectedTable(table);
+      setOrders(res.data);
+      setSelectedKeys(new Set());
+      setTip(0);
+      setCustomTipInput('');
+      setCashReceived('');
+      setPaymentMethod('cash');
+    } catch (err) {
+      if (err.response?.status === 404) {
+        toast({ title: t('noPendingOrders'), status: 'info', duration: 2000, isClosable: true });
+      } else {
+        toast({ title: t('errorTitle'), description: t('errorFetchingDataDescription'), status: 'error', duration: 3000, isClosable: true });
+      }
+    }
   };
 
-  const calculateGrandTotal = () => {
-    return total + tip;
+  const handleClose = () => {
+    setSelectedTable(null);
+    setOrders([]);
+    setSelectedKeys(new Set());
+    setTip(0);
+    setCustomTipInput('');
+    setCashReceived('');
   };
 
-  const calculateTotalPayment = () => {
-    return paymentMethods.reduce((sum, method) => sum + (parseFloat(method.amount) || 0), 0);
+  const toggleItem = (key) => {
+    setSelectedKeys(prev => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+    setTip(0);
+    setCustomTipInput('');
+    setCashReceived('');
   };
 
-  const calculateTotalCashPayment = () => {
-    return paymentMethods
-      .filter(method => method.method === 'cash')
-      .reduce((sum, method) => sum + (parseFloat(method.amount) || 0), 0);
+  const selectAll = () => {
+    setSelectedKeys(new Set(unpaidItems.map(i => i.key)));
+    setTip(0);
+    setCustomTipInput('');
+    setCashReceived('');
   };
 
-  const handlePaymentMethodChange = (index, field, value) => {
-    const newMethods = [...paymentMethods];
-    newMethods[index][field] = value;
-    setPaymentMethods(newMethods);
+  const clearSelection = () => {
+    setSelectedKeys(new Set());
+    setTip(0);
+    setCustomTipInput('');
+    setCashReceived('');
   };
 
-  const handleAddPaymentMethod = () => {
-    setPaymentMethods([...paymentMethods, { method: 'card', amount: 0 }]);
+  const handleTipShortcut = (pct) => {
+    setTip(parseFloat((baseAmount * pct / 100).toFixed(2)));
+    setCustomTipInput('');
   };
 
-  const handleRemovePaymentMethod = (index) => {
-    setPaymentMethods(paymentMethods.filter((_, i) => i !== index));
+  const handleCustomTip = (val) => {
+    setCustomTipInput(val);
+    setTip(parseFloat(val) || 0);
   };
 
-  const isPaymentValid = () => {
-    const totalPayment = calculateTotalPayment();
-    return totalPayment >= calculateGrandTotal();
-  };
-
-  const handleFinalizePayment = async () => {
-    if (!isPaymentValid()) {
-      toast({
-        title: t('errorTitle'),
-        description: t('totalPaymentLessThanGrandTotal'),
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+  const handlePayment = async () => {
+    if (!isPaymentValid) {
+      toast({ title: t('errorTitle'), description: t('totalPaymentLessThanGrandTotal'), status: 'error', duration: 3000, isClosable: true });
       return;
     }
+    setIsSubmitting(true);
+    const paymentPayload = [{
+      method: paymentMethod,
+      amount: paymentMethod === 'cash' ? cashReceivedAmount : payableTotal,
+    }];
 
     try {
-      await api.post(`/orders/payment/${selectedTable}`, {
-        tip,
-        paymentMethods,
-      });
+      if (isAllSelected) {
+        // All unpaid items selected → full payment, closes table session
+        await api.post(`/orders/payment/${selectedTable._id}`, {
+          tip,
+          paymentMethods: paymentPayload,
+        });
+        toast({ title: t('paymentCompletedTitle'), description: t('paymentFinalizedDescription'), status: 'success', duration: 3000, isClosable: true });
+        handleClose();
+        fetchTables();
+      } else {
+        // Partial payment — group selected items by orderId
+        const byOrder = {};
+        selectedItems.forEach(item => {
+          if (!byOrder[item.orderId]) byOrder[item.orderId] = [];
+          byOrder[item.orderId].push(item.itemIdStr);
+        });
 
-      toast({
-        title: t('paymentCompletedTitle'),
-        description: t('paymentFinalizedDescription'),
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-      setOrders([]);
-      setTotal(0);
-      setTip(0);
-      setSelectedTable(null);
-      setPaymentMethods([{ method: 'cash', amount: 0 }]); // Reset payment methods
-      onClose();
-    } catch (error) {
-      console.error('Error finalizing payment:', error);
-      toast({
-        title: t('errorTitle'),
-        description: t('errorFinalizingPaymentDescription'),
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+        for (const [orderId, itemsToPay] of Object.entries(byOrder)) {
+          await api.post(`/orders/partial-payment/${orderId}`, {
+            itemsToPay,
+            tip: 0,
+            paymentMethods: paymentPayload,
+          });
+        }
+
+        toast({
+          title: t('partialPaymentSuccess'),
+          description: t('partialPaymentSuccessDesc').replace('{count}', selectedItems.length),
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+
+        // Refresh orders for this table; if none left, close panel and refresh table list
+        try {
+          const res = await api.get(`/orders/payment/${selectedTable._id}`);
+          setOrders(res.data);
+          setSelectedKeys(new Set());
+          setTip(0);
+          setCustomTipInput('');
+          setCashReceived('');
+        } catch (err) {
+          if (err.response?.status === 404) {
+            handleClose();
+          }
+        }
+        fetchTables();
+      }
+    } catch (err) {
+      console.error('Payment error:', err);
+      toast({ title: t('errorTitle'), description: t('errorFinalizingPaymentDescription'), status: 'error', duration: 3000, isClosable: true });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const grandTotal = calculateGrandTotal();
-  const totalPayment = calculateTotalPayment();
-  const totalCashPayment = calculateTotalCashPayment();
-  const change = totalCashPayment - grandTotal;
-
   return (
-    <Box p={4}>
-      <VStack spacing={4} align="stretch">
-        {/* Table Order Summaries */}
-        <Text fontSize="2xl" mb={4}>{t('selectATable')}</Text>
-        {tables.length > 0 ? (
-          <Stack direction="row" wrap="wrap" spacing={4}>
-            {tables.map((table) => (
-              <Box
-                key={table._id}
-                p={4}
-                borderWidth="1px"
-                borderRadius="md"
-                boxShadow="lg"
-                cursor="pointer"
-                bg={selectedTable === table._id ? 'blue.50' : 'white'}
-                onClick={() => handleTableSelect(table._id)}
-              >
-                <Text color={'black'} fontSize="lg" fontWeight="bold">{t('tableNumberLabel').replace('{number}', table.number)}</Text>
-                {table.orders && table.orders.length > 0 ? (
-                  <>
-                    <Text color="black">Total Orders: {table.orders.length}</Text>
-                    <Text color="black">Total Amount: ${table.orders.reduce((sum, order) => sum + order.total, 0).toFixed(2)}</Text>
-                  </>
-                ) : (
-                  <Text color="black">{t('noPendingOrders')}</Text>
-                )}
-              </Box>
-            ))}
-          </Stack>
-        ) : (
-          <Box textAlign="center" py={10}>
-            <Image
-              src="/images/empty-state.png"
-              alt={t('noOrdersImageAlt')}
-              boxSize="150px"
-              margin="auto"
-            />
-            <Text fontSize="lg" mt={4}>{t('noTablesWithPendingOrders')}</Text>
-          </Box>
-        )}
+    <Box p={4} h="100%">
+      <Heading size="md" mb={5}>{t('cashierTitle')}</Heading>
 
-        {/* Orders Section */}
-        {orders.length > 0 && (
-          <VStack spacing={4} align="stretch" mt={6}>
-            <Text fontSize="lg" fontWeight="bold">{t('ordersForTable').replace('{table}', selectedTable)}</Text>
-            {orders.map((order) => (
-              <Box key={order._id} p={4} borderWidth="1px" borderRadius="md" width="full">
-                <Text fontSize="lg" fontWeight="bold">{t('orderNumberLabel').replace('{id}', order._id)}</Text>
-                {/* Order details, similar to your existing layout */}
-              </Box>
-            ))}
-
-            <HStack justifyContent="space-between">
-              <Text fontSize="lg">{t('subtotalLabel')}</Text>
-              <Text fontSize="lg">${total.toFixed(2)}</Text>
-            </HStack>
-            <HStack justifyContent="space-between">
-              <Text fontSize="lg">{t('tipLabel')}</Text>
-              <Input
-                type="number"
-                value={tip}
-                onChange={(e) => setTip(parseFloat(e.target.value) || 0)}
-                width="100px"
-                bg="white"
-                color="black"
-              />
-            </HStack>
-            <HStack spacing={4}>
-              <Button colorScheme="blue" onClick={() => handleTipShortcut(5)}>{t('add5PercentTip')}</Button>
-              <Button colorScheme="blue" onClick={() => handleTipShortcut(10)}>{t('add10PercentTip')}</Button>
-              <Button colorScheme="blue" onClick={() => handleTipShortcut(15)}>{t('add15PercentTip')}</Button>
-            </HStack>
-
-            {/* Payment Methods */}
-            <VStack spacing={4} align="stretch">
-              <Text fontSize="lg" fontWeight="bold">{t('paymentMethodsHeading')}</Text>
-              {paymentMethods.map((method, index) => (
-                <HStack key={index} spacing={4}>
-                  <Select
-                    value={method.method}
-                    onChange={(e) => handlePaymentMethodChange(index, 'method', e.target.value)}
-                    width="150px"
+      <Grid
+        templateColumns={selectedTable ? { base: '1fr', lg: '1fr 380px' } : '1fr'}
+        gap={6}
+        alignItems="start"
+      >
+        {/* ── Table grid ── */}
+        <Box>
+          <Text fontSize="sm" color={dimText} mb={3}>{t('selectATable')}</Text>
+          {tables.length === 0 ? (
+            <Text color={dimText} mt={6} textAlign="center">{t('noTablesWithPendingOrders')}</Text>
+          ) : (
+            <Grid templateColumns="repeat(auto-fill, minmax(100px, 1fr))" gap={3}>
+              {tables.map(table => {
+                const isSelected = selectedTable?._id === table._id;
+                return (
+                  <Box
+                    key={table._id}
+                    p={4}
+                    borderWidth="2px"
+                    borderRadius="xl"
+                    cursor="pointer"
+                    borderColor={isSelected ? primaryColor : 'green.400'}
+                    bg={isSelected ? selectedMethodBg : 'transparent'}
+                    color={c.text}
+                    onClick={() => handleTableSelect(table)}
+                    transition="all 0.15s"
+                    textAlign="center"
+                    _hover={{ borderColor: primaryColor, transform: 'translateY(-2px)', shadow: 'md' }}
                   >
-                    <option value="cash" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>Cash</option>
-                    <option value="card" style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>Card</option>
-                  </Select>
-                  <Input
-                    type="number"
-                    placeholder={t('amountPlaceholder')}
-                    value={method.amount}
-                    onChange={(e) =>
-                      handlePaymentMethodChange(index, 'amount', parseFloat(e.target.value) || 0)
-                    }
-                    width="150px"
-                    bg="white"
-                    color="black"
-                  />
-                  {paymentMethods.length > 1 && (
-                    <Button colorScheme="red" onClick={() => handleRemovePaymentMethod(index)}>{t('remove')}</Button>
-                  )}
+                    <Text fontWeight="bold" fontSize="lg">{table.number}</Text>
+                    <Badge mt={1} fontSize="2xs" colorScheme="green" borderRadius="full" px={2}>
+                      {t('occupied')}
+                    </Badge>
+                  </Box>
+                );
+              })}
+            </Grid>
+          )}
+        </Box>
+
+        {/* ── Receipt panel ── */}
+        {selectedTable && (
+          <Box
+            borderWidth="1px"
+            borderColor={panelBorder}
+            borderRadius="2xl"
+            bg={panelBg}
+            color={c.text}
+            shadow="xl"
+            overflow="hidden"
+            position="sticky"
+            top={4}
+          >
+            {/* Header */}
+            <HStack px={5} py={4} borderBottomWidth="1px" borderColor={panelBorder} justify="space-between">
+              <Text fontWeight="bold" fontSize="lg">
+                {t('tableNumberLabel').replace('{number}', selectedTable.number)}
+              </Text>
+              <IconButton icon={<FaTimes />} size="sm" variant="ghost" onClick={handleClose} aria-label="close" />
+            </HStack>
+
+            {/* Items with checkboxes */}
+            <Box px={5} pt={4} pb={2}>
+              <HStack justify="space-between" mb={3}>
+                <Text fontSize="xs" color={dimText} textTransform="uppercase" letterSpacing="wider">
+                  {selectedItems.length > 0
+                    ? t('itemsSelected').replace('{count}', selectedItems.length)
+                    : t('selectForPayment')}
+                </Text>
+                <HStack spacing={2}>
+                  <Button size="xs" variant="ghost" onClick={selectAll} isDisabled={isAllSelected}>
+                    {t('selectAll')}
+                  </Button>
+                  <Button size="xs" variant="ghost" onClick={clearSelection} isDisabled={selectedKeys.size === 0}>
+                    {t('clearSelection')}
+                  </Button>
                 </HStack>
-              ))}
-              <Button colorScheme="blue" onClick={handleAddPaymentMethod}>{t('addPaymentMethodButton')}</Button>
+              </HStack>
+
+              <VStack spacing={1} align="stretch">
+                {allItems.map((item) => (
+                  <HStack
+                    key={item.key}
+                    px={3}
+                    py={2}
+                    borderRadius="lg"
+                    bg={selectedKeys.has(item.key) ? `${primaryColor}18` : itemRowBg}
+                    opacity={item.paid ? 0.5 : 1}
+                    transition="background 0.1s"
+                  >
+                    {item.paid ? (
+                      <Badge colorScheme="blue" fontSize="2xs" flexShrink={0}>{t('paid')}</Badge>
+                    ) : (
+                      <Checkbox
+                        isChecked={selectedKeys.has(item.key)}
+                        onChange={() => toggleItem(item.key)}
+                        colorScheme="teal"
+                        flexShrink={0}
+                      />
+                    )}
+                    <Text fontSize="sm" flex={1}>
+                      {item.name}
+                      <Text as="span" color={dimText}> × {item.quantity}</Text>
+                    </Text>
+                    <Text fontSize="sm" fontWeight="semibold">
+                      ${(item.price * item.quantity).toFixed(2)}
+                    </Text>
+                  </HStack>
+                ))}
+              </VStack>
+            </Box>
+
+            <Divider borderColor={panelBorder} opacity={1} my={1} />
+
+            {/* Summary */}
+            <VStack spacing={2} px={5} py={4} align="stretch">
+              <HStack justify="space-between">
+                <Text fontSize="sm" color={dimText}>{t('subtotalLabel').replace(':', '')}</Text>
+                <Text fontSize="sm">${baseAmount.toFixed(2)}</Text>
+              </HStack>
+              <HStack justify="space-between">
+                <Text fontSize="sm" color={dimText}>{t('tipLabel').replace(':', '')}</Text>
+                <Text fontSize="sm">${tip.toFixed(2)}</Text>
+              </HStack>
+              <Divider borderColor={panelBorder} opacity={1} />
+              <HStack justify="space-between" mt={1}>
+                <Text fontWeight="bold">{t('grandTotal')}</Text>
+                <Text fontWeight="bold" fontSize="2xl">${payableTotal.toFixed(2)}</Text>
+              </HStack>
             </VStack>
 
-            {change > 0 && (
-              <Text color="green.500" fontSize="lg">
-                {t('changeToReturnLabel').replace('{amount}', change.toFixed(2))}
+            <Divider borderColor={panelBorder} opacity={1} />
+
+            {/* Tip shortcuts */}
+            <VStack px={5} py={4} align="stretch" spacing={2}>
+              <Text fontSize="xs" color={dimText} textTransform="uppercase" letterSpacing="wider">
+                {t('tipLabel').replace(':', '')}
               </Text>
-            )}
+              <HStack spacing={2}>
+                {[5, 10, 15].map(pct => (
+                  <Button
+                    key={pct}
+                    size="sm"
+                    flex={1}
+                    variant={activeTipPct === pct ? 'solid' : 'outline'}
+                    colorScheme="blue"
+                    onClick={() => handleTipShortcut(pct)}
+                    isDisabled={selectedItems.length === 0}
+                  >
+                    {pct}%
+                  </Button>
+                ))}
+                <Input
+                  size="sm"
+                  flex={1}
+                  type="number"
+                  placeholder={t('customTipPlaceholder')}
+                  value={customTipInput}
+                  onChange={e => handleCustomTip(e.target.value)}
+                  min={0}
+                  isDisabled={selectedItems.length === 0}
+                />
+              </HStack>
+            </VStack>
 
-            <HStack justifyContent="space-between">
-              <Text fontSize="lg" fontWeight="bold">{t('grandTotalWithTipLabel')}</Text>
-              <Text fontSize="lg" fontWeight="bold">${grandTotal.toFixed(2)}</Text>
-            </HStack>
+            <Divider borderColor={panelBorder} opacity={1} />
 
-            <Button colorScheme="green" onClick={onOpen}>
-              {t('finalizePaymentButton')}
-            </Button>
-
-            {/* Confirmation Modal */}
-            <Modal isOpen={isOpen} onClose={onClose}>
-              <ModalOverlay />
-              <ModalContent bg="white">
-                <ModalHeader color="black">{t('confirmPayment')}</ModalHeader>
-                <ModalCloseButton />
-                <ModalBody>
-                  <Text color="black">{t('confirmFollowingPayments')}</Text>
-                  {paymentMethods.map((method, index) => (
-                    <HStack key={index} justifyContent="space-between" mt={4}>
-                      <Text color="black">{method.method.toUpperCase()}</Text>
-                      <Text color="black">
-                        ${parseFloat(method.amount).toFixed(2)}
+            {/* Payment method */}
+            <VStack px={5} py={4} align="stretch" spacing={3}>
+              <Text fontSize="xs" color={dimText} textTransform="uppercase" letterSpacing="wider">
+                {t('paymentMethodsHeading')}
+              </Text>
+              <HStack spacing={4} justify="center">
+                {PAYMENT_METHODS.map(({ key, Icon }) => {
+                  const isActive = paymentMethod === key;
+                  return (
+                    <VStack
+                      key={key}
+                      spacing={1}
+                      cursor="pointer"
+                      onClick={() => { setPaymentMethod(key); setCashReceived(''); }}
+                      opacity={isActive ? 1 : 0.45}
+                      transition="all 0.15s"
+                      _hover={{ opacity: 0.85 }}
+                    >
+                      <Box
+                        p={3}
+                        borderRadius="xl"
+                        borderWidth="2px"
+                        borderColor={isActive ? primaryColor : panelBorder}
+                        bg={isActive ? selectedMethodBg : 'transparent'}
+                        color={c.text}
+                        transition="all 0.15s"
+                      >
+                        <Icon size={20} />
+                      </Box>
+                      <Text fontSize="xs" fontWeight={isActive ? 'semibold' : 'normal'} color={c.text}>
+                        {t(`paymentMethod_${key}`)}
                       </Text>
-                    </HStack>
-                  ))}
-                  <HStack justifyContent="space-between" mt={4}>
-                    <Text color="black" fontWeight="bold">{t('totalPaymentLabel')}</Text>
-                    <Text color="black" fontWeight="bold">
-                      ${totalPayment.toFixed(2)}
-                    </Text>
-                  </HStack>
-                  <HStack justifyContent="space-between" mt={4}>
-                    <Text color="black" fontWeight="bold">{t('grandTotal')}</Text>
-                    <Text color="black" fontWeight="bold">
-                      ${grandTotal.toFixed(2)}
-                    </Text>
-                  </HStack>
+                    </VStack>
+                  );
+                })}
+              </HStack>
+
+              {paymentMethod === 'cash' && (
+                <VStack spacing={2} align="stretch">
+                  <Input
+                    size="sm"
+                    type="number"
+                    placeholder={t('cashReceivedLabel')}
+                    value={cashReceived}
+                    onChange={e => setCashReceived(e.target.value)}
+                    min={0}
+                    isDisabled={selectedItems.length === 0}
+                  />
                   {change > 0 && (
-                    <HStack justifyContent="space-between" mt={4}>
-                      <Text color="black" fontWeight="bold">{t('changeToReturnHeading')}</Text>
-                      <Text color="black" fontWeight="bold">
+                    <HStack justify="space-between" px={1}>
+                      <Text fontSize="sm" color={dimText}>{t('changeToReturnHeading')}</Text>
+                      <Text fontSize="sm" fontWeight="bold" color="green.400">
                         ${change.toFixed(2)}
                       </Text>
                     </HStack>
                   )}
-                </ModalBody>
+                </VStack>
+              )}
+            </VStack>
 
-                <ModalFooter>
-                  <Button colorScheme="green" onClick={handleFinalizePayment}>
-                    {t('confirmPayment')}
-                  </Button>
-                </ModalFooter>
-              </ModalContent>
-            </Modal>
-          </VStack>
+            {/* Pay button */}
+            <Box px={5} pb={5}>
+              <Button
+                colorScheme="green"
+                size="lg"
+                w="full"
+                onClick={handlePayment}
+                isLoading={isSubmitting}
+                isDisabled={!isPaymentValid}
+              >
+                {isAllSelected
+                  ? t('finalizePaymentButton')
+                  : `${t('paySelectedItems')} (${selectedItems.length})`}
+              </Button>
+            </Box>
+          </Box>
         )}
-      </VStack>
+      </Grid>
     </Box>
   );
 }

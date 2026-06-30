@@ -40,7 +40,7 @@ function OrdersPreparationPage() {
 
     let socketURL = process.env.REACT_APP_API_URL;
     if (socketURL.includes("/api")) socketURL = socketURL.replace("/api", "");
-    const socket = io(socketURL);
+    const socket = io(socketURL, { transports: ['websocket'] });
 
     const kitchenAreas = user.role === 'admin'
       ? ['kitchen', 'bar']
@@ -73,7 +73,7 @@ function OrdersPreparationPage() {
     return () => {
       socket.disconnect();
     };
-  }, [user.role]);
+  }, [user.role, user._id]);
 
   const handleDeleteOrderClick = (orderId) => {
     setPendingDeleteOrderId(orderId);
