@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Flex, Button, VStack, Heading, Divider, Input, Box
+  Flex, Button, VStack, Heading, Divider, Box, Text,
 } from '@chakra-ui/react';
 import api from '../../../services/api';
 import TableSelection from '../components/TableSelection';
 import OpenTableModal from '../components/OpenTableModal';
 import OrderForm from '../components/OrderForm';
 import OrderCard from '../components/OrderCard';
-import PaymentMethodSelector from '../components/PaymentMethodSelector';
 import { useCustomToast } from '../../../hooks/useCustomToast';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useTheme } from '../../../context/ThemeContext';
@@ -19,32 +18,19 @@ function OrderPage() {
 
   const [sections, setSections] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
-  const [tipAll, setTipAll] = useState(null);
-  const [paymentMethodsAll, setPaymentMethodsAll] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [orders, setOrders] = useState([]);
   const [creatingNewOrder, setCreatingNewOrder] = useState(false);
+  // { [orderId]: Set<itemSubdocId> }
+  const [selectedItems, setSelectedItems] = useState({});
 
   const fetchSections = useCallback(async () => {
     try {
       const response = await api.get('/sections');
-      // Validar que la respuesta contiene datos válidos
-      if (response.data && Array.isArray(response.data)) {
-        setSections(response.data);
-      } else {
-        setSections([]);
-        console.warn('La respuesta de secciones no es un array válido:', response.data);
-      }
-    } catch (error) {
-      setSections([]); // Mantener un array vacío en caso de error
-      toast({
-        title: t('errorTitle'),
-        description: t('sectionsLoadError'),
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top-right",
-      });
+      setSections(Array.isArray(response.data) ? response.data : []);
+    } catch {
+      setSections([]);
+      toast({ title: t('errorTitle'), description: t('sectionsLoadError'), status: 'error', duration: 3000 });
     }
   }, [toast, t]);
 
@@ -52,15 +38,9 @@ function OrderPage() {
     try {
       const res = await api.get(`/orders?tableId=${tableId}&tableSessionId=${tableSessionId}`);
       setOrders(res.data);
-    } catch (error) {
-      toast({
-        title: t('errorTitle'),
-        description: t('ordersLoadError'),
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top-right",
-      });
+      setSelectedItems({});
+    } catch {
+      toast({ title: t('errorTitle'), description: t('ordersLoadError'), status: 'error', duration: 3000 });
     }
   }, [toast, t]);
 
@@ -75,7 +55,7 @@ function OrderPage() {
   }, [selectedTable, fetchOrdersByTableSessionId]);
 
   const handleTableClick = (table) => {
-    if (table.status !== "occupied") {
+    if (table.status !== 'occupied') {
       setOpenModal(true);
       setSelectedTable({ ...table, _pendingOpen: true });
     } else {
@@ -85,130 +65,76 @@ function OrderPage() {
 
   const handleConfirmTable = async (comment, numberOfGuests, waiterId) => {
     try {
-      let tableSessionData = null;
-      const res = await api.post('/tableSession', {
-        tableId: selectedTable._id,
-        waiterId,
-        numberOfGuests,
-        comment
-      });
-      tableSessionData = res.data;
-
-      toast({
-        title: t('tableOpened'),
-        description: t('tableOpenedDesc').replace('{tableNumber}', selectedTable.number),
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-      });
-
+      const res = await api.post('/tableSession', { tableId: selectedTable._id, waiterId, numberOfGuests, comment });
+      toast({ title: t('tableOpened'), description: t('tableOpenedDesc').replace('{tableNumber}', selectedTable.number), status: 'success', duration: 2000 });
       setOpenModal(false);
-
-      const updatedTable = { ...selectedTable, tableSessionId: tableSessionData._id, status: "occupied" };
+      const updatedTable = { ...selectedTable, tableSessionId: res.data._id, status: 'occupied' };
       delete updatedTable._pendingOpen;
       setSelectedTable(updatedTable);
-
       await fetchSections();
       await fetchOrdersByTableSessionId(updatedTable._id, updatedTable.tableSessionId);
-    } catch (error) {
-      console.error("Error al aperturar mesa:", error);
-      toast({
-        title: t('errorTitle'),
-        description: t('tableOpenError'),
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+    } catch {
+      toast({ title: t('errorTitle'), description: t('tableOpenError'), status: 'error', duration: 3000 });
     }
   };
 
-  const handlePayAllOrders = async () => {
-    const unpaidOrders = orders.filter(order => !order.paid);
-    const expectedTotal = unpaidOrders.reduce((sum, order) => sum + order.total, 0) + parseFloat(tipAll || 0);
-    const totalEntered = paymentMethodsAll.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0);
+  const handleToggleItem = (orderId, itemSubdocId) => {
+    setSelectedItems(prev => {
+      const set = new Set(prev[orderId] || []);
+      if (set.has(itemSubdocId)) {
+        set.delete(itemSubdocId);
+      } else {
+        set.add(itemSubdocId);
+      }
+      return { ...prev, [orderId]: set };
+    });
+  };
 
-    if (paymentMethodsAll.length === 0) {
-      toast({
-        title: t('noPaymentMethods'),
-        description: t('noPaymentMethodsDesc'),
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
+  const handleOrderUpdated = (updatedOrder) => {
+    setOrders(prev => prev.map(o => o._id === updatedOrder._id ? updatedOrder : o));
+    setSelectedItems(prev => {
+      const next = { ...prev };
+      delete next[updatedOrder._id];
+      return next;
+    });
+  };
 
-    const invalidMethod = paymentMethodsAll.some(pm => !pm.method || !pm.amount || parseFloat(pm.amount) <= 0);
-    if (invalidMethod) {
-      toast({
-        title: t('invalidPaymentMethods'),
-        description: t('invalidPaymentMethodsDesc'),
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
+  const totalSelectedCount = Object.values(selectedItems).reduce((acc, set) => acc + set.size, 0);
 
-    if (Math.abs(totalEntered - expectedTotal) > 0.01) {
-      toast({
-        title: t('amountsMismatch'),
-        description: `${t('amountsMismatchDesc')} (${totalEntered.toFixed(2)} / ${expectedTotal.toFixed(2)}).`,
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
+  const handleSendToPayment = async () => {
+    const selections = Object.entries(selectedItems)
+      .filter(([, ids]) => ids.size > 0)
+      .map(([orderId, ids]) => ({ orderId, itemIds: [...ids] }));
+
+    if (!selections.length) return;
 
     try {
-      await api.post(`/orders/payment/${selectedTable._id}`, {
-        tip: parseFloat(tipAll),
-        paymentMethods: paymentMethodsAll,
+      const res = await api.post('/orders/send-to-cashier', {
+        tableId: selectedTable._id,
+        tableSessionId: selectedTable.tableSessionId,
+        selections,
       });
 
-      toast({
-        title: t('paymentCompleted'),
-        description: t('paymentCompletedDesc').replace('{tableNumber}', selectedTable.number),
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-
-      await fetchOrdersByTableSessionId(selectedTable._id, selectedTable.tableSessionId);
-      await fetchSections();
-      setPaymentMethodsAll([]);
-      setTipAll(0);
-    } catch (error) {
-      toast({
-        title: t('errorTitle'),
-        description: t('paymentError'),
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      if (res.data.sessionClosed) {
+        toast({ title: t('sessionClosedSentToCashier'), status: 'success', duration: 4000 });
+        handleBackToTables();
+      } else {
+        toast({ title: t('sendToPayment'), status: 'success', duration: 2000 });
+        fetchOrdersByTableSessionId(selectedTable._id, selectedTable.tableSessionId);
+      }
+    } catch {
+      toast({ title: t('errorTitle'), status: 'error', duration: 3000 });
     }
   };
 
   const handleCloseSession = async () => {
     try {
       await api.put(`/tableSession/close-by-table/${selectedTable._id}`);
-      toast({
-        title: t('sessionClosed'),
-        description: t('sessionClosedDesc'),
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
+      toast({ title: t('sessionClosed'), description: t('sessionClosedDesc'), status: 'success', duration: 3000 });
       handleBackToTables();
     } catch (error) {
-      toast({
-        title: t('errorTitle'),
-        description: t('sessionCloseError'),
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      const msg = error.response?.data?.error || t('sessionCloseError');
+      toast({ title: t('errorTitle'), description: msg, status: 'error', duration: 3000 });
     }
   };
 
@@ -216,12 +142,11 @@ function OrderPage() {
     setSelectedTable(null);
     setOrders([]);
     setCreatingNewOrder(false);
+    setSelectedItems({});
     await fetchSections();
   };
 
-  const handleCreateNewOrder = () => {
-    setCreatingNewOrder(true);
-  };
+  const handleCreateNewOrder = () => setCreatingNewOrder(true);
 
   const handleOrderCreated = () => {
     setCreatingNewOrder(false);
@@ -243,47 +168,45 @@ function OrderPage() {
       ) : (
         <VStack align="stretch" spacing={4}>
           <Heading size="lg" color="teal.200">{t('tableHeading').replace('{tableNumber}', selectedTable.number)}</Heading>
+
           {orders.map((order) => (
             <OrderCard
               key={order._id}
               order={order}
-              onPaid={() => fetchOrdersByTableSessionId(selectedTable._id, selectedTable.tableSessionId)}
+              selectedItems={selectedItems[order._id] || new Set()}
+              onToggleItem={handleToggleItem}
+              onOrderUpdated={handleOrderUpdated}
             />
           ))}
-          <Box>
-            <Input
-              type="number"
-              placeholder={t('tipAllOrders')}
-              value={tipAll}
-              onChange={(e) => setTipAll(e.target.value)}
-              size="sm"
-              bg="gray.700"
-              color="white"
-              _placeholder={{ color: 'gray.400' }}
-            />
-          </Box>
-          <PaymentMethodSelector
-            paymentMethods={paymentMethodsAll}
-            setPaymentMethods={setPaymentMethodsAll}
-            expectedTotal={orders.filter(order => !order.paid).reduce((total, order) => total + order.total, 0) + parseFloat(tipAll || 0)}
-          />
+
+          {totalSelectedCount === 0 && (
+            <Box p={3} bg="gray.700" borderRadius="md">
+              <Text fontSize="sm" color="gray.400">
+                ☝️ {t('adminPinRequired').includes('PIN') ? 'Selecciona ítems listos para enviar a caja' : 'Select ready items to send to cashier'}
+              </Text>
+            </Box>
+          )}
+
           <Button
-            bg="green.500"
-            _hover={{ bg: 'green.600' }}
-            onClick={handlePayAllOrders}
-            isDisabled={!orders.some(o => o.status === 'ready' && !o.paid)}
+            bg="orange.500"
+            _hover={{ bg: 'orange.600' }}
+            onClick={handleSendToPayment}
+            isDisabled={totalSelectedCount === 0}
           >
-            💳 {t('payAllOrders')}
+            📤 {t('sendToPayment')}
           </Button>
+
           <Button
             bg="purple.500"
             _hover={{ bg: 'purple.600' }}
             onClick={handleCloseSession}
-            isDisabled={orders.some(order => !order.paid)}
+            isDisabled={orders.some(order => !order.paid && order.status !== 'sent to cashier')}
           >
             🛑 {t('closeTableSession')}
           </Button>
+
           <Divider borderColor="gray.600" />
+
           <Button bg="teal.500" _hover={{ bg: 'teal.600' }} onClick={handleCreateNewOrder}>
             ➕ {t('addNewOrder')}
           </Button>

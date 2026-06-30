@@ -1,141 +1,119 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Text, VStack, HStack, Tag, Button, Input, Checkbox, Divider } from '@chakra-ui/react';
-import api from '../../../services/api';
-import PaymentMethodSelector from './PaymentMethodSelector';
-import { useCustomToast } from '../../../hooks/useCustomToast';
+import React, { useState } from 'react';
+import { Box, Text, VStack, HStack, Tag, IconButton, Checkbox } from '@chakra-ui/react';
+import { DeleteIcon } from '@chakra-ui/icons';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useCustomToast } from '../../../hooks/useCustomToast';
+import AdminPinModal from './AdminPinModal';
+import api from '../../../services/api';
 
-function OrderCard({ order, onPaid }) {
-  const toast = useCustomToast();
+function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated }) {
   const { t } = useLanguage();
-  const [tip, setTip] = useState(0);
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [selectedItems, setSelectedItems] = useState([]);
+  const toast = useCustomToast();
+  const [pinModalOpen, setPinModalOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
-  const handleItemToggle = (itemId) => {
-    setSelectedItems(prev =>
-      prev.includes(itemId)
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
+  const handleDeleteClick = (itemSubdocId) => {
+    setPendingDeleteId(itemSubdocId);
+    setPinModalOpen(true);
   };
 
-  const calculateSubtotal = useCallback(() => {
-    const selected = order.items.filter(item => selectedItems.includes(item.itemId));
-    return selected.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  }, [order.items, selectedItems]);
-
-  const handlePaySelectedItems = async () => {
+  const handlePinConfirm = async (adminToken) => {
     try {
-      const payload = {
-        itemsToPay: selectedItems,
-        paymentMethods,
-        tip: parseFloat(tip) || 0,
-      };
-      await api.post(`/orders/partial-payment/${order._id}`, payload);
-
-      toast({
-        title: t('partialPaymentSuccess'),
-        description: t('partialPaymentSuccessDesc').replace('{count}', selectedItems.length),
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-
-      if (onPaid) onPaid();
-    } catch (error) {
-      console.error('Error al procesar el pago parcial:', error);
-      toast({
-        title: t('errorTitle'),
-        description: t('partialPaymentError'),
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      const response = await api.delete(
+        `/orders/${order._id}/items/${pendingDeleteId}`,
+        { headers: { Authorization: `Bearer ${adminToken}` } }
+      );
+      toast({ title: t('itemDeleted'), status: 'success', duration: 2000 });
+      onOrderUpdated(response.data);
+    } catch (err) {
+      const msg = err.response?.data?.error || t('errorTitle');
+      toast({ title: msg, status: 'error', duration: 3000 });
+    } finally {
+      setPendingDeleteId(null);
     }
   };
 
-  useEffect(() => {
-    if (selectedItems.length > 0) {
-      const subtotal = calculateSubtotal();
-      setPaymentMethods([{ method: '', amount: subtotal }]);
-    } else {
-      setPaymentMethods([]);
-    }
-  }, [selectedItems, calculateSubtotal]);
+  const itemStatusColor = (status) => {
+    if (status === 'ready') return 'green';
+    if (status === 'sent to cashier') return 'blue';
+    if (status === 'delivered') return 'purple';
+    return 'orange';
+  };
 
   return (
     <Box borderWidth="1px" borderRadius="md" p={4}>
-      <HStack justify="space-between">
+      <HStack justify="space-between" mb={2}>
         <Text fontWeight="bold">{t('orderNumber').replace('{number}', order._id.slice(-4))}</Text>
-        <Tag colorScheme={order.status === 'ready' ? 'green' : 'orange'}>
-          {order.status === 'ready' ? 'Lista' : 'En preparación'}
+        <Tag colorScheme={order.status === 'ready' ? 'green' : order.status === 'sent to cashier' ? 'blue' : 'orange'}>
+          {t(order.status) || order.status}
         </Tag>
       </HStack>
 
-      <Text fontSize="sm" color="gray.400">
+      <Text fontSize="sm" color="gray.400" mb={2}>
         {t('orderTotal')}: ${order.total.toFixed(2)}
       </Text>
 
-      <VStack align="start" mt={2} spacing={2}>
-        {order.items.map((item, idx) => (
-          <Box key={idx} p={2} bg={item.paid ? 'gray.700' : 'gray.800'} borderRadius="md" width="100%">
-            <HStack justify="space-between">
-              <Text fontWeight="semibold">{item.name}</Text>
-              <Text fontSize="sm">{item.quantity} x ${item.price.toFixed(2)}</Text>
-            </HStack>
+      <VStack align="start" spacing={2}>
+        {order.items.map((item) => {
+          const isReady = item.status === 'ready';
+          const isPreparing = item.status === 'preparing';
+          const isTerminal = item.status === 'sent to cashier' || item.status === 'delivered';
+          const isChecked = selectedItems?.has(item._id);
 
-            {!item.paid ? (
-              <Checkbox
-                size="sm"
-                colorScheme="teal"
-                isChecked={selectedItems.includes(item.itemId)}
-                onChange={() => handleItemToggle(item.itemId)}
-              >
-                {t('selectForPayment')}
-              </Checkbox>
-            ) : (
-              <Tag size="sm" colorScheme="blue" mt={1}>{t('paid')}</Tag>
-            )}
-          </Box>
-        ))}
+          return (
+            <Box
+              key={item._id}
+              p={2}
+              bg={isTerminal ? 'gray.700' : 'gray.800'}
+              borderRadius="md"
+              width="100%"
+              opacity={isTerminal ? 0.6 : 1}
+            >
+              <HStack justify="space-between">
+                <VStack align="start" spacing={0}>
+                  <Text fontWeight="semibold" fontSize="sm">{item.name}</Text>
+                  <Text fontSize="xs" color="gray.400">{item.quantity} x ${item.price.toFixed(2)}</Text>
+                </VStack>
+
+                <HStack spacing={2}>
+                  <Tag size="sm" colorScheme={itemStatusColor(item.status)}>
+                    {t(item.status) || item.status}
+                  </Tag>
+
+                  {isReady && (
+                    <Checkbox
+                      colorScheme="teal"
+                      isChecked={isChecked}
+                      onChange={() => onToggleItem(order._id, item._id)}
+                    />
+                  )}
+
+                  {isPreparing && (
+                    <IconButton
+                      icon={<DeleteIcon />}
+                      size="xs"
+                      colorScheme="red"
+                      variant="ghost"
+                      aria-label="Eliminar ítem"
+                      onClick={() => handleDeleteClick(item._id)}
+                    />
+                  )}
+                </HStack>
+              </HStack>
+
+              {item.comments && (
+                <Text fontSize="xs" color="gray.400" mt={1}>📝 {item.comments}</Text>
+              )}
+            </Box>
+          );
+        })}
       </VStack>
 
-      {selectedItems.length > 0 && (
-        <>
-          <Divider my={3} />
-          <Text fontWeight="bold">
-            {t('subtotal')}: ${calculateSubtotal().toFixed(2)}
-          </Text>
-
-          <Input
-            type="number"
-            mt={3}
-            placeholder={t('optionalTip')}
-            value={tip}
-            onChange={(e) => setTip(e.target.value)}
-            size="sm"
-            bg="gray.700"
-            color="white"
-            _placeholder={{ color: 'gray.400' }}
-          />
-
-          <PaymentMethodSelector
-            paymentMethods={paymentMethods}
-            setPaymentMethods={setPaymentMethods}
-            expectedTotal={calculateSubtotal() + parseFloat(tip || 0)}
-          />
-
-          <Button
-            colorScheme="green"
-            onClick={handlePaySelectedItems}
-            mt={2}
-            isDisabled={paymentMethods.reduce((acc, pm) => acc + (parseFloat(pm.amount) || 0), 0) !== (calculateSubtotal() + parseFloat(tip || 0))}
-          >
-            💳 {t('paySelectedItems')}
-          </Button>
-        </>
-      )}
+      <AdminPinModal
+        isOpen={pinModalOpen}
+        onClose={() => { setPinModalOpen(false); setPendingDeleteId(null); }}
+        onConfirm={handlePinConfirm}
+      />
     </Box>
   );
 }

@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Box, VStack, HStack, Text, Badge, Button } from '@chakra-ui/react';
+import { io } from 'socket.io-client';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useCustomToast } from '../../../hooks/useCustomToast';
+import { useAuthContext } from '../../../context/AuthContext';
 import api from '../../../services/api'; // Import the API service
 
 function WaiterOrderList() {
   const { t } = useLanguage();
   const toast = useCustomToast();
+  const { user } = useAuthContext();
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await api.get('/orders'); // Fetch orders from the API
+        const response = await api.get('/orders', { params: { waiterId: user._id } });
         setOrders(response.data);
       } catch (error) {
         console.error('Error fetching orders:', error);
@@ -20,7 +23,34 @@ function WaiterOrderList() {
     };
 
     fetchOrders();
-  }, []);
+
+    let socketURL = process.env.REACT_APP_API_URL;
+    if (socketURL.includes("/api")) socketURL = socketURL.replace("/api", "");
+    const socket = io(socketURL);
+
+    socket.emit('join-room', { role: 'waiter', userId: user._id });
+
+    socket.on('update-order', (updatedOrder) => {
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === updatedOrder._id ? updatedOrder : order
+        )
+      );
+
+      if (updatedOrder.status === 'ready') {
+        toast({
+          title: t('orderReadyForDelivery'),
+          status: 'success',
+          duration: 4000,
+          isClosable: true,
+        });
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user._id]);
 
   const handleDeliverOrder = async (orderId) => {
     try {
