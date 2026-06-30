@@ -160,8 +160,7 @@ function OrderPage() {
       toast({ title: t('sessionClosed'), description: t('sessionClosedDesc'), status: 'success', duration: 3000 });
       handleBackToTables();
     } catch (error) {
-      const msg = error.response?.data?.error || t('sessionCloseError');
-      toast({ title: t('errorTitle'), description: msg, status: 'error', duration: 3000 });
+      toast({ title: t('errorTitle'), description: t('sessionCloseError'), status: 'error', duration: 3000 });
     }
   };
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Text, VStack, HStack, Tag, IconButton, Checkbox, Tooltip } from '@chakra-ui/react';
+import { Box, Text, VStack, HStack, Tag, IconButton, Checkbox, Tooltip, useColorMode } from '@chakra-ui/react';
 import { DeleteIcon, CheckIcon } from '@chakra-ui/icons';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useCustomToast } from '../../../hooks/useCustomToast';
@@ -9,6 +9,7 @@ import api from '../../../services/api';
 function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated, onOrderDeleted }) {
   const { t } = useLanguage();
   const toast = useCustomToast();
+  const { colorMode } = useColorMode();
   const [pinModalOpen, setPinModalOpen] = useState(false);
   // { type: 'deleteItem', id: string } | { type: 'deleteOrder' } | null
   const [pendingAction, setPendingAction] = useState(null);
@@ -62,23 +63,25 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated, onOrder
   const itemStatusColor = (status) => {
     if (status === 'ready') return 'green';
     if (status === 'sent to cashier') return 'blue';
-    if (status === 'delivered') return 'purple';
     return 'orange';
   };
 
   const orderStatusColor = (status) => {
     if (status === 'ready') return 'green';
     if (status === 'sent to cashier') return 'blue';
-    if (status === 'delivered') return 'purple';
     return 'orange';
   };
+
+  const deliveredTagProps = colorMode === 'light'
+    ? { bg: 'green.600', color: 'black' }
+    : { bg: 'green.200', color: 'black' };
 
   return (
     <Box borderWidth="1px" borderRadius="md" p={4}>
       <HStack justify="space-between" mb={2}>
         <Text fontWeight="bold">{t('orderNumber').replace('{number}', order._id.slice(-4))}</Text>
         <HStack spacing={2}>
-          <Tag colorScheme={orderStatusColor(order.status)}>
+          <Tag {...(order.status === 'delivered' ? deliveredTagProps : { colorScheme: orderStatusColor(order.status) })}>
             {t(order.status) || order.status}
           </Tag>
           {!order.paid && (
@@ -124,7 +127,7 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated, onOrder
                 </VStack>
 
                 <HStack spacing={2}>
-                  <Tag size="sm" colorScheme={itemStatusColor(item.status)}>
+                  <Tag size="sm" {...(item.status === 'delivered' ? deliveredTagProps : { colorScheme: itemStatusColor(item.status) })}>
                     {t(item.status) || item.status}
                   </Tag>
 

@@ -301,14 +301,21 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                               colorScheme={
                                 isPartOfVirtual
                                   ? "purple"
-                                  : isMaintenance
-                                    ? "orange"
-                                    : table.status === "occupied"
-                                      ? "red"
-                                      : "green"
+                                  : table.status === "occupied"
+                                    ? "red"
+                                    : "green"
                               }
-                              onClick={() => onTableClick(table)}
-                              isDisabled={isPartOfVirtual || isMaintenance}
+                              {...(isMaintenance && {
+                                bg: '#DD6B20',
+                                color: 'white',
+                                _hover: { bg: '#C05621' },
+                              })}
+                              onClick={() =>
+                                isMaintenance
+                                  ? handleReleaseTable(table._id)
+                                  : onTableClick(table)
+                              }
+                              isDisabled={isPartOfVirtual}
                               position="relative"
                               minW="100px"
                               h="60px"
@@ -321,7 +328,7 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                                   {isPartOfVirtual
                                     ? t('inVirtualTableStatus')
                                     : isMaintenance
-                                      ? `🧹 ${t('maintenance')}`
+                                      ? t('pendingCleaning')
                                       : table.status === "occupied"
                                         ? t('occupiedStatus')
                                         : t('available')
@@ -340,18 +347,6 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                                 </Badge>
                               )}
                             </Button>
-                            {isMaintenance && !isPartOfVirtual && (
-                              <Button
-                                mt={1}
-                                size="xs"
-                                width="100%"
-                                colorScheme="orange"
-                                variant="outline"
-                                onClick={() => handleReleaseTable(table._id)}
-                              >
-                                {t('releaseTable')}
-                              </Button>
-                            )}
                           </Box>
                         );
                       })
