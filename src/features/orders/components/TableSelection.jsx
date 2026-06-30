@@ -348,31 +348,6 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
 
                         const isPartOfVirtual = table.virtualTableId || table.isPartOfVirtual;
                         const isMaintenance = table.status === 'maintenance';
-                        const effectiveStatus = getEffectiveStatus(table._id, table.status);
-                        const s = STATUS_STYLES[effectiveStatus];
-
-                        let btnBg, btnHover, btnColor;
-                        if (isPartOfVirtual) {
-                          btnBg = SPECIAL_BUTTON.virtual.bg;
-                          btnHover = SPECIAL_BUTTON.virtual.hover;
-                          btnColor = 'white';
-                        } else if (isMaintenance) {
-                          btnBg = SPECIAL_BUTTON.maintenance.bg;
-                          btnHover = SPECIAL_BUTTON.maintenance.hover;
-                          btnColor = 'white';
-                        } else {
-                          btnBg = s.buttonBg;
-                          btnHover = s.buttonHover;
-                          btnColor = 'white';
-                        }
-
-                        const statusLabel = isPartOfVirtual
-                          ? t('inVirtualTableStatus')
-                          : isMaintenance
-                            ? `🧹 ${t('maintenance')}`
-                            : effectiveStatus === 'available' ? t('available')
-                            : effectiveStatus === 'open' ? t('occupiedStatus')
-                            : t('readyForPayment');
 
                         return (
                           <Box key={table._id} position="relative">
@@ -398,7 +373,6 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                               position="relative"
                               minW="100px"
                               h="60px"
-                              position="relative"
                             >
                               <VStack spacing={1}>
                                 <Text fontSize="sm" fontWeight="bold">

@@ -50,7 +50,7 @@ function WaiterOrderList() {
     return () => {
       socket.disconnect();
     };
-  }, [user._id]);
+  }, [user._id, t, toast]);
 
   const handleDeliverOrder = async (orderId) => {
     try {

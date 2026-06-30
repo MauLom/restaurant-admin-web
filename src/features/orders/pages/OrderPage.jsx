@@ -64,7 +64,7 @@ function OrderPage() {
       }
     });
     return () => socket.disconnect();
-  }, [user?._id]);
+  }, [user?._id, t, toast]);
 
   useEffect(() => {
     if (selectedTable && selectedTable.status === 'occupied') {
