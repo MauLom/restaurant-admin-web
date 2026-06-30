@@ -348,22 +348,27 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
 
                         const isPartOfVirtual = table.virtualTableId || table.isPartOfVirtual;
                         const isMaintenance = table.status === 'maintenance';
+                        const effectiveStatus = getEffectiveStatus(table._id, table.status);
+                        const s = STATUS_STYLES[effectiveStatus];
 
                         return (
                           <Box key={table._id} position="relative">
                             <Button
-                              colorScheme={
+                              bg={
                                 isPartOfVirtual
-                                  ? "purple"
-                                  : table.status === "occupied"
-                                    ? "red"
-                                    : "green"
+                                  ? SPECIAL_BUTTON.virtual.bg
+                                  : isMaintenance
+                                    ? SPECIAL_BUTTON.maintenance.bg
+                                    : s.buttonBg
                               }
-                              {...(isMaintenance && {
-                                bg: '#DD6B20',
-                                color: 'white',
-                                _hover: { bg: '#C05621' },
-                              })}
+                              color="white"
+                              _hover={{
+                                bg: isPartOfVirtual
+                                  ? SPECIAL_BUTTON.virtual.hover
+                                  : isMaintenance
+                                    ? SPECIAL_BUTTON.maintenance.hover
+                                    : s.buttonHover,
+                              }}
                               onClick={() =>
                                 isMaintenance
                                   ? handleReleaseTable(table._id)
