@@ -25,21 +25,23 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
       setNumDiners(2);
       setSelectedWaiter(user?._id || '');
 
-      const fetchWaiters = async () => {
-        try {
-          const response = await api.get('/users/waiters');
-          setWaiters(response.data);
+      if (user?.role !== 'waiter') {
+        const fetchWaiters = async () => {
+          try {
+            const response = await api.get('/users/waiters');
+            setWaiters(response.data);
 
-          const isCurrentUserAWaiter = response.data.some(waiter => waiter._id === user?._id);
-          if (!isCurrentUserAWaiter && response.data.length > 0) {
-            setSelectedWaiter(response.data[0]._id);
+            const isCurrentUserAWaiter = response.data.some(waiter => waiter._id === user?._id);
+            if (!isCurrentUserAWaiter && response.data.length > 0) {
+              setSelectedWaiter(response.data[0]._id);
+            }
+          } catch (error) {
+            console.error('Error fetching waiters:', error);
+            setWaiters([]);
           }
-        } catch (error) {
-          console.error('Error fetching waiters:', error);
-          setWaiters([]);
-        }
-      };
-      fetchWaiters();
+        };
+        fetchWaiters();
+      }
     }
   }, [isOpen, user]);
 
@@ -60,23 +62,25 @@ function OpenTableModal({ isOpen, onClose, onConfirm, table }) {
             />
           </FormControl>
 
-          <FormControl mb={4}>
-            <FormLabel color="gray.300">{t('waiterAssignedLabel')}</FormLabel>
-            <Select
-              value={selectedWaiter}
-              onChange={(e) => setSelectedWaiter(e.target.value)}
-            >
-              {waiters.map((waiter) => (
-                <option
-                  key={waiter._id}
-                  style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}
-                  value={waiter._id}
-                >
-                  {waiter.username}
-                </option>
-              ))}
-            </Select>
-          </FormControl>
+          {user?.role !== 'waiter' && (
+            <FormControl mb={4}>
+              <FormLabel color="gray.300">{t('waiterAssignedLabel')}</FormLabel>
+              <Select
+                value={selectedWaiter}
+                onChange={(e) => setSelectedWaiter(e.target.value)}
+              >
+                {waiters.map((waiter) => (
+                  <option
+                    key={waiter._id}
+                    style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}
+                    value={waiter._id}
+                  >
+                    {waiter.username}
+                  </option>
+                ))}
+              </Select>
+            </FormControl>
+          )}
 
           <FormControl mt={4}>
             <FormLabel color="gray.300" textAlign="center">{t('numberOfDinersLabel')}</FormLabel>

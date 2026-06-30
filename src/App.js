@@ -13,6 +13,7 @@ import OrderPage from './features/orders/pages/OrderPage';
 import OrdersPreparationPage from './features/orders/pages/OrdersInPreparationPage';
 import SectionPage from './features/restaurantLayoutManagement/pages/SectionPage';
 import AnalyticsPage from './features/analytics/pages/AnalyticsPage';
+import WaiterAnalyticsPage from './features/analytics/pages/WaiterAnalyticsPage';
 import InventoryPage from './features/inventory/pages/InventoryPage';
 import CashierPage from './features/teamManagement/pages/CashierPage';
 import HostessPage from './features/teamManagement/pages/HostessPage';
@@ -107,6 +108,15 @@ const App = () => {
             element={
               <ProtectedRoute requiredAccess={['analytics']}>
                 <AnalyticsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="waiter-analytics"
+            element={
+              <ProtectedRoute requiredAccess={['waiterOrders']}>
+                <WaiterAnalyticsPage />
               </ProtectedRoute>
             }
           />
