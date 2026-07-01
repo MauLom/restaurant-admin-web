@@ -124,14 +124,11 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
       fetchActiveSessions();
       toast({ title: t('releaseTable'), status: 'success', duration: 2000, isClosable: true });
     } catch (error) {
-      console.error('Error releasing table:', error);
-      toast({
-        title: t('errorTitle'),
-        description: t('releaseTableError'),
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      const errorCode = error.response?.data?.error;
+      const description = errorCode === 'unpaidOrdersExist'
+        ? t('releaseTableUnpaidOrders')
+        : t('releaseTableError');
+      toast({ title: t('errorTitle'), description, status: 'error', duration: 4000, isClosable: true });
     }
   };
 
