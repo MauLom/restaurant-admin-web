@@ -18,12 +18,13 @@ function ResponsiveSidebar() {
   }
 
   const userPermissions = user.permissions || [];
-  const canManageProducts = ['manageCategories', 'manageItems', 'inventory'].some(access => userPermissions.includes(access));
+  const canManageProducts = ['manageCategories', 'manageItems', 'inventory'].some(p => userPermissions.includes(p));
+  const canAccessConfig = ['manageUsers', 'manageRoles', 'sections'].some(p => userPermissions.includes(p));
 
   const hubItems = [
     { name: t('restaurantStatus'), path: '/dashboard/restaurant-status', icon: FaUtensils },
     canManageProducts && { name: t('productManagement'), path: '/dashboard/product-management', icon: FaHamburger },
-    { name: t('settings'), path: '/dashboard/configuration', icon: FaCogs }
+    canAccessConfig && { name: t('settings'), path: '/dashboard/configuration', icon: FaCogs }
   ].filter(Boolean);
 
   return isMobile ? (

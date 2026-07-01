@@ -20,6 +20,7 @@ import HostessPage from './features/teamManagement/pages/HostessPage';
 import ReservationPage from './features/teamManagement/components/ReservationPage';
 import UserSettingsPage from './features/teamManagement/pages/UserSettingsPage';
 import UserManagementPage from './features/teamManagement/pages/UserManagementPage';
+import RoleManagementPage from './features/teamManagement/pages/RoleManagementPage';
 import NotificationPage from './features/teamManagement/pages/NotificationPage';
 import WaiterOrdersPage from './features/teamManagement/pages/WaiterOrdersPage';
 import UnauthorizedPage from './shared/components/UnauthorizedPage';
@@ -168,16 +169,12 @@ const App = () => {
 
           <Route
             path="restaurant-status"
-            element={
-              <ProtectedRoute allowedRoles={['admin', 'waiter', 'cashier', 'kitchen', 'bar']}>
-                <RestaurantStatusPage />
-              </ProtectedRoute>
-            }
+            element={<RestaurantStatusPage />}
           />
           <Route
             path="product-management"
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute requiredAccess={['manageCategories', 'manageItems', 'inventory']}>
                 <ProductManagementPage />
               </ProtectedRoute>
             }
@@ -185,7 +182,7 @@ const App = () => {
           <Route
             path="configuration"
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute requiredAccess={['manageUsers', 'manageRoles', 'sections']}>
                 <ConfigurationPage />
               </ProtectedRoute>
             }
@@ -193,8 +190,16 @@ const App = () => {
           <Route
             path="user-management"
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute requiredAccess={['manageUsers']}>
                 <UserManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="role-management"
+            element={
+              <ProtectedRoute requiredAccess={['manageRoles']}>
+                <RoleManagementPage />
               </ProtectedRoute>
             }
           />

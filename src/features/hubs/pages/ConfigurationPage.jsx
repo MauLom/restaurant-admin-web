@@ -23,7 +23,14 @@ function ConfigurationPage() {
     {
       title: t('manageUsersTitle'),
       description: t('manageUsersDescription'),
-      link: '/dashboard/user-management'
+      link: '/dashboard/user-management',
+      requiredAccess: 'manageUsers'
+    },
+    {
+      title: t('manageRolesTitle'),
+      description: t('manageRolesDescription'),
+      link: '/dashboard/role-management',
+      requiredAccess: 'manageRoles'
     },
   ].filter(option => !option.requiredAccess || userPermissions.includes(option.requiredAccess));
 
