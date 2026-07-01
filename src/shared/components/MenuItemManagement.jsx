@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Box, VStack, HStack, Button, Input, Text, Select, Grid, Image, IconButton, Collapse, Heading,
   AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter,
-  useTheme
+  Checkbox, useTheme
 } from '@chakra-ui/react';
 import { FaTrash, FaEdit, FaPlus } from 'react-icons/fa';
 import api from '../../services/api';
@@ -13,7 +13,11 @@ function MenuItemManagement() {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [recipes, setRecipes] = useState([]);
-  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', category: '', image: '', recipeId: '' });
+  const [inventoryItems, setInventoryItems] = useState([]);
+  const [newItem, setNewItem] = useState({
+    name: '', description: '', price: '', category: '', image: '', recipeId: '', isInstant: false,
+    directInventoryItemId: '', directInventoryQuantity: 1, directInventoryUnit: 'unit',
+  });
   const [editingItem, setEditingItem] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const toast = useCustomToast();
@@ -26,14 +30,16 @@ function MenuItemManagement() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [categoriesRes, itemsRes, recipesRes] = await Promise.all([
+        const [categoriesRes, itemsRes, recipesRes, inventoryRes] = await Promise.all([
           api.get('/menu/categories'),
           api.get('/menu/items'),
           api.get('/recipes'),
+          api.get('/inventory'),
         ]);
         setCategories(categoriesRes.data);
         setItems(itemsRes.data);
         setRecipes(recipesRes.data);
+        setInventoryItems(inventoryRes.data);
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
@@ -50,7 +56,10 @@ function MenuItemManagement() {
   }, [toast, t]);
 
   const resetForm = () => {
-    setNewItem({ name: '', description: '', price: '', category: '', image: '', recipeId: '' });
+    setNewItem({
+      name: '', description: '', price: '', category: '', image: '', recipeId: '', isInstant: false,
+      directInventoryItemId: '', directInventoryQuantity: 1, directInventoryUnit: 'unit',
+    });
     setEditingItem(null);
   };
 
@@ -169,6 +178,10 @@ function MenuItemManagement() {
       category: item.category?._id || '',
       image: item.image || '',
       recipeId: item.recipeId ? (item.recipeId._id || item.recipeId) : '',
+      isInstant: item.isInstant || false,
+      directInventoryItemId: item.directInventoryItemId ? (item.directInventoryItemId._id || item.directInventoryItemId) : '',
+      directInventoryQuantity: item.directInventoryQuantity ?? 1,
+      directInventoryUnit: item.directInventoryUnit || 'unit',
     });
     setShowAddForm(true);
   };
@@ -193,6 +206,16 @@ function MenuItemManagement() {
               ))}
             </Select>
 
+            <Box w="100%">
+              <Checkbox
+                isChecked={newItem.isInstant}
+                onChange={(e) => setNewItem({ ...newItem, isInstant: e.target.checked })}
+              >
+                {t('isInstantLabel')}
+              </Checkbox>
+              <Text fontSize="xs" color="gray.500" mt={1}>{t('isInstantHint')}</Text>
+            </Box>
+
             <Select
               placeholder={t('selectRecipePlaceholder')}
               value={newItem.recipeId}
@@ -204,6 +227,42 @@ function MenuItemManagement() {
                 </option>
               ))}
             </Select>
+
+            <Box w="100%">
+              <Text fontSize="xs" color="gray.500" mb={2}>{t('directInventoryHint')}</Text>
+              <VStack spacing={2}>
+                <Select
+                  placeholder={t('selectDirectInventoryPlaceholder')}
+                  value={newItem.directInventoryItemId}
+                  onChange={(e) => setNewItem({ ...newItem, directInventoryItemId: e.target.value })}
+                >
+                  {inventoryItems.map(invItem => (
+                    <option key={invItem._id} value={invItem._id} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>
+                      {invItem.name} ({invItem.unit})
+                    </option>
+                  ))}
+                </Select>
+                {newItem.directInventoryItemId && (
+                  <HStack w="100%">
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder={t('directInventoryQuantityPlaceholder')}
+                      value={newItem.directInventoryQuantity}
+                      onChange={(e) => setNewItem({ ...newItem, directInventoryQuantity: e.target.value })}
+                    />
+                    <Select
+                      value={newItem.directInventoryUnit}
+                      onChange={(e) => setNewItem({ ...newItem, directInventoryUnit: e.target.value })}
+                    >
+                      {['unit', 'bottle', 'ml', 'l', 'g', 'kg'].map(unit => (
+                        <option key={unit} value={unit} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>{unit}</option>
+                      ))}
+                    </Select>
+                  </HStack>
+                )}
+              </VStack>
+            </Box>
 
             <Button colorScheme="green" onClick={editingItem ? handleUpdateItem : handleAddItem}>{editingItem ? t('updateItem') : t('saveItem')}</Button>
           </VStack>
@@ -226,6 +285,7 @@ function MenuItemManagement() {
               <Text fontWeight="bold">{item.name}</Text>
               <Text fontSize="sm" color="gray.600">{item.category?.name} ({item.category?.area})</Text>
               <Text fontSize="md" color="teal.500">${parseFloat(item.price).toFixed(2)}</Text>
+              {item.isInstant && <Text fontSize="xs" color="gray.500">⚡ {t('isInstantLabel')}</Text>}
               <HStack justify="space-between">
                 <IconButton icon={<FaEdit />} colorScheme="yellow" onClick={() => handleEditItem(item)} aria-label={t('editItemAriaLabel')} />
                 <IconButton icon={<FaTrash />} colorScheme="red" onClick={() => setDeletingItem(item)} aria-label={t('deleteItemAriaLabel')} />
