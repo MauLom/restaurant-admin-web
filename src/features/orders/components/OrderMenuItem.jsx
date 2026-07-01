@@ -7,7 +7,7 @@ function OrderMenuItem({
   available,
   selectedQty,
   canAddMore,
-  inventory,
+  servingsAvailable,
   lowStockThreshold,
   onAddItem,
 }) {
@@ -15,9 +15,10 @@ function OrderMenuItem({
   const isSelected = selectedQty > 0;
   const isClickable = available && canAddMore;
 
+  // Low stock: recipe is linked (servingsAvailable !== null) and few servings remain
   const isLowStock = () => {
-    const found = inventory.find(inv => inv.name.toLowerCase() === item.name.toLowerCase());
-    return found ? found.quantity > 0 && found.quantity <= lowStockThreshold : false;
+    return servingsAvailable !== null && servingsAvailable !== undefined
+      && servingsAvailable > 0 && servingsAvailable <= lowStockThreshold;
   };
 
   const handleClick = () => {

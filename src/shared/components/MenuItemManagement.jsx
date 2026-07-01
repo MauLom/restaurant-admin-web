@@ -13,7 +13,8 @@ import { useLanguage } from '../../context/LanguageContext';
 function MenuItemManagement() {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
-  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', category: '', image: '' });
+  const [recipes, setRecipes] = useState([]);
+  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', category: '', image: '', recipeId: '' });
   const [editingItem, setEditingItem] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const toast = useCustomToast();
@@ -26,12 +27,14 @@ function MenuItemManagement() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [categoriesRes, itemsRes] = await Promise.all([
+        const [categoriesRes, itemsRes, recipesRes] = await Promise.all([
           api.get('/menu/categories'),
           api.get('/menu/items'),
+          api.get('/recipes'),
         ]);
         setCategories(categoriesRes.data);
         setItems(itemsRes.data);
+        setRecipes(recipesRes.data);
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
@@ -48,7 +51,7 @@ function MenuItemManagement() {
   }, [toast, t]);
 
   const resetForm = () => {
-    setNewItem({ name: '', description: '', price: '', category: '', image: '' });
+    setNewItem({ name: '', description: '', price: '', category: '', image: '', recipeId: '' });
     setEditingItem(null);
   };
 
@@ -166,6 +169,7 @@ function MenuItemManagement() {
       price: item.price,
       category: item.category?._id || '',
       image: item.image || '',
+      recipeId: item.recipeId ? (item.recipeId._id || item.recipeId) : '',
     });
     setShowAddForm(true);
   };
@@ -190,12 +194,17 @@ function MenuItemManagement() {
               ))}
             </Select>
 
-            <Text fontSize="sm" opacity={0.7} alignSelf="flex-start">
-              {t('manageRecipeHint')}{' '}
-              <Link to="/dashboard/recipes" style={{ textDecoration: 'underline' }}>
-                {t('recipesNavCardTitle')}
-              </Link>
-            </Text>
+            <Select
+              placeholder={t('selectRecipePlaceholder')}
+              value={newItem.recipeId}
+              onChange={(e) => setNewItem({ ...newItem, recipeId: e.target.value })}
+            >
+              {recipes.map(recipe => (
+                <option key={recipe._id} value={recipe._id} style={{ backgroundColor: theme.colors.surface, color: theme.colors.text }}>
+                  {recipe.name}
+                </option>
+              ))}
+            </Select>
 
             <Button colorScheme="green" onClick={editingItem ? handleUpdateItem : handleAddItem}>{editingItem ? t('updateItem') : t('saveItem')}</Button>
           </VStack>

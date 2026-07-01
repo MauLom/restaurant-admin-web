@@ -20,7 +20,7 @@ function OrderForm({ table, onBack }) {
   const [menuItems, setMenuItems] = useState([]);
   const [orderItems, setOrderItems] = useState([]);
   const [comment, setComment] = useState('');
-  const [inventory, setInventory] = useState([]);
+  const [availability, setAvailability] = useState({});
   const [lowStockThreshold, setLowStockThreshold] = useState(3);
   const [filteredItems, setFilteredItems] = useState([]);
 
@@ -30,21 +30,16 @@ function OrderForm({ table, onBack }) {
 
 
 
+  const fetchAvailability = async () => {
+    try {
+      const response = await api.get('/menu/items/availability');
+      setAvailability(response.data);
+    } catch (error) {
+      console.warn('No se pudo cargar la disponibilidad de items.');
+    }
+  };
+
   useEffect(() => {
-    const fetchInventory = async () => {
-      try {
-        const response = await api.get('/inventory');
-        setInventory(response.data);
-      } catch (error) {
-        toast({
-          title: t('errorTitle'),
-          description: t('inventoryLoadError'),
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    };
     const fetchCategories = async () => {
       try {
         const response = await api.get('/menu/categories');
@@ -68,7 +63,7 @@ function OrderForm({ table, onBack }) {
       }
     };
     fetchThreshold();
-    fetchInventory();
+    fetchAvailability();
     fetchCategories();
   }, [toast, t]);
 
@@ -97,7 +92,7 @@ function OrderForm({ table, onBack }) {
   const handleAddItem = (item, delta) => {
     setOrderItems(prevItems => {
       const existingItem = prevItems.find(i => i._id === item._id);
-      const stock = getItemStock(item.name);
+      const stock = getItemStock(item);
 
       if (existingItem) {
         const updatedQuantity = existingItem.quantity + delta;
@@ -179,6 +174,7 @@ function OrderForm({ table, onBack }) {
       });
       setOrderItems([]);
       setComment('');
+      fetchAvailability();
     } catch (error) {
       toast({
         title: t('errorTitle'),
@@ -211,14 +207,16 @@ function OrderForm({ table, onBack }) {
     }
   };
 
-  const isItemAvailable = (itemName) => {
-    const found = inventory.find(inv => inv.name.toLowerCase() === itemName.toLowerCase());
-    return found ? found.quantity > 0 : true;
+  const isItemAvailable = (item) => {
+    const servings = availability[item._id];
+    // null → no recipe linked → always available
+    return servings === undefined || servings === null || servings > 0;
   };
 
-  const getItemStock = (itemName) => {
-    const found = inventory.find(inv => inv.name.toLowerCase() === itemName.toLowerCase());
-    return found ? found.quantity : null;
+  const getItemStock = (item) => {
+    const servings = availability[item._id];
+    // null / undefined → unlimited (no recipe)
+    return servings !== undefined ? servings : null;
   };
 
 
@@ -269,8 +267,8 @@ function OrderForm({ table, onBack }) {
         </HStack>
         <Grid templateColumns="repeat(auto-fill, minmax(130px, 1fr))" gap={3}>
           {filteredItems.map(item => {
-            const available = isItemAvailable(item.name);
-            const stock = getItemStock(item.name);
+            const available = isItemAvailable(item);
+            const stock = getItemStock(item);
             const selectedQty = orderItems.find(i => i._id === item._id)?.quantity || 0;
             const canAddMore = stock === null || selectedQty < stock;
 
@@ -282,7 +280,7 @@ function OrderForm({ table, onBack }) {
                 available={available}
                 selectedQty={selectedQty}
                 canAddMore={canAddMore}
-                inventory={inventory}
+                servingsAvailable={stock}
                 lowStockThreshold={lowStockThreshold}
                 onAddItem={handleAddItem}
               />
@@ -317,7 +315,7 @@ function OrderForm({ table, onBack }) {
           ) : (
             <VStack spacing={2} align="stretch">
               {orderItems.map(item => {
-                const stock = getItemStock(item.name);
+                const stock = getItemStock(item);
                 const canAddMore = stock === null || item.quantity < stock;
 
                 return (
