@@ -39,6 +39,8 @@ function UserManagement() {
   const [userToDeactivate, setUserToDeactivate] = useState(null);
   const [deactivateReason, setDeactivateReason] = useState('');
   const cancelDeactivateRef = useRef(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isTogglingActive, setIsTogglingActive] = useState(false);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -94,6 +96,7 @@ function UserManagement() {
 
   const handleConfirmDelete = async () => {
     if (!userToDelete) return;
+    setIsDeleting(true);
     try {
       await api.delete(`/users/${userToDelete}`);
       toast({ title: t('userDeletedTitle'), description: t('userDeletedDescription'), status: 'success' });
@@ -103,11 +106,13 @@ function UserManagement() {
       toast({ title: t('errorTitle'), description: t('errorDeletingUserDescription'), status: 'error' });
     } finally {
       setUserToDelete(null);
+      setIsDeleting(false);
     }
   };
 
   const handleToggleActive = async (user, reason = '') => {
     const activating = user.isActive === false;
+    setIsTogglingActive(true);
     try {
       await api.put(`/users/${user._id}`, {
         isActive: activating,
@@ -122,6 +127,8 @@ function UserManagement() {
     } catch (error) {
       console.error('Error toggling user status:', error);
       toast({ title: t('errorTitle'), description: t('errorTogglingUserStatusDescription'), status: 'error' });
+    } finally {
+      setIsTogglingActive(false);
     }
   };
 
@@ -273,6 +280,11 @@ function UserManagement() {
       <Heading size="md" mb={4} color="teal.300">{t('existingUsersHeading')}</Heading>
       {loading ? (
         <Spinner size="lg" />
+      ) : users.length === 0 ? (
+        <Box py={8} textAlign="center">
+          <Text fontSize="2xl" mb={2}>👤</Text>
+          <Text opacity={0.5}>{t('noUsersYet')}</Text>
+        </Box>
       ) : (
         <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
           {users.map((user) => (
@@ -389,10 +401,10 @@ function UserManagement() {
               </FormControl>
             </AlertDialogBody>
             <AlertDialogFooter>
-              <Button ref={cancelDeactivateRef} onClick={() => setUserToDeactivate(null)}>
+              <Button ref={cancelDeactivateRef} onClick={() => setUserToDeactivate(null)} isDisabled={isTogglingActive}>
                 {t('cancel')}
               </Button>
-              <Button colorScheme="orange" onClick={handleConfirmDeactivate} ml={3}>
+              <Button colorScheme="orange" onClick={handleConfirmDeactivate} ml={3} isLoading={isTogglingActive}>
                 {t('deactivateUserAriaLabel')}
               </Button>
             </AlertDialogFooter>
@@ -406,10 +418,10 @@ function UserManagement() {
             <AlertDialogHeader>{t('confirmDeleteUserTitle')}</AlertDialogHeader>
             <AlertDialogBody>{t('confirmDeleteUserDescription')}</AlertDialogBody>
             <AlertDialogFooter>
-              <Button ref={cancelDeleteRef} onClick={() => setUserToDelete(null)}>
+              <Button ref={cancelDeleteRef} onClick={() => setUserToDelete(null)} isDisabled={isDeleting}>
                 {t('cancel')}
               </Button>
-              <Button colorScheme="red" onClick={handleConfirmDelete} ml={3}>
+              <Button colorScheme="red" onClick={handleConfirmDelete} ml={3} isLoading={isDeleting}>
                 {t('deleteUserAriaLabel')}
               </Button>
             </AlertDialogFooter>

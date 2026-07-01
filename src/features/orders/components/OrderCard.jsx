@@ -13,6 +13,7 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated, onOrder
   const [pinModalOpen, setPinModalOpen] = useState(false);
   // { type: 'deleteItem', id: string } | { type: 'deleteOrder' } | null
   const [pendingAction, setPendingAction] = useState(null);
+  const [deliveringItemId, setDeliveringItemId] = useState(null);
 
   const handleDeleteItemClick = (itemSubdocId) => {
     setPendingAction({ type: 'deleteItem', id: itemSubdocId });
@@ -50,6 +51,7 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated, onOrder
   };
 
   const handleDeliverItem = async (itemSubdocId) => {
+    setDeliveringItemId(itemSubdocId);
     try {
       const response = await api.put(`/orders/${order._id}/items/${itemSubdocId}/deliver`);
       toast({ title: t('itemDelivered'), status: 'success', duration: 2000 });
@@ -57,6 +59,8 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated, onOrder
     } catch (err) {
       const msg = err.response?.data?.error || t('errorTitle');
       toast({ title: msg, status: 'error', duration: 3000 });
+    } finally {
+      setDeliveringItemId(null);
     }
   };
 
@@ -148,6 +152,8 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated, onOrder
                       aria-label={t('deliverItem')}
                       title={t('deliverItem')}
                       onClick={() => handleDeliverItem(item._id)}
+                      isLoading={deliveringItemId === item._id}
+                      isDisabled={deliveringItemId !== null}
                     />
                   )}
 

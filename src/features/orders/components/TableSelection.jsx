@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Flex, Button, Text, HStack, VStack, Badge, useDisclosure, useToast, Grid } from '@chakra-ui/react';
+import { Box, Flex, Button, Text, HStack, VStack, Badge, useDisclosure, useToast, Grid, Spinner, Center } from '@chakra-ui/react';
 import VirtualTableModal from './VirtualTableModal';
 import api from '../../../services/api';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -46,33 +46,13 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [virtualTables, setVirtualTables] = useState([]);
   const [sessionMap, setSessionMap] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
   const toast = useToast();
   const { t } = useLanguage();
   const { currentTheme } = useTheme();
 
   const isSimpleRestaurant = !sections || sections.length === 0 ||
     sections.every(section => !section.tables || section.tables.length === 0);
-
-  useEffect(() => {
-    fetchVirtualTables();
-    fetchActiveSessions();
-  }, []);
-
-  // Re-fetch sessions when sections change (table opened/closed from OrderPage)
-  const prevSectionsKeyRef = useRef(null);
-  useEffect(() => {
-    const key = JSON.stringify(
-      sections?.map(s => s.tables?.map(t => t._id + t.status).join(''))
-    );
-    if (key !== prevSectionsKeyRef.current) {
-      prevSectionsKeyRef.current = key;
-      fetchActiveSessions();
-    }
-  }, [sections]);
-
-  if (!currentTheme) return null;
-  const textColor = currentTheme.colors.text;
-  const surfaceColor = currentTheme.colors.surface;
 
   const fetchVirtualTables = async () => {
     try {
@@ -95,6 +75,27 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
       console.error('Error fetching active sessions:', error);
     }
   };
+
+  useEffect(() => {
+    Promise.all([fetchVirtualTables(), fetchActiveSessions()])
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  // Re-fetch sessions when sections change (table opened/closed from OrderPage)
+  const prevSectionsKeyRef = useRef(null);
+  useEffect(() => {
+    const key = JSON.stringify(
+      sections?.map(s => s.tables?.map(t => t._id + t.status).join(''))
+    );
+    if (key !== prevSectionsKeyRef.current) {
+      prevSectionsKeyRef.current = key;
+      fetchActiveSessions();
+    }
+  }, [sections]);
+
+  if (!currentTheme) return null;
+  const textColor = currentTheme.colors.text;
+  const surfaceColor = currentTheme.colors.surface;
 
   // Returns 'available' | 'open' | 'ready_for_payment'
   const getEffectiveStatus = (tableId, tableStatus) => {
@@ -200,7 +201,9 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
             </VStack>
           </HStack>
 
-          {virtualTables.length === 0 ? (
+          {isLoading ? (
+            <Center py={16}><Spinner size="xl" color="teal.400" /></Center>
+          ) : virtualTables.length === 0 ? (
             <Box
               p={8}
               textAlign="center"

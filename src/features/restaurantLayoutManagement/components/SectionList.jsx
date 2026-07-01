@@ -21,6 +21,8 @@ import {
   IconButton,
   useBreakpointValue,
   useTheme,
+  Spinner,
+  Center,
 } from '@chakra-ui/react';
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import AddSectionForm from './AddSectionForm';
@@ -41,9 +43,14 @@ function SectionList() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
   const toast = useCustomToast();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDeletingSection, setIsDeletingSection] = useState(false);
+  const [isDeletingTable, setIsDeletingTable] = useState(false);
+  const [isAddingTable, setIsAddingTable] = useState(false);
 
 
   const fetchSections = useCallback(async () => {
+    setIsLoading(true);
     try {
       const response = await api.get('/sections');
       setSections(response.data);
@@ -56,6 +63,8 @@ function SectionList() {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setIsLoading(false);
     }
   }, [t, toast]);
   
@@ -90,6 +99,7 @@ function SectionList() {
 
   // Handle deleting a section
   const handleDeleteSection = async () => {
+    setIsDeletingSection(true);
     try {
       await api.delete(`/sections/${sectionToDelete}`);
       setSections((prevSections) =>
@@ -115,6 +125,8 @@ function SectionList() {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setIsDeletingSection(false);
     }
   };
 
@@ -132,6 +144,7 @@ function SectionList() {
 
   // Handle deleting a table
   const handleTableDelete = async () => {
+    setIsDeletingTable(true);
     try {
       await api.delete(`/sections/${selectedSection._id}/tables/${tableToDelete}`);
       setSelectedSection((prevSection) => ({
@@ -155,6 +168,8 @@ function SectionList() {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setIsDeletingTable(false);
     }
   };
 
@@ -171,13 +186,9 @@ function SectionList() {
       return;
     }
 
+    setIsAddingTable(true);
     try {
       await api.post(`/sections/${selectedSection._id}/tables`, newTable);
-      // const response = await api.post(`/sections/${selectedSection._id}/tables`, newTable);
-      // setSelectedSection((prevSection) => ({
-      //   ...prevSection,
-      //   tables: [...prevSection.tables, response.data],
-      // }));
       await fetchSections();
       setNewTable({ number: '', status: 'available' });
       toast({
@@ -196,6 +207,8 @@ function SectionList() {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setIsAddingTable(false);
     }
   };
 
@@ -215,6 +228,14 @@ function SectionList() {
               <Text fontSize="xl" mb={2} fontWeight="bold">
                 {t('sections')}
               </Text>
+              {isLoading ? (
+                <Center py={8}><Spinner /></Center>
+              ) : sections.length === 0 ? (
+                <Center py={8} flexDirection="column" gap={2}>
+                  <Text fontSize="2xl">🏠</Text>
+                  <Text opacity={0.5} textAlign="center" fontSize="sm">{t('noSectionsYet')}</Text>
+                </Center>
+              ) : (
               <VStack spacing={3} align="stretch">
                 {sections.map((section) => (
                   <Box
@@ -250,6 +271,7 @@ function SectionList() {
                   </Box>
                 ))}
               </VStack>
+              )}
             </Box>
           </VStack>
         </GridItem>
@@ -275,6 +297,12 @@ function SectionList() {
                   )}
                 </Flex>
                 <VStack spacing={3} align="stretch">
+                  {selectedSection.tables.length === 0 && (
+                    <Center py={6} flexDirection="column" gap={2}>
+                      <Text fontSize="2xl">🪑</Text>
+                      <Text opacity={0.5} fontSize="sm">{t('noTablesInSection')}</Text>
+                    </Center>
+                  )}
                   {selectedSection.tables.map((table) => (
                     <Box
                       key={table._id}
@@ -346,6 +374,7 @@ function SectionList() {
                       leftIcon={<AddIcon />}
                       colorScheme="blue"
                       onClick={handleAddTable}
+                      isLoading={isAddingTable}
                     >
                       {t('add')}
                     </Button>
@@ -376,7 +405,7 @@ function SectionList() {
             </AlertDialogBody>
 
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose} color="black">
+              <Button ref={cancelRef} onClick={onClose} color="black" isDisabled={isDeletingSection || isDeletingTable}>
                 {t('cancel')}
               </Button>
               <Button
@@ -384,6 +413,7 @@ function SectionList() {
                 onClick={tableToDelete ? handleTableDelete : handleDeleteSection}
                 ml={3}
                 color="white"
+                isLoading={tableToDelete ? isDeletingTable : isDeletingSection}
               >
                 {t('delete')}
               </Button>

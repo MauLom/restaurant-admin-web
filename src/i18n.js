@@ -690,6 +690,10 @@ const translations = {
     createAdminButton: 'Create Administrator',
     demoAccessButton: 'Access Demo',
     exploreDemoFeatures: 'Explore all features with sample data',
+    noOrdersInArea: 'No pending orders in this area',
+    noOrdersForTable: 'No orders for this table yet',
+    noSectionsYet: 'No sections created yet',
+    noUsersYet: 'No users registered yet',
   },
   es: {
     addItem: 'Agregar Artículo',
@@ -1382,6 +1386,10 @@ const translations = {
     createAdminButton: 'Crear Administrador',
     demoAccessButton: 'Acceder al Demo',
     exploreDemoFeatures: 'Explora todas las funciones con datos de ejemplo',
+    noOrdersInArea: 'No hay pedidos pendientes en esta área',
+    noOrdersForTable: 'Aún no hay órdenes para esta mesa',
+    noSectionsYet: 'Aún no hay secciones creadas',
+    noUsersYet: 'Aún no hay usuarios registrados',
   }
 };
 

@@ -7,6 +7,7 @@ import {
   Tabs, Tab, TabList, TabPanel, TabPanels,
   FormControl, FormLabel,
   Alert, AlertIcon,
+  Spinner, Center,
 } from '@chakra-ui/react';
 import { FaEdit, FaExclamationTriangle, FaPlus, FaTrash } from 'react-icons/fa';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -33,6 +34,9 @@ function InventoryManagement() {
   const [editingItemId, setEditingItemId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [customTag, setCustomTag] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const toast = useCustomToast();
   const { t } = useLanguage();
   const theme = useTheme();
@@ -41,7 +45,8 @@ function InventoryManagement() {
   useEffect(() => {
     api.get('/inventory')
       .then(r => setInventory(r.data))
-      .catch(e => console.error('Error fetching inventory:', e));
+      .catch(e => console.error('Error fetching inventory:', e))
+      .finally(() => setIsLoading(false));
   }, []);
 
   const rawItems = inventory.filter(i => i.type === 'raw' || !i.type);
@@ -123,6 +128,7 @@ function InventoryManagement() {
         : [],
     };
 
+    setIsSaving(true);
     try {
       if (editingItemId) {
         const res = await api.put(`/inventory/${editingItemId}`, payload);
@@ -139,6 +145,8 @@ function InventoryManagement() {
     } catch (error) {
       console.error('Error saving inventory item:', error);
       toast({ title: t('errorTitle'), description: t('errorDescription'), status: 'error', duration: 3000, isClosable: true });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -170,6 +178,7 @@ function InventoryManagement() {
   };
 
   const handleDeleteItem = async (id) => {
+    setDeletingId(id);
     try {
       await api.delete(`/inventory/${id}`);
       setInventory(prev => prev.filter(i => i._id !== id));
@@ -177,6 +186,8 @@ function InventoryManagement() {
     } catch (error) {
       console.error('Error deleting inventory item:', error);
       toast({ title: t('errorTitle'), description: t('errorDescription'), status: 'error', duration: 3000, isClosable: true });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -253,14 +264,18 @@ function InventoryManagement() {
               <Box color="red.400"><FaExclamationTriangle /></Box>
             </Tooltip>
           )}
-          <IconButton icon={<FaEdit />} onClick={() => handleEditItem(item)} size="sm" colorScheme="yellow" aria-label={t('editProductForm')} />
-          <Button colorScheme="red" size="sm" onClick={() => handleDeleteItem(item._id)}>
+          <IconButton icon={<FaEdit />} onClick={() => handleEditItem(item)} size="sm" colorScheme="yellow" aria-label={t('editProductForm')} isDisabled={!!deletingId || isSaving} />
+          <Button colorScheme="red" size="sm" onClick={() => handleDeleteItem(item._id)} isLoading={deletingId === item._id} isDisabled={!!deletingId || isSaving}>
             {t('delete')}
           </Button>
         </HStack>
       </HStack>
     </Box>
   );
+
+  if (isLoading) {
+    return <Center py={16}><Spinner size="xl" color="green.400" /></Center>;
+  }
 
   return (
     <Box p={4} color="white">
@@ -600,10 +615,10 @@ function InventoryManagement() {
 
             {/* Actions */}
             <HStack>
-              <Button colorScheme="green" onClick={handleAddOrUpdateItem} flex="1">
+              <Button colorScheme="green" onClick={handleAddOrUpdateItem} flex="1" isLoading={isSaving} isDisabled={!!deletingId}>
                 {editingItemId ? t('saveChangesButton') : t('addItem')}
               </Button>
-              <Button variant="ghost" onClick={handleCancelEdit}>
+              <Button variant="ghost" onClick={handleCancelEdit} isDisabled={isSaving}>
                 {t('cancelButton')}
               </Button>
             </HStack>

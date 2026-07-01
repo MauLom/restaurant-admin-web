@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, VStack, HStack, Text, Button, Tabs, TabList, TabPanels, Tab, TabPanel, IconButton, Tooltip } from '@chakra-ui/react';
+import { Box, VStack, HStack, Text, Button, Tabs, TabList, TabPanels, Tab, TabPanel, IconButton, Tooltip, Spinner, Center } from '@chakra-ui/react';
 import { DeleteIcon } from '@chakra-ui/icons';
 import api from '../../../services/api';
 import { useAuthContext } from '../../../context/AuthContext';
@@ -13,6 +13,8 @@ function OrdersPreparationPage() {
   const [preparationAreas, setPreparationAreas] = useState(['kitchen', 'bar']);
   const [pinModalOpen, setPinModalOpen] = useState(false);
   const [pendingDeleteOrderId, setPendingDeleteOrderId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingItemKey, setLoadingItemKey] = useState(null);
   const { user } = useAuthContext();
   const { t } = useLanguage();
   const toast = useCustomToast();
@@ -66,6 +68,8 @@ function OrdersPreparationPage() {
         });
       } catch (error) {
         console.error('Error initializing KDS:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -97,6 +101,8 @@ function OrdersPreparationPage() {
   };
 
   const handleMarkItemAsReady = async (orderId, itemId) => {
+    const key = `${orderId}-${itemId}`;
+    setLoadingItemKey(key);
     try {
       const response = await api.put(`/orders/${orderId}/items/${itemId}`, { status: 'ready' });
       setOrders((prevOrders) =>
@@ -114,6 +120,8 @@ function OrdersPreparationPage() {
       );
     } catch (error) {
       console.error('Error al actualizar el estado del ítem:', error);
+    } finally {
+      setLoadingItemKey(null);
     }
   };
 
@@ -126,6 +134,9 @@ function OrdersPreparationPage() {
     <Box p={4}>
       <Text fontSize="2xl" mb={4}>{t('preparationOrdersTitle')}</Text>
 
+      {isLoading ? (
+        <Center py={16}><Spinner size="xl" color="teal.400" /></Center>
+      ) : (
       <Tabs variant="soft-rounded" colorScheme="teal">
         <TabList>
           {groupedOrders.map((group) => (
@@ -138,6 +149,12 @@ function OrdersPreparationPage() {
         <TabPanels>
           {groupedOrders.map((group) => (
             <TabPanel key={group.area}>
+              {group.orders.length === 0 ? (
+                <Center py={12} flexDirection="column" gap={3}>
+                  <Text fontSize="3xl">✅</Text>
+                  <Text color="gray.400">{t('noOrdersInArea')}</Text>
+                </Center>
+              ) : (
               <VStack spacing={4} align="stretch">
                 {group.orders.map((order) => (
                   <Box key={order._id} p={4} bg="#363636" color="white" borderRadius="md">
@@ -170,6 +187,7 @@ function OrdersPreparationPage() {
                                     size="sm"
                                     onClick={() => handleMarkItemAsReady(order._id, item.itemId)}
                                     isDisabled={item.status === 'ready'}
+                                    isLoading={loadingItemKey === `${order._id}-${item.itemId}`}
                                   >
                                     {t('markAsReadyBtn')}
                                   </Button>
@@ -203,10 +221,12 @@ function OrdersPreparationPage() {
                   </Box>
                 ))}
               </VStack>
+              )}
             </TabPanel>
           ))}
         </TabPanels>
       </Tabs>
+      )}
 
       <AdminPinModal
         isOpen={pinModalOpen}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Flex, Button, VStack, Heading, Divider, Box, Text,
+  Flex, Button, VStack, Heading, Divider, Box, Text, Spinner, Center,
 } from '@chakra-ui/react';
 import { io } from 'socket.io-client';
 import api from '../../../services/api';
@@ -26,6 +26,9 @@ function OrderPage() {
   const [creatingNewOrder, setCreatingNewOrder] = useState(false);
   // { [orderId]: Set<itemSubdocId> }
   const [selectedItems, setSelectedItems] = useState({});
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [isSendingToPayment, setIsSendingToPayment] = useState(false);
+  const [isClosingSession, setIsClosingSession] = useState(false);
 
   const fetchSections = useCallback(async () => {
     try {
@@ -38,12 +41,15 @@ function OrderPage() {
   }, [toast, t]);
 
   const fetchOrdersByTableSessionId = useCallback(async (tableId, tableSessionId) => {
+    setIsLoadingOrders(true);
     try {
       const res = await api.get(`/orders?tableId=${tableId}&tableSessionId=${tableSessionId}`);
       setOrders(res.data);
       setSelectedItems({});
     } catch {
       toast({ title: t('errorTitle'), description: t('ordersLoadError'), status: 'error', duration: 3000 });
+    } finally {
+      setIsLoadingOrders(false);
     }
   }, [toast, t]);
 
@@ -135,6 +141,7 @@ function OrderPage() {
 
     if (!selections.length) return;
 
+    setIsSendingToPayment(true);
     try {
       const res = await api.post('/orders/send-to-cashier', {
         tableId: selectedTable._id,
@@ -151,16 +158,21 @@ function OrderPage() {
       }
     } catch {
       toast({ title: t('errorTitle'), status: 'error', duration: 3000 });
+    } finally {
+      setIsSendingToPayment(false);
     }
   };
 
   const handleCloseSession = async () => {
+    setIsClosingSession(true);
     try {
       await api.put(`/tableSession/close-by-table/${selectedTable._id}`);
       toast({ title: t('sessionClosed'), description: t('sessionClosedDesc'), status: 'success', duration: 3000 });
       handleBackToTables();
     } catch (error) {
       toast({ title: t('errorTitle'), description: t('sessionCloseError'), status: 'error', duration: 3000 });
+    } finally {
+      setIsClosingSession(false);
     }
   };
 
@@ -195,18 +207,27 @@ function OrderPage() {
         <VStack align="stretch" spacing={4}>
           <Heading size="lg" color="teal.200">{t('tableHeading').replace('{tableNumber}', selectedTable.number)}</Heading>
 
-          {orders.map((order) => (
-            <OrderCard
-              key={order._id}
-              order={order}
-              selectedItems={selectedItems[order._id] || new Set()}
-              onToggleItem={handleToggleItem}
-              onOrderUpdated={handleOrderUpdated}
-              onOrderDeleted={handleOrderDeleted}
-            />
-          ))}
+          {isLoadingOrders ? (
+            <Center py={10}><Spinner size="lg" color="teal.400" /></Center>
+          ) : orders.length === 0 ? (
+            <Center py={10} flexDirection="column" gap={3}>
+              <Text fontSize="3xl">🍽️</Text>
+              <Text color="gray.400">{t('noOrdersForTable')}</Text>
+            </Center>
+          ) : (
+            orders.map((order) => (
+              <OrderCard
+                key={order._id}
+                order={order}
+                selectedItems={selectedItems[order._id] || new Set()}
+                onToggleItem={handleToggleItem}
+                onOrderUpdated={handleOrderUpdated}
+                onOrderDeleted={handleOrderDeleted}
+              />
+            ))
+          )}
 
-          {totalSelectedCount === 0 && (
+          {!isLoadingOrders && totalSelectedCount === 0 && orders.length > 0 && (
             <Box p={3} bg="gray.700" borderRadius="md">
               <Text fontSize="sm" color="gray.400">
                 ☝️ {t('adminPinRequired').includes('PIN') ? 'Selecciona ítems listos para enviar a caja' : 'Select ready items to send to cashier'}
@@ -219,6 +240,7 @@ function OrderPage() {
             _hover={{ bg: 'orange.600' }}
             onClick={handleSendToPayment}
             isDisabled={totalSelectedCount === 0}
+            isLoading={isSendingToPayment}
           >
             📤 {t('sendToPayment')}
           </Button>
@@ -228,6 +250,7 @@ function OrderPage() {
             _hover={{ bg: 'purple.600' }}
             onClick={handleCloseSession}
             isDisabled={orders.some(order => !order.paid && !['sent to cashier', 'delivered'].includes(order.status))}
+            isLoading={isClosingSession}
           >
             🛑 {t('closeTableSession')}
           </Button>
