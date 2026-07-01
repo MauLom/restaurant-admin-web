@@ -18,63 +18,61 @@ function OrdersPreparationPage() {
   const toast = useCustomToast();
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    let socket;
+
+    const initialize = async () => {
       try {
-        const response = await api.get('/orders?kitchen=true');
-        const filteredOrders = response.data.filter(order => order.status !== 'ready' && order.status !== 'paid');
+        const [ordersRes, areasRes] = await Promise.all([
+          api.get('/orders'),
+          api.get('/menu/areas'),
+        ]);
+
+        const filteredOrders = ordersRes.data.filter(
+          order => order.status !== 'ready' && order.status !== 'paid'
+        );
         setOrders(filteredOrders);
+
+        const allAreas = areasRes.data;
+        const userAreas = user.role === 'admin'
+          ? allAreas
+          : allAreas.includes(user.role) ? [user.role] : allAreas;
+        setPreparationAreas(userAreas);
+
+        let socketURL = process.env.REACT_APP_API_URL;
+        if (socketURL.includes('/api')) socketURL = socketURL.replace('/api', '');
+        socket = io(socketURL, { transports: ['websocket'] });
+
+        userAreas.forEach(area => {
+          socket.emit('join-room', { role: area, userId: user._id });
+        });
+
+        socket.on('new-order', (newOrder) => {
+          setOrders((prevOrders) => [...prevOrders, newOrder]);
+        });
+
+        socket.on('update-order', (updatedOrder) => {
+          setOrders((prevOrders) => {
+            if (updatedOrder.status === 'paid') {
+              return prevOrders.filter((order) => order._id !== updatedOrder._id);
+            }
+            return prevOrders.map((order) =>
+              order._id === updatedOrder._id ? updatedOrder : order
+            );
+          });
+        });
+
+        socket.on('order-deleted', ({ orderId }) => {
+          setOrders((prevOrders) => prevOrders.filter((order) => order._id !== orderId));
+        });
       } catch (error) {
-        console.error('Error al obtener órdenes:', error);
+        console.error('Error initializing KDS:', error);
       }
     };
 
-    fetchOrders();
-
-    if (user.role !== 'admin') {
-      if (user.role === 'bar') {
-        setPreparationAreas(['bar']);
-      } else if (user.role === 'kitchen') {
-        setPreparationAreas(['kitchen']);
-      }
-    }
-
-    let socketURL = process.env.REACT_APP_API_URL;
-    if (socketURL.includes("/api")) socketURL = socketURL.replace("/api", "");
-    const socket = io(socketURL, { transports: ['websocket'] });
-
-    const kitchenAreas = user.role === 'admin'
-      ? ['kitchen', 'bar']
-      : (user.role === 'kitchen' || user.role === 'bar') ? [user.role] : [];
-
-    kitchenAreas.forEach(area => {
-      socket.emit('join-room', { role: area, userId: user._id });
-    });
-
-    if (user.role === 'waiter') {
-      socket.emit('join-room', { role: 'waiter', userId: user._id });
-    }
-
-    socket.on('new-order', (newOrder) => {
-      setOrders((prevOrders) => [...prevOrders, newOrder]);
-    });
-
-    socket.on('update-order', (updatedOrder) => {
-      setOrders((prevOrders) => {
-        if (updatedOrder.status === 'paid') {
-          return prevOrders.filter((order) => order._id !== updatedOrder._id);
-        }
-        return prevOrders.map((order) =>
-          order._id === updatedOrder._id ? updatedOrder : order
-        );
-      });
-    });
-
-    socket.on('order-deleted', ({ orderId }) => {
-      setOrders((prevOrders) => prevOrders.filter((order) => order._id !== orderId));
-    });
+    initialize();
 
     return () => {
-      socket.disconnect();
+      if (socket) socket.disconnect();
     };
   }, [user.role, user._id]);
 
@@ -166,14 +164,16 @@ function OrdersPreparationPage() {
                               <Text fontWeight="bold">{item.name} (x{item.quantity})</Text>
                               <HStack>
                                 <Text>{item.status === 'ready' ? t('statusReadyText') : t('statusPreparingText')}</Text>
-                                <Button
-                                  colorScheme="green"
-                                  size="sm"
-                                  onClick={() => handleMarkItemAsReady(order._id, item.itemId)}
-                                  isDisabled={item.status === 'ready'}
-                                >
-                                  {t('markAsReadyBtn')}
-                                </Button>
+                                {user.role !== 'waiter' && (
+                                  <Button
+                                    colorScheme="green"
+                                    size="sm"
+                                    onClick={() => handleMarkItemAsReady(order._id, item.itemId)}
+                                    isDisabled={item.status === 'ready'}
+                                  >
+                                    {t('markAsReadyBtn')}
+                                  </Button>
+                                )}
                               </HStack>
                             </HStack>
 

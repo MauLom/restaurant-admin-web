@@ -152,25 +152,14 @@ function OrderCard({ order, selectedItems, onToggleItem, onOrderUpdated, onOrder
                   )}
 
                   {isPreparing && (
-                    <>
-                      <IconButton
-                        icon={<CheckIcon />}
-                        size="xs"
-                        colorScheme="green"
-                        variant="ghost"
-                        aria-label={t('deliverItem')}
-                        title={t('deliverItem')}
-                        onClick={() => handleDeliverItem(item._id)}
-                      />
-                      <IconButton
-                        icon={<DeleteIcon />}
-                        size="xs"
-                        colorScheme="red"
-                        variant="ghost"
-                        aria-label={t('itemDeleted')}
-                        onClick={() => handleDeleteItemClick(item._id)}
-                      />
-                    </>
+                    <IconButton
+                      icon={<DeleteIcon />}
+                      size="xs"
+                      colorScheme="red"
+                      variant="ghost"
+                      aria-label={t('itemDeleted')}
+                      onClick={() => handleDeleteItemClick(item._id)}
+                    />
                   )}
                 </HStack>
               </HStack>
