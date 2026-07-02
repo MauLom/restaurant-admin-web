@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, Grid, VStack, HStack, Text, Button, Input, Divider,
-  Badge, IconButton, Heading, Checkbox,
+  Badge, IconButton, Heading, Checkbox, Flex,
 } from '@chakra-ui/react';
 import { FaMoneyBillAlt, FaCreditCard, FaExchangeAlt, FaTimes } from 'react-icons/fa';
 import api from '../../../services/api';
@@ -226,7 +226,7 @@ function CashierPage() {
         alignItems="start"
       >
         {/* ── Table grid ── */}
-        <Box>
+        <Box display={selectedTable ? { base: 'none', lg: 'block' } : 'block'}>
           <Text fontSize="sm" color={dimText} mb={3}>{t('selectATable')}</Text>
           {tables.length === 0 ? (
             <Text color={dimText} mt={6} textAlign="center">{t('noTablesWithPendingOrders')}</Text>
@@ -270,19 +270,19 @@ function CashierPage() {
             color={c.text}
             shadow="xl"
             overflow="hidden"
-            position="sticky"
-            top={4}
+            position={{ base: 'static', lg: 'sticky' }}
+            top={{ base: 'auto', lg: 4 }}
           >
             {/* Header */}
-            <HStack px={5} py={4} borderBottomWidth="1px" borderColor={panelBorder} justify="space-between">
+            <HStack px={{ base: 3, lg: 5 }} py={4} borderBottomWidth="1px" borderColor={panelBorder} justify="space-between">
               <Text fontWeight="bold" fontSize="lg">
                 {t('tableNumberLabel').replace('{number}', selectedTable.number)}
               </Text>
-              <IconButton icon={<FaTimes />} size="sm" variant="ghost" onClick={handleClose} aria-label="close" />
+              <IconButton icon={<FaTimes />} size="sm" variant="ghost" onClick={handleClose} aria-label={t('backToTables')} />
             </HStack>
 
             {/* Items with checkboxes */}
-            <Box px={5} pt={4} pb={2}>
+            <Box px={{ base: 3, lg: 5 }} pt={4} pb={2}>
               <HStack justify="space-between" mb={3}>
                 <Text fontSize="xs" color={dimText} textTransform="uppercase" letterSpacing="wider">
                   {selectedItems.length > 0
@@ -320,10 +320,10 @@ function CashierPage() {
                         flexShrink={0}
                       />
                     )}
-                    <Text fontSize="sm" flex={1}>
-                      {item.name}
-                      <Text as="span" color={dimText}> × {item.quantity}</Text>
-                    </Text>
+                    <HStack flex={1} minW={0} spacing={1}>
+                      <Text fontSize="sm" isTruncated title={item.name}>{item.name}</Text>
+                      <Text fontSize="sm" color={dimText} flexShrink={0}>× {item.quantity}</Text>
+                    </HStack>
                     <Text fontSize="sm" fontWeight="semibold">
                       ${(item.price * item.quantity).toFixed(2)}
                     </Text>
@@ -335,7 +335,7 @@ function CashierPage() {
             <Divider borderColor={panelBorder} opacity={1} my={1} />
 
             {/* Summary */}
-            <VStack spacing={2} px={5} py={4} align="stretch">
+            <VStack spacing={2} px={{ base: 3, lg: 5 }} py={4} align="stretch">
               <HStack justify="space-between">
                 <Text fontSize="sm" color={dimText}>{t('subtotalLabel').replace(':', '')}</Text>
                 <Text fontSize="sm">${baseAmount.toFixed(2)}</Text>
@@ -354,16 +354,16 @@ function CashierPage() {
             <Divider borderColor={panelBorder} opacity={1} />
 
             {/* Tip shortcuts */}
-            <VStack px={5} py={4} align="stretch" spacing={2}>
+            <VStack px={{ base: 3, lg: 5 }} py={4} align="stretch" spacing={2}>
               <Text fontSize="xs" color={dimText} textTransform="uppercase" letterSpacing="wider">
                 {t('tipLabel').replace(':', '')}
               </Text>
-              <HStack spacing={2}>
+              <Flex gap={2} wrap="wrap">
                 {[5, 10, 15].map(pct => (
                   <Button
                     key={pct}
                     size="sm"
-                    flex={1}
+                    flex={{ base: '1 1 calc(33.333% - 6px)', lg: 1 }}
                     variant={activeTipPct === pct ? 'solid' : 'outline'}
                     colorScheme="blue"
                     onClick={() => handleTipShortcut(pct)}
@@ -374,7 +374,7 @@ function CashierPage() {
                 ))}
                 <Input
                   size="sm"
-                  flex={1}
+                  flex={{ base: '1 1 100%', lg: 1 }}
                   type="number"
                   placeholder={t('customTipPlaceholder')}
                   value={customTipInput}
@@ -382,13 +382,13 @@ function CashierPage() {
                   min={0}
                   isDisabled={selectedItems.length === 0}
                 />
-              </HStack>
+              </Flex>
             </VStack>
 
             <Divider borderColor={panelBorder} opacity={1} />
 
             {/* Payment method */}
-            <VStack px={5} py={4} align="stretch" spacing={3}>
+            <VStack px={{ base: 3, lg: 5 }} py={4} align="stretch" spacing={3}>
               <Text fontSize="xs" color={dimText} textTransform="uppercase" letterSpacing="wider">
                 {t('paymentMethodsHeading')}
               </Text>
@@ -448,7 +448,7 @@ function CashierPage() {
             </VStack>
 
             {/* Pay button */}
-            <Box px={5} pb={5}>
+            <Box px={{ base: 3, lg: 5 }} pb={5}>
               <Button
                 colorScheme="green"
                 size="lg"
