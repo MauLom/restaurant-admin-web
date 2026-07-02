@@ -97,8 +97,12 @@ function OrderPage() {
       setSelectedTable(updatedTable);
       await fetchSections();
       await fetchOrdersByTableSessionId(updatedTable._id, updatedTable.tableSessionId);
-    } catch {
-      toast({ title: t('errorTitle'), description: t('tableOpenError'), status: 'error', duration: 3000 });
+    } catch (error) {
+      const errorCode = error.response?.data?.error;
+      const description = errorCode === 'unpaidOrdersExist'
+        ? t('tableOpenUnpaidOrders')
+        : t('tableOpenError');
+      toast({ title: t('errorTitle'), description, status: 'error', duration: 5000, isClosable: true });
     }
   };
 

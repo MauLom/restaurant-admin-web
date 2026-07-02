@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Flex, Button, Text, HStack, VStack, Badge, useDisclosure, useToast, Grid, Spinner, Center } from '@chakra-ui/react';
+import {
+  Box, Flex, Button, Text, HStack, VStack, Badge, useDisclosure, useToast, Grid, Spinner, Center,
+  IconButton, AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter,
+} from '@chakra-ui/react';
+import { DeleteIcon } from '@chakra-ui/icons';
 import VirtualTableModal from './VirtualTableModal';
 import api from '../../../services/api';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -44,9 +48,13 @@ const SPECIAL_BUTTON = {
 
 function TableSelection({ sections, onTableClick, onRefreshSections }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const [virtualTables, setVirtualTables] = useState([]);
   const [sessionMap, setSessionMap] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [virtualTableToDelete, setVirtualTableToDelete] = useState(null);
+  const [isDeletingVirtualTable, setIsDeletingVirtualTable] = useState(false);
+  const cancelDeleteRef = useRef();
   const toast = useToast();
   const { t } = useLanguage();
   const { currentTheme } = useTheme();
@@ -144,6 +152,31 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
     });
   };
 
+  const handleDeleteVirtualTableClick = (virtualTable, e) => {
+    e.stopPropagation();
+    setVirtualTableToDelete(virtualTable);
+    onDeleteOpen();
+  };
+
+  const handleConfirmDeleteVirtualTable = async () => {
+    if (!virtualTableToDelete) return;
+    setIsDeletingVirtualTable(true);
+    try {
+      await api.post(`/virtual-tables/${virtualTableToDelete._id}/deactivate`);
+      setVirtualTables(prev => prev.filter(vt => vt._id !== virtualTableToDelete._id));
+      onDeleteClose();
+      toast({ title: t('virtualTableDeleted'), status: 'success', duration: 2000, isClosable: true });
+    } catch (error) {
+      const errorCode = error.response?.data?.error;
+      const description = errorCode === 'unpaidOrdersExist'
+        ? t('releaseTableUnpaidOrders')
+        : t('deleteVirtualTableError');
+      toast({ title: t('errorTitle'), description, status: 'error', duration: 4000, isClosable: true });
+    } finally {
+      setIsDeletingVirtualTable(false);
+    }
+  };
+
   if (!sections || !Array.isArray(sections)) {
     return (
       <Box>
@@ -233,38 +266,55 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                     : status === 'open' ? t('occupiedStatus')
                     : t('readyForPayment');
                   return (
-                    <Box
-                      key={virtualTable._id}
-                      as="button"
-                      onClick={() => handleVirtualTableClick(virtualTable)}
-                      p={4}
-                      borderWidth="2px"
-                      borderRadius="lg"
-                      borderColor={s.borderColor}
-                      bg={s.cardBg}
-                      _hover={{
-                        transform: 'translateY(-2px)',
-                        shadow: 'lg',
-                        borderColor: s.buttonBg,
-                      }}
-                      transition="all 0.2s"
-                      textAlign="center"
-                    >
-                      <VStack spacing={3}>
-                        <Text fontSize="2xl">{s.icon}</Text>
-                        <Text fontSize="lg" fontWeight="bold" color={textColor}>
-                          {virtualTable.name}
-                        </Text>
-                        <HStack spacing={2} justify="center" flexWrap="wrap">
-                          <Badge colorScheme={s.badgeScheme} variant="solid">{label}</Badge>
-                          <Badge colorScheme="blue" variant="outline">{virtualTable.totalCapacity}p</Badge>
-                        </HStack>
-                        {virtualTable.description && (
-                          <Text fontSize="xs" color={`${textColor}80`} textAlign="center" noOfLines={2}>
-                            {virtualTable.description}
+                    <Box key={virtualTable._id} position="relative">
+                      {status === 'available' && (
+                        <IconButton
+                          aria-label={t('deleteVirtualTableAriaLabel')}
+                          icon={<DeleteIcon />}
+                          size="xs"
+                          position="absolute"
+                          top="6px"
+                          right="6px"
+                          zIndex={1}
+                          bg="#E53E3E"
+                          color="white"
+                          _hover={{ bg: '#C53030' }}
+                          onClick={(e) => handleDeleteVirtualTableClick(virtualTable, e)}
+                        />
+                      )}
+                      <Box
+                        as="button"
+                        onClick={() => handleVirtualTableClick(virtualTable)}
+                        p={4}
+                        w="100%"
+                        borderWidth="2px"
+                        borderRadius="lg"
+                        borderColor={s.borderColor}
+                        bg={s.cardBg}
+                        _hover={{
+                          transform: 'translateY(-2px)',
+                          shadow: 'lg',
+                          borderColor: s.buttonBg,
+                        }}
+                        transition="all 0.2s"
+                        textAlign="center"
+                      >
+                        <VStack spacing={3}>
+                          <Text fontSize="2xl">{s.icon}</Text>
+                          <Text fontSize="lg" fontWeight="bold" color={textColor}>
+                            {virtualTable.name}
                           </Text>
-                        )}
-                      </VStack>
+                          <HStack spacing={2} justify="center" flexWrap="wrap">
+                            <Badge colorScheme={s.badgeScheme} variant="solid">{label}</Badge>
+                            <Badge colorScheme="blue" variant="outline">{virtualTable.totalCapacity}p</Badge>
+                          </HStack>
+                          {virtualTable.description && (
+                            <Text fontSize="xs" color={`${textColor}80`} textAlign="center" noOfLines={2}>
+                              {virtualTable.description}
+                            </Text>
+                          )}
+                        </VStack>
+                      </Box>
                     </Box>
                   );
                 })}
@@ -297,35 +347,51 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                     : t('readyForPayment');
                   const isAvailable = status === 'available';
                   return (
-                    <Button
-                      key={virtualTable._id}
-                      variant={isAvailable ? 'outline' : 'solid'}
-                      bg={isAvailable ? 'transparent' : s.buttonBg}
-                      borderColor={s.borderColor}
-                      color={isAvailable ? s.borderColor : 'white'}
-                      _hover={{
-                        bg: isAvailable ? s.cardBg : s.buttonHover,
-                        borderColor: s.borderColor,
-                      }}
-                      onClick={() => handleVirtualTableClick(virtualTable)}
-                      minW="120px"
-                      h="70px"
-                    >
-                      <VStack spacing={1}>
-                        <Text fontSize="sm" fontWeight="bold" textAlign="center">
-                          {virtualTable.name}
-                        </Text>
-                        <HStack spacing={2}>
-                          {virtualTable.mode === 'combined' && (
-                            <Badge size="sm" colorScheme="gray">
-                              {virtualTable.physicalTables.length} {t('tablesLabel').toLowerCase()}
-                            </Badge>
-                          )}
-                          <Badge size="sm" colorScheme="blue">{virtualTable.totalCapacity}p</Badge>
-                        </HStack>
-                        <Text fontSize="xs">{label}</Text>
-                      </VStack>
-                    </Button>
+                    <Box key={virtualTable._id} position="relative">
+                      {isAvailable && (
+                        <IconButton
+                          aria-label={t('deleteVirtualTableAriaLabel')}
+                          icon={<DeleteIcon />}
+                          size="xs"
+                          position="absolute"
+                          top="-8px"
+                          right="-8px"
+                          zIndex={1}
+                          bg="#E53E3E"
+                          color="white"
+                          _hover={{ bg: '#C53030' }}
+                          onClick={(e) => handleDeleteVirtualTableClick(virtualTable, e)}
+                        />
+                      )}
+                      <Button
+                        variant={isAvailable ? 'outline' : 'solid'}
+                        bg={isAvailable ? 'transparent' : s.buttonBg}
+                        borderColor={s.borderColor}
+                        color={isAvailable ? s.borderColor : 'white'}
+                        _hover={{
+                          bg: isAvailable ? s.cardBg : s.buttonHover,
+                          borderColor: s.borderColor,
+                        }}
+                        onClick={() => handleVirtualTableClick(virtualTable)}
+                        minW="120px"
+                        h="70px"
+                      >
+                        <VStack spacing={1}>
+                          <Text fontSize="sm" fontWeight="bold" textAlign="center">
+                            {virtualTable.name}
+                          </Text>
+                          <HStack spacing={2}>
+                            {virtualTable.mode === 'combined' && (
+                              <Badge size="sm" colorScheme="gray">
+                                {virtualTable.physicalTables.length} {t('tablesLabel').toLowerCase()}
+                              </Badge>
+                            )}
+                            <Badge size="sm" colorScheme="blue">{virtualTable.totalCapacity}p</Badge>
+                          </HStack>
+                          <Text fontSize="xs">{label}</Text>
+                        </VStack>
+                      </Button>
+                    </Box>
                   );
                 })}
               </HStack>
@@ -442,6 +508,39 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
         sections={sections}
         isSimpleMode={isSimpleRestaurant}
       />
+
+      <AlertDialog
+        isOpen={isDeleteOpen}
+        leastDestructiveRef={cancelDeleteRef}
+        onClose={onDeleteClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent bg={surfaceColor} color={textColor}>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              {t('deleteVirtualTable')}
+            </AlertDialogHeader>
+            <AlertDialogBody>
+              {t('confirmDeleteVirtualTableDescription').replace('{tableName}', virtualTableToDelete?.name || '')}
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button ref={cancelDeleteRef} onClick={onDeleteClose} isDisabled={isDeletingVirtualTable}>
+                {t('cancel')}
+              </Button>
+              <Button
+                bg="#E53E3E"
+                color="white"
+                _hover={{ bg: '#C53030' }}
+                ml={3}
+                onClick={handleConfirmDeleteVirtualTable}
+                isLoading={isDeletingVirtualTable}
+                isDisabled={isDeletingVirtualTable}
+              >
+                {t('deleteVirtualTable')}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </>
   );
 }

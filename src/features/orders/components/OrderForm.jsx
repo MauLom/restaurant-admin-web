@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import {
   Box, Button, Flex, Grid, Icon, IconButton, Text, VStack, HStack, Textarea, Wrap, WrapItem
 } from '@chakra-ui/react';
-import { FaCashRegister, FaShoppingBasket, FaMinus, FaPlus } from 'react-icons/fa';
+import { FaShoppingBasket, FaMinus, FaPlus } from 'react-icons/fa';
 import api from '../../../services/api';
 import { UserContext } from '../../../context/UserContext';
 import { useCustomToast } from '../../../hooks/useCustomToast';
@@ -186,27 +186,6 @@ function OrderForm({ table, onBack }) {
     }
   };
 
-  const handleSendToCashier = async () => {
-    try {
-      await api.put(`/tables/${table._id}`, { status: 'ready_for_payment' });
-      toast({
-        title: t('tableReadyForPayment'),
-        description: t('cashierNotified'),
-        status: 'info',
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      toast({
-        title: t('errorTitle'),
-        description: t('cashierNotificationError'),
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
   const isItemAvailable = (item) => {
     const servings = availability[item._id];
     // null → no recipe linked → always available
@@ -369,9 +348,6 @@ function OrderForm({ table, onBack }) {
           <VStack spacing={2}>
             <Button w="full" bg="teal.500" _hover={{ bg: 'teal.600' }} onClick={handleSubmitOrder} color="white">
               {t('confirmOrder')}
-            </Button>
-            <Button w="full" bg="orange.500" _hover={{ bg: 'orange.600' }} onClick={handleSendToCashier} leftIcon={<FaCashRegister />} color="white">
-              Enviar al Cajero
             </Button>
           </VStack>
         </Box>
