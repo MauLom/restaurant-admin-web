@@ -12,6 +12,7 @@ import { useAuthContext } from '../context/AuthContext';
 import { useDemoContext } from '../context/DemoContext';
 import { useTheme } from '../context/ThemeContext';
 import { MOBILE_NAV_HEIGHT } from '../shared/constants/layout';
+import { CLIENT_LOGO_URL } from '../config/branding';
 
 function DashboardPage() {
   const {t} = useLanguage();
@@ -39,7 +40,7 @@ function DashboardPage() {
     <Flex direction="column" height="100vh">
       <Flex as="header" justify="space-between" align="center" p={{ base: 4, md: 6 }} bg={currentTheme.colors.interface?.header || "#333"} minH="80px" gap={2}>
         <HStack spacing={4} minW={0}>
-          <Img className="logo" maxW="5rem" src={currentTheme.logo || "maui-logo.png"} borderRadius={10}/>
+          <Img className="logo" maxW="5rem" src={CLIENT_LOGO_URL} borderRadius={10}/>
           {user?.username && (
             <Text color={currentTheme.colors.text} fontWeight="medium" fontSize="lg">
               {t('greetingLabel').replace('{username}', user.username)}

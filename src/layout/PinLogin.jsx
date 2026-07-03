@@ -10,6 +10,7 @@ import { useDemoContext } from '../context/DemoContext';
 import { useCustomToast } from '../hooks/useCustomToast';
 import api from '../services/api';
 import permissions from '../config/permissions';
+import { CLIENT_LOGO_URL, ENABLE_DEMO_AND_SIGNUP } from '../config/branding';
 
 function PinLogin() {
   const { t } = useLanguage();
@@ -234,7 +235,7 @@ function PinLogin() {
       _focus={{ outline: "none" }}
     >
       <Center flex="1">
-        <Img className="logo" maxW="220px" src="maui-logo.png" />
+        <Img className="logo" maxW="220px" src={CLIENT_LOGO_URL} />
       </Center>
 
       {noUsers ? (
@@ -298,38 +299,42 @@ function PinLogin() {
             </VStack>
           </Box>
 
-          <Divider />
+          {ENABLE_DEMO_AND_SIGNUP && (
+            <>
+              <Divider />
 
-          <Box textAlign="center" w="full">
-            <VStack spacing={3}>
-              <Button
-                colorScheme="teal"
-                variant="outline"
-                size="lg"
-                onClick={handleDemoLogin}
-                w="full"
-                maxW="300px"
-              >
-                🎭 {t('demoAccessButton')}
-              </Button>
-              <Text fontSize="sm" color="gray.500">
-                {t('exploreDemoFeatures')}
-              </Text>
+              <Box textAlign="center" w="full">
+                <VStack spacing={3}>
+                  <Button
+                    colorScheme="teal"
+                    variant="outline"
+                    size="lg"
+                    onClick={handleDemoLogin}
+                    w="full"
+                    maxW="300px"
+                  >
+                    🎭 {t('demoAccessButton')}
+                  </Button>
+                  <Text fontSize="sm" color="gray.500">
+                    {t('exploreDemoFeatures')}
+                  </Text>
 
-              <Divider borderColor="gray.600" />
+                  <Divider borderColor="gray.600" />
 
-              <Button
-                colorScheme="blue"
-                variant="outline"
-                size="md"
-                onClick={() => navigate('/register')}
-                w="full"
-                maxW="300px"
-              >
-                {t('createAccountTitle')}
-              </Button>
-            </VStack>
-          </Box>
+                  <Button
+                    colorScheme="blue"
+                    variant="outline"
+                    size="md"
+                    onClick={() => navigate('/register')}
+                    w="full"
+                    maxW="300px"
+                  >
+                    {t('createAccountTitle')}
+                  </Button>
+                </VStack>
+              </Box>
+            </>
+          )}
         </VStack>
       )}
     </Flex>
