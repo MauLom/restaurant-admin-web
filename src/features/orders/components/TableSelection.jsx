@@ -505,8 +505,6 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
         isOpen={isOpen}
         onClose={onClose}
         onVirtualTableCreated={handleVirtualTableCreated}
-        sections={sections}
-        isSimpleMode={isSimpleRestaurant}
       />
 
       <AlertDialog
