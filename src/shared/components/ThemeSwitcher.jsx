@@ -38,7 +38,7 @@ function ThemeSwitcher() {
       fontSize="md"
       fontWeight="medium"
       borderRadius="md"
-      minW="120px"
+      minW="20px"
       flexShrink={0}
       _hover={{
         transform: 'translateY(-2px)',

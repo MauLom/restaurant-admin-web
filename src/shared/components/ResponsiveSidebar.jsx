@@ -5,6 +5,7 @@ import { FaUtensils, FaHamburger, FaCogs } from 'react-icons/fa';
 import { useAuthContext } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { MOBILE_NAV_HEIGHT } from '../constants/layout';
 
 function ResponsiveSidebar() {
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -31,8 +32,9 @@ function ResponsiveSidebar() {
     <Box
       as="nav"
       width="full"
+      height={MOBILE_NAV_HEIGHT}
       bg={currentTheme.colors.interface?.sidebar || "#444"}
-      p={6}
+      px={3}
       zIndex={10000}
       position="fixed"
       bottom="0"
@@ -40,7 +42,7 @@ function ResponsiveSidebar() {
       borderTop="2px solid"
       borderColor={currentTheme.colors.primary[500]}
     >
-      <HStack justify="space-around">
+      <HStack justify="space-around" align="center" height="full">
         {hubItems.map((hub) => (
           <Tooltip key={hub.name} label={hub.name} aria-label={hub.name} placement="top">
             <Button
@@ -48,9 +50,8 @@ function ResponsiveSidebar() {
               to={hub.path}
               variant="ghost"
               size="lg"
-              p={6}
+              p={2}
               minW="80px"
-              minH="60px"
               bg={`${currentTheme.colors.interface?.surface || "#555"}88`}
               color={currentTheme.colors.text}
               borderRadius="lg"
@@ -84,7 +85,8 @@ function ResponsiveSidebar() {
   ) : (
     <Box
       as="aside"
-      width="280px"
+      width="clamp(220px, 16vw, 280px)"
+      flexShrink={0}
       bg={currentTheme.colors.interface?.sidebar || "#444"}
       p={6}
       borderRight="2px solid"
