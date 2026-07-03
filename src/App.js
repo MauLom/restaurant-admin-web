@@ -29,6 +29,7 @@ import ProductManagementPage from './features/hubs/pages/ProductManagementPage';
 import ConfigurationPage from './features/hubs/pages/ConfigurationPage';
 import RegisterPage from './features/auth/RegisterPage';
 import RecipeListPage from './features/recipes/pages/RecipeListPage';
+import ActivityLogPage from './features/activityLog/pages/ActivityLogPage';
 import ProtectedRoute from './shared/components/ProtectedRoute';
 
 const App = () => {
@@ -200,6 +201,15 @@ const App = () => {
             element={
               <ProtectedRoute requiredAccess={['manageRoles']}>
                 <RoleManagementPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="activity-log"
+            element={
+              <ProtectedRoute requiredAccess={['activityLogs']}>
+                <ActivityLogPage />
               </ProtectedRoute>
             }
           />

@@ -39,6 +39,12 @@ function RestaurantStatusPage() {
       link: '/dashboard/waiter-analytics',
       requiredAccess: 'waiterOrders'
     },
+    {
+      title: t('activityLogTitle'),
+      description: t('activityLogDescription'),
+      link: '/dashboard/activity-log',
+      requiredAccess: 'activityLogs'
+    },
   ].filter(option => userPermissions.includes(option.requiredAccess));
 
   // Use theme colors directly for consistency with custom theme system

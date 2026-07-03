@@ -13,7 +13,7 @@ import api from '../../../services/api';
 const PERMISSION_ORDER = [
   'orders', 'waiterOrders', 'kitchenOrders', 'cashier',
   'sections', 'analytics', 'manageCategories', 'manageItems',
-  'inventory', 'generatePins', 'manageUsers', 'manageRoles',
+  'inventory', 'generatePins', 'manageUsers', 'manageRoles', 'activityLogs',
 ];
 
 // Maps permission names to their module title i18n key so the UI
@@ -30,6 +30,7 @@ const PERMISSION_TITLE_KEY = {
   inventory: 'manageInventoryTitle',
   manageUsers: 'manageUsersTitle',
   manageRoles: 'manageRolesTitle',
+  activityLogs: 'activityLogTitle',
 };
 
 function RoleManagementPage() {
