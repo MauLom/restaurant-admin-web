@@ -149,6 +149,7 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
       isVirtual: true,
       virtualTableData: virtualTable,
       capacity: virtualTable.totalCapacity,
+      tableSessionId: virtualTable.currentSession?.sessionId,
     });
   };
 
