@@ -374,10 +374,11 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                         }}
                         onClick={() => handleVirtualTableClick(virtualTable)}
                         minW="120px"
+                        maxW="150px"
                         h="70px"
                       >
-                        <VStack spacing={1}>
-                          <Text fontSize="sm" fontWeight="bold" textAlign="center">
+                        <VStack spacing={1} w="full">
+                          <Text fontSize="sm" fontWeight="bold" textAlign="center" isTruncated w="full" title={virtualTable.name}>
                             {virtualTable.name}
                           </Text>
                           <HStack spacing={2}>
@@ -443,13 +444,22 @@ function TableSelection({ sections, onTableClick, onRefreshSections }) {
                               isDisabled={isPartOfVirtual}
                               position="relative"
                               minW="100px"
+                              maxW="130px"
                               h="60px"
                             >
-                              <VStack spacing={1}>
-                                <Text fontSize="sm" fontWeight="bold">
+                              <VStack spacing={1} w="full">
+                                <Text fontSize="sm" fontWeight="bold" isTruncated w="full">
                                   {t('table')} {table.number || t('notAssignedAbbr')}
                                 </Text>
-                                <Text fontSize="xs">
+                                <Text fontSize="xs" isTruncated w="full" title={
+                                  isPartOfVirtual
+                                    ? t('inVirtualTableStatus')
+                                    : isMaintenance
+                                      ? t('pendingCleaning')
+                                      : table.status === "occupied"
+                                        ? t('occupiedStatus')
+                                        : t('available')
+                                }>
                                   {isPartOfVirtual
                                     ? t('inVirtualTableStatus')
                                     : isMaintenance

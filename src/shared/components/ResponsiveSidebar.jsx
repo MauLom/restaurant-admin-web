@@ -52,6 +52,7 @@ function ResponsiveSidebar() {
               size="lg"
               p={2}
               minW="80px"
+              maxW="80px"
               bg={`${currentTheme.colors.interface?.surface || "#555"}88`}
               color={currentTheme.colors.text}
               borderRadius="lg"
@@ -74,8 +75,8 @@ function ResponsiveSidebar() {
               }}
             >
               <hub.icon size="24px" />
-              <Text fontSize="xs" fontWeight="medium" mt={1}>
-                {hub.name.split(' ')[0]}
+              <Text fontSize="xs" fontWeight="medium" mt={1} isTruncated w="full" textAlign="center">
+                {hub.name}
               </Text>
             </Button>
           </Tooltip>
