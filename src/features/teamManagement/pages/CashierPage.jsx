@@ -33,12 +33,15 @@ function CashierPage() {
   // Fetch sections + filter to only tables with pending payment orders
   const fetchTables = async () => {
     try {
-      const [sectionsRes, pendingRes] = await Promise.all([
+      const [sectionsRes, virtualTablesRes, pendingRes] = await Promise.all([
         api.get('/sections'),
+        api.get('/virtual-tables?active=true'),
         api.get('/orders/pending-payment-tables'),
       ]);
       const pendingIds = new Set(pendingRes.data);
-      const allTables = sectionsRes.data.flatMap(s => s.tables);
+      const physicalTables = sectionsRes.data.flatMap(s => s.tables);
+      const virtualTables = virtualTablesRes.data.map(vt => ({ _id: vt._id, number: vt.name }));
+      const allTables = [...physicalTables, ...virtualTables];
       setTables(allTables.filter(t => pendingIds.has(t._id)));
     } catch (err) {
       console.error('Error fetching tables:', err);
