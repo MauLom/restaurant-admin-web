@@ -144,8 +144,9 @@ function ResponsiveSidebar() {
               ringOffset: 2,
             }}
           >
-            <HStack spacing={4} align="center">
+            <HStack spacing={4} align="center" w="full">
               <Box
+                flexShrink={0}
                 p={2}
                 borderRadius="md"
                 bg={`${currentTheme.colors.primary[500]}18`}
@@ -162,12 +163,16 @@ function ResponsiveSidebar() {
               >
                 <hub.icon size="20px" />
               </Box>
-              <VStack align="start" spacing={0}>
-                <Text 
-                  fontSize="md" 
-                  fontWeight="semibold" 
+              <VStack align="start" spacing={0} minW={0} w="full">
+                <Text
+                  fontSize="md"
+                  fontWeight="semibold"
                   color={currentTheme.colors.text}
                   lineHeight="1.2"
+                  noOfLines={2}
+                  w="full"
+                  wordBreak="break-word"
+                  title={hub.name}
                 >
                   {hub.name}
                 </Text>
